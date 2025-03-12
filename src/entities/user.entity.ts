@@ -15,14 +15,14 @@ export class User {
   email: string;
 
   @Column({ unique: true, length: 15, nullable: false })
-  @Matches(/^\d+$/, { message: 'Nomor telepon hanya boleh berisi angka' })
+  @Matches(/^\d+$/, { message: 'Phone number must be a number' })
   phone_number: string;
 
   @Column({ unique: true, length: 20, nullable: false })
   username: string;
 
   @Column({ nullable: false })
-  @Length(60, 72, { message: 'Password harus berupa hash bcrypt yang valid' })
+  @Length(60, 72, { message: 'Password must be between 6 and 20 characters' })
   password: string;
 
   @Column({ type: 'text', nullable: true })

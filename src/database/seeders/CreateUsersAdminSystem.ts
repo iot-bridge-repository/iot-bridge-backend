@@ -1,9 +1,9 @@
 import { DataSource } from "typeorm";
-import { v4 as uuidv4 } from "uuid";
 import * as bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
 import 'dotenv/config'
 import { UserRole, User } from "../../entities/user.entity";
-import AppDataSource from "../../config/database.config";
+import AppDataSource from "../database.config";
 
 const createUsersAdminSystem = async (dataSource: DataSource) => {
   const userRepository = dataSource.getRepository(User);
@@ -15,7 +15,7 @@ const createUsersAdminSystem = async (dataSource: DataSource) => {
   const password = process.env.ADMIN_SYSTEM_PASSWORD ?? "";
 
   if (emails.length !== phoneNumbers.length || emails.length !== usernames.length) {
-    console.error("Data di .env tidak valid. Pastikan jumlah email, nomor telepon, dan username sama.");
+    console.error("Data in .env is invalid. Emails, phone numbers, and usernames must have the same length.");
     return;
   }
 
@@ -37,15 +37,15 @@ const createUsersAdminSystem = async (dataSource: DataSource) => {
 
   // Insert data ke database
   await userRepository.insert(usersAdminSystem);
-  console.log("User admin system berhasil ditambahkan.");
+  console.log("User admin system successfully added.");
 };
 
 AppDataSource.initialize()
   .then(async (dataSource) => {
-    console.log("Database connected! Running seeder...");
+    console.log("Database connected! Running admin system seeder...");
     await createUsersAdminSystem(dataSource);
     await dataSource.destroy();
   })
   .catch((error) => {
-    console.error("Error saat menjalankan seeder:", error);
+    console.error("Error while running admin system seeder:", error);
   });

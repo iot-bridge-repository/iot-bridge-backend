@@ -7,7 +7,12 @@ export class CreateUsersTable1741505126260 implements MigrationInterface {
     const isPostgres = queryRunner.connection.options.type === "postgres";
     if (isPostgres) {
       await queryRunner.query(`
-        CREATE TYPE "user_role_enum" AS ENUM ('Admin System', 'Regular User');
+        DO $$ 
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role_enum') THEN
+              CREATE TYPE "user_role_enum" AS ENUM ('Admin System', 'Regular User');
+            END IF;
+        END $$;
       `);
     }
 

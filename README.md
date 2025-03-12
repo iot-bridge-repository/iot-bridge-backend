@@ -41,14 +41,13 @@ Create an .env file in the project root with the following contents:
 
 ```bash
 # Database config
+DB_TYPE=
 DB_HOST=
 DB_PORT=
 DB_USERNAME=
 DB_PASSWORD=
 DB_NAME=
 ```
-
-and you can change the database type in src/config/database.config.ts on line 6, the default is postgres.
 
 #### 3️⃣ Create database
 
@@ -59,7 +58,7 @@ Create database according to name in DB_NAME.
 After configuring the database, run the following command to run the migration:
 
 ```bash
-$ npx typeorm-ts-node-commonjs migration:run -d src/config/database.config.ts
+$ npx typeorm-ts-node-commonjs migration:run -d src/database/database.config.ts
 ```
 
 #### 5️⃣ Run seeders (Admin System)
@@ -68,16 +67,22 @@ To add a System Admin user to the database, add the following variables in .env:
 
 ```bash
 ADMIN_SYSTEM_EMAILS=admin1@example.com,admin2@example.com,admin3@example.com,admin4@example.com,admin5@example.com
-ADMIN_SYSTEM_PHONE_NUMBERS=081234567891,081234567892,081234567893,081234567894,081234567895
+ADMIN_SYSTEM_PHONE_NUMBERS=08xxxxxxxx,08xxxxxxxx,08xxxxxxxx,08xxxxxxxx,08xxxxxxxx
 ADMIN_SYSTEM_USERNAMES=admin1,admin2,admin3,admin4,admin5
 ADMIN_SYSTEM_PASSWORD=password123
 ```
+
+Remember the password must be at least 6 characters and a maximum of 20. 
+
+You can only fill in one password for all users.
 
 Then run the following command:
 
 ```bash
 $ npx ts-node src/database/seeders/CreateUsersAdminSystem.ts
 ```
+
+If you don't want to add a Admin System user, you can skip this step.
 
 ## Compile and run the project
 
