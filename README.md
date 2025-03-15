@@ -74,7 +74,7 @@ ADMIN_SYSTEM_PASSWORD=password123
 
 Remember the password must be at least 6 characters and a maximum of 20. 
 
-You can only fill in one password for all users.
+You can only fill in one password for all users and the deafult password is `12345678`.
 
 Then run the following command:
 

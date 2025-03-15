@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { User } from '../entities/user.entity';
 import { AuthApiService } from './auth-api.service';
 import { AuthApiController } from './auth-api.controller';
@@ -8,9 +9,14 @@ import { AuthApiController } from './auth-api.controller';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET ?? 'secret_key',
-      signOptions: { expiresIn: '1d' },
+    ConfigModule.forRoot(),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET', 'default_secret'),
+        signOptions: { expiresIn: '1d' },
+      }),
     }),
   ],
   providers: [AuthApiService],

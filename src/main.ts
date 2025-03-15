@@ -9,11 +9,11 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   // Konfigurasi Swagger
-  const env = process.env.NODE_ENV ?? 'development';
+  const env = process.env.NODE_ENV === 'production' ? 'production' : 'development';
   if (env !== 'production') {
     const config = new DocumentBuilder()
-      .setTitle('IoT Bridge API')
-      .setDescription('API untuk aplikasi IoT Bridge')
+      .setTitle('IoT Bridge API Documentation')
+      .setDescription('API Documentation for IoT Bridge Application')
       .setVersion('1.0')
       .addTag('Auth')
       .build();
@@ -31,7 +31,9 @@ async function bootstrap() {
       transform: true, // Otomatis mengubah request menjadi instance DTO
     }),
   );
-  app.useGlobalFilters(new HttpExceptionFilter()); 
+
+  // Konfigurasi filter
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   await app.listen(process.env.PORT ?? 3000);
   logger.log(`Application is running on port ${process.env.PORT ?? 3000}`);

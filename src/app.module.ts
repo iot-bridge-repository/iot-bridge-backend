@@ -1,6 +1,8 @@
+import * as path from 'path';
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthApiModule } from './auth-api/auth-api.module';
@@ -27,6 +29,12 @@ import { LoggingMiddleware } from './middleware/logging.middleware';
           logger: 'advanced-console',
         } as TypeOrmModuleOptions;
       },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: process.env.NODE_ENV === 'production'
+        ? '/var/www/uploads'
+        : path.join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
     }),
     AuthApiModule
   ],

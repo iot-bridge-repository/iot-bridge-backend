@@ -12,7 +12,7 @@ const createUsersAdminSystem = async (dataSource: DataSource) => {
   const emails = process.env.ADMIN_SYSTEM_EMAILS?.split(",") || [];
   const phoneNumbers = process.env.ADMIN_SYSTEM_PHONE_NUMBERS?.split(",") || [];
   const usernames = process.env.ADMIN_SYSTEM_USERNAMES?.split(",") || [];
-  const password = process.env.ADMIN_SYSTEM_PASSWORD ?? "";
+  const password = process.env.ADMIN_SYSTEM_PASSWORD ?? "12345678";
 
   if (emails.length !== phoneNumbers.length || emails.length !== usernames.length) {
     console.error("Data in .env is invalid. Emails, phone numbers, and usernames must have the same length.");
@@ -36,7 +36,7 @@ const createUsersAdminSystem = async (dataSource: DataSource) => {
   }));
 
   // Insert data ke database
-  await userRepository.insert(usersAdminSystem);
+  await userRepository.save(usersAdminSystem);
   console.log("User admin system successfully added.");
 };
 

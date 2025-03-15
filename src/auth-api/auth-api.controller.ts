@@ -1,11 +1,17 @@
-import { Controller, Body, Post } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import * as path from 'path';
+import { Controller, Logger, UseGuards, Req, Body, Post, Get, Put, UseInterceptors, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { diskStorage } from 'multer';
 import { AuthApiService } from './auth-api.service';
-import { LoginDto } from './dto';
+import { PostLoginDto, PutUpdateProfileDto } from './dto';
+import { AuthGuard, AuthenticatedRequest } from '../guard/auth.guard';
+
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthApiController {
+  private readonly logger = new Logger(AuthApiController.name);
   constructor(private readonly authService: AuthApiService) {}
 
   @ApiOperation({ summary: 'Login' })
@@ -36,7 +42,107 @@ export class AuthApiController {
     } 
   })
   @Post('login')
-  login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  postLogin(@Body() postLoginDto: PostLoginDto) {
+    this.logger.log(`There is a login request`);
+    return this.authService.postLogin(postLoginDto);
+  }
+
+  @ApiOperation({ summary: 'Get profile' })
+  @ApiBearerAuth()
+  @ApiHeader({ name: 'Authorization', description: 'Bearer token', required: true })
+  @ApiOkResponse({
+    description: 'User profile retrieved successfully',
+    schema: {
+      example: {
+        message: 'User profile retrieved successfully',
+        data: {
+          user: {
+            id: 'c353a34c-2aad-44c4-8830-796360c16d2e',
+            username: 'Bill Valentinov',
+            email: 'user@example.com',
+            phone_number: '08xx-xxxx-xxxx',
+            profile_picture: 'https://example.com/profile-picture.jpg',
+            role: 'Admin System'
+          }
+        }
+      }
+    }
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User not found or token invalid',
+    schema: {
+      example: {
+        message : 'Invalid token',
+        error : 'Unauthorized',
+        statusCode: 401
+      }
+    }
+  })
+  @UseGuards(AuthGuard)
+  @Get('profile')
+  getProfile(@Req() request: AuthenticatedRequest) {
+    return this.authService.getProfile(request.user!.id);
+  }
+
+  @ApiOperation({ summary: 'Update profile' })
+  @ApiBearerAuth()
+  @ApiHeader({ name: 'Authorization', description: 'Bearer token', required: true })
+  @ApiOkResponse({
+    description: 'Profile updated successfully',
+    schema: {
+      example: {
+        message: 'Profile updated successfully',
+        data: {
+          token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c', 
+          user: {
+            id: 'c353a34c-2aad-44c4-8830-796360c16d2e',
+            username: 'Bill Valentinov',
+            email: 'user@example.com',
+            phone_number: '08xx-xxxx-xxxx',
+            profile_picture: 'https://example.com/profile-picture.jpg',
+            role: 'Admin System'
+          }
+        }
+      }
+    }
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User not found or token invalid',
+    schema: {
+      example: {
+        message: [ "Phone number cannot be empty" ],
+        error: "Bad Request",
+        statusCode: 400
+      }
+    }
+  })
+  @Put('update-profile')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('profile_picture',
+    {
+      fileFilter: (req, file, cb) => {
+        const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+          return cb(new BadRequestException('Profile picture must be an image. Only jpg, jpeg, and png are allowed!'), false);
+        }
+        if (file.size > 1024 * 1024 * 2) {
+          return cb(new BadRequestException('Profile picture size cannot be more than 2MB'), false);
+        }
+        cb(null, true);
+      },
+      storage: diskStorage({
+        destination: process.env.NODE_ENV === 'production'
+        ? '/var/www/uploads/profile_pictures'
+        : './uploads/profile_pictures',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+          cb(null, `${uniqueSuffix}${path.extname(file.originalname)}`);
+        },
+      }),
+    }
+  ))
+  putUpdateProfile(@Req() request: AuthenticatedRequest, @Body() putUpdateProfileDto: PutUpdateProfileDto) {
+    this.logger.log(`There is an update profile request`);
+    return this.authService.updateUserProfile(request, request.user!.id, putUpdateProfileDto, request.file?.filename ?? null);
   }
 }
