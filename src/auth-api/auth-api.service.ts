@@ -1,13 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Injectable, UnauthorizedException, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from 'express';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
-import { PostLoginDto, PutUpdateProfileDto } from './dto';
+import { PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto } from './dto';
 
 @Injectable()
 export class AuthApiService {
@@ -62,7 +62,7 @@ export class AuthApiService {
         }
       },
     };
-    this.logger.log(`User profile retrieved by id: ${user.id}`);
+    this.logger.log(`User profile retrieved by id: ${id}`);
     return response;
   }
 
@@ -114,7 +114,31 @@ export class AuthApiService {
         }
       }
     };
-    this.logger.log(`User profile updated by id: ${updatedUser!.id}`);
+    this.logger.log(`User profile updated by id: ${id}`);
     return response;
+  }
+
+  async changePassword(id: string, changePasswordDto: PutChangePasswordDto) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      this.logger.warn(`User not found by id: ${id}`);
+      throw new NotFoundException('User not found');
+    }
+
+    const { oldPassword, newPassword } = changePasswordDto;
+
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isPasswordValid) {
+      this.logger.warn(`Incorrect old password by id: ${id}`);
+      throw new BadRequestException('Incorrect old password');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.update(id, { password: hashedPassword });
+
+    this.logger.log(`Password changed by id: ${id}`);
+    return {
+      message: 'Password changed successfully',
+    };
   }
 }

@@ -4,7 +4,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { AuthApiService } from './auth-api.service';
-import { PostLoginDto, PutUpdateProfileDto } from './dto';
+import { PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto } from './dto';
 import { AuthGuard, AuthenticatedRequest } from '../guard/auth.guard';
 
 
@@ -69,7 +69,7 @@ export class AuthApiController {
     }
   })
   @ApiUnauthorizedResponse({
-    description: 'User not found or token invalid',
+    description: 'Token invalid',
     schema: {
       example: {
         message : 'Invalid token',
@@ -107,7 +107,7 @@ export class AuthApiController {
     }
   })
   @ApiUnauthorizedResponse({
-    description: 'User not found or token invalid',
+    description: 'Phone number validation failed',
     schema: {
       example: {
         message: [ "Phone number cannot be empty" ],
@@ -144,5 +144,33 @@ export class AuthApiController {
   putUpdateProfile(@Req() request: AuthenticatedRequest, @Body() putUpdateProfileDto: PutUpdateProfileDto) {
     this.logger.log(`There is an update profile request`);
     return this.authService.updateUserProfile(request, request.user!.id, putUpdateProfileDto, request.file?.filename ?? null);
+  }
+
+  @Put('change-password')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Change password' })
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'Password changed successfully',
+    schema: {
+      example: {
+        message: 'Password changed successfully',
+      }
+    }
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Incorrect old password',
+    schema: {
+      example: {
+        message: "Incorrect old password",
+        error: "Bad Request",
+        statusCode: 400
+      }
+    }
+  })
+  @ApiHeader({ name: 'Authorization', description: 'Bearer token', required: true })
+  putChangePassword(@Req() request: AuthenticatedRequest, @Body() putChangePasswordDto: PutChangePasswordDto) {
+    this.logger.log(`There is a change password request`);
+    return this.authService.changePassword(request.user!.id, putChangePasswordDto);
   }
 }
