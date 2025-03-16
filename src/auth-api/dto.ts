@@ -45,3 +45,14 @@ export class PutChangePasswordDto {
   @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
   newPassword: string;
 }
+
+export class PostForgotPasswordDto {
+  @ApiProperty({ example: 'user@example.com', description: 'User email' })
+  @IsNotEmpty({ message: 'Email cannot be empty' })
+  @IsEmail({}, { message: 'Email is not valid' })
+  email: string;
+
+  @ApiProperty({ example: '08xxxxxxxx', description: 'User phone number' })
+  @IsNotEmpty({ message: 'Phone number cannot be empty' })
+  phone_number: string;
+}

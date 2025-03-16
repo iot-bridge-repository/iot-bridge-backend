@@ -7,8 +7,8 @@ import AuthenticatedRequest from './AuthenticatedRequest';
 import { User } from '../entities/user.entity';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
-  private readonly logger = new Logger(AuthGuard.name);
+export class AdminSystemRolesGuard implements CanActivate {
+  private readonly logger = new Logger(AdminSystemRolesGuard.name);
   constructor(
     private readonly jwtService: JwtService,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
@@ -31,6 +31,9 @@ export class AuthGuard implements CanActivate {
       if (!user) {
         this.logger.warn('User not found or token invalid');
         throw new UnauthorizedException('User not found or token invalid');
+      } else if (user.role !== 'Admin System') {
+        this.logger.warn('User not authorized to access, only Admin System can access');
+        throw new UnauthorizedException('You are not authorized to access, only Admin System can access');
       }
 
       // Set user ke request

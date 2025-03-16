@@ -4,9 +4,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { AuthApiService } from './auth-api.service';
-import { PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto } from './dto';
-import { AuthGuard, AuthenticatedRequest } from '../guard/auth.guard';
-
+import { PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto, PostForgotPasswordDto } from './dto';
+import { AuthGuard } from '../guard/auth.guard';
+import AuthenticatedRequest from '../guard/AuthenticatedRequest';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -45,6 +45,31 @@ export class AuthApiController {
   postLogin(@Body() postLoginDto: PostLoginDto) {
     this.logger.log(`There is a login request`);
     return this.authService.postLogin(postLoginDto);
+  }
+
+  @ApiOperation({ summary: 'Forgot password' })
+  @ApiOkResponse({
+    description: 'Forgot password request sent successfully',
+    schema: {
+      example: {
+        message: 'A new password has been sent to your email'
+      }
+    }
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Email or phone number not found or does not match',
+    schema: {
+      example: {
+        message: "Email or phone number not found or does not match",
+        error: "Not Found",
+        statusCode: 404
+      }
+    }
+  })
+  @Post('forgot-password')
+  postForgotPassword(@Body() PostForgotPasswordDto: PostForgotPasswordDto) {
+    this.logger.log(`There is a forgot password request`);
+    return this.authService.postForgotPassword(PostForgotPasswordDto);
   }
 
   @ApiOperation({ summary: 'Get profile' })

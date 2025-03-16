@@ -84,6 +84,32 @@ $ npx ts-node src/database/seeders/CreateUsersAdminSystem.ts
 
 If you don't want to add a Admin System user, you can skip this step.
 
+#### 6️⃣ Configure .env
+
+Add the following variables to the .env file in the project root:
+
+```bash
+# 🔐 JWT Configuration
+JWT_SECRET=your_jwt_secret_key
+
+# 🌍 Application Environment
+NODE_ENV=development  # Use "development" or "production"
+
+# ✉️ Email Configuration
+EMAIL_SERVICE_USER=your-email@gmail.com
+EMAIL_SERVICE_PASSWORD=your-app-password  # Use an App Password from Gmail
+```
+
+NODE_ENV → Choose "development" for development mode or "production" for production mode.
+
+EMAIL_SERVICE_PASSWORD → Do not use your regular Gmail password. Use an App Password from Google.
+
+🔗 How to get an App Password:
+1. Go to Google Account Security.
+2. Enable 2-Step Verification (if not already enabled).
+3. Go to App Passwords, select "Mail," and generate a unique password.
+4. Use this password for EMAIL_SERVICE_PASSWORD.
+
 ## Compile and run the project
 
 ```bash
