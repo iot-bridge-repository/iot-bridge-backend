@@ -32,7 +32,7 @@ export class AuthApiService {
         throw new UnauthorizedException('Email or password is incorrect');
       }
 
-      const payload = { id: user.id, email: user.email, username: user.username, role: user.role };
+      const payload = { id: user.id, username: user.username };
       const token = this.jwtService.sign(payload);
 
       this.logger.log(`User logged in: ${user.email}`);

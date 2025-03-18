@@ -106,7 +106,7 @@ export class AuthApiController {
   @UseGuards(AuthGuard)
   @Get('profile')
   getProfile(@Req() request: AuthenticatedRequest) {
-    return this.authService.getProfile(request.user!.id);
+    return this.authService.getProfile(request.user.id);
   }
 
   @ApiOperation({ summary: 'Update profile' })
@@ -168,7 +168,7 @@ export class AuthApiController {
   ))
   putUpdateProfile(@Req() request: AuthenticatedRequest, @Body() putUpdateProfileDto: PutUpdateProfileDto) {
     this.logger.log(`There is an update profile request`);
-    return this.authService.updateUserProfile(request, request.user!.id, putUpdateProfileDto, request.file?.filename ?? null);
+    return this.authService.updateUserProfile(request, request.user.id, putUpdateProfileDto, request.file?.filename ?? null);
   }
 
   @Put('change-password')
@@ -196,6 +196,6 @@ export class AuthApiController {
   @ApiHeader({ name: 'Authorization', description: 'Bearer token', required: true })
   putChangePassword(@Req() request: AuthenticatedRequest, @Body() putChangePasswordDto: PutChangePasswordDto) {
     this.logger.log(`There is a change password request`);
-    return this.authService.changePassword(request.user!.id, putChangePasswordDto);
+    return this.authService.changePassword(request.user.id, putChangePasswordDto);
   }
 }

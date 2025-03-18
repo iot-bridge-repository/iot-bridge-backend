@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { Request } from 'express';
 import AuthenticatedRequest from './AuthenticatedRequest';
-import { User } from '../entities/user.entity';
+import { User, UserRole } from '../entities/user.entity';
 
 @Injectable()
 export class AdminSystemRolesGuard implements CanActivate {
@@ -26,18 +26,18 @@ export class AdminSystemRolesGuard implements CanActivate {
 
     try {
       const decoded = this.jwtService.verify(token);
-      const { id, email, username, role } = decoded;
-      const user = await this.userRepository.findOne({ where: { id, email, username, role } });
+      const { id, username } = decoded;
+      const user = await this.userRepository.findOne({ where: { id, username } });
       if (!user) {
         this.logger.warn('User not found or token invalid');
         throw new UnauthorizedException('User not found or token invalid');
-      } else if (user.role !== 'Admin System') {
+      } else if (user.role !== UserRole.ADMIN_SYSTEM) {
         this.logger.warn('User not authorized to access, only Admin System can access');
         throw new UnauthorizedException('You are not authorized to access, only Admin System can access');
       }
 
       // Set user ke request
-      (request as AuthenticatedRequest).user = { id, email, username, role };
+      (request as AuthenticatedRequest).user = { id, username };
       return true;
     } catch (error) {
       this.logger.warn(`Authentication failed: ${error.message}`);
