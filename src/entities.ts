@@ -1,6 +1,27 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 import { Matches, Length } from "class-validator";
 
+@Entity({ name: 'otp' })
+export class Otp {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ nullable: true })
+  email: string;
+
+  @Column({ nullable: true })
+  phone_number: string;
+
+  @Column()
+  otp: string;
+
+  @Column({ type: 'enum', enum: ['email', 'phone_number'] })
+  type: 'email' | 'phone_number';
+
+  @CreateDateColumn()
+  created_at: Date;
+}
+
 export enum UserRole {
   ADMIN_SYSTEM = 'Admin System',
   REGULAR_USER = 'Regular User',
@@ -38,3 +59,4 @@ export class User {
   @CreateDateColumn()
   created_at: Date;
 }
+

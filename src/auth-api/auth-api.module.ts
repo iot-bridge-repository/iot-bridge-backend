@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { User } from '../entities/user.entity';
+import { Otp, User } from '../entities';
 import { AuthApiService } from './auth-api.service';
 import { AuthApiController } from './auth-api.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Otp]),
     ConfigModule.forRoot(),
     JwtModule.registerAsync({
       imports: [ConfigModule],

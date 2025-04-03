@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { Request } from 'express';
 import AuthenticatedRequest from './AuthenticatedRequest';
-import { User, UserRole } from '../entities/user.entity';
+import { User, UserRole } from '../entities';
 
 @Injectable()
 export class AdminSystemRolesGuard implements CanActivate {

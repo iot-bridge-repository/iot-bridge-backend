@@ -8,8 +8,8 @@ import { Request } from 'express';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { User } from '../entities/user.entity';
-import { PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto, PostForgotPasswordDto } from './dto';
+import { Otp, User } from '../entities';
+import { PostEmailOtpDto, PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto, PostForgotPasswordDto } from './dto';
 import { EmailService } from '../services/email.service';
 
 @Injectable()
@@ -18,10 +18,55 @@ export class AuthApiService {
   private readonly emailService: EmailService;
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(Otp) private readonly otpRepository: Repository<Otp>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService
   ) {
     this.emailService = new EmailService(this.configService);
+  }
+
+  async postEmailOtp(postEmailOtpDto: PostEmailOtpDto) {
+    try {
+      const existingOtp = await this.otpRepository.findOneBy({ email: postEmailOtpDto.email });
+      if (existingOtp) {
+        this.logger.log(`Deleting existing OTP for email: ${postEmailOtpDto.email}`);
+        await this.otpRepository.remove(existingOtp);
+      }
+
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      await this.emailService.sendEmail(
+        postEmailOtpDto.email,
+        '🔒 OTP Akun IoT Bridge Anda',
+        `Halo, berikut adalah OTP untuk akun IoT Bridge Anda: ${otp}. OTP ini berlaku selama 5 menit.`,
+        `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>🔒 OTP Akun IoT Bridge Anda</h2>
+          <p>Halo,</p>
+          <p>Berikut adalah OTP untuk akun IoT Bridge Anda:</p>
+          <h3 style="color: #007bff;">${otp}</h3>
+          <p>OTP ini berlaku selama 5 menit.</p>
+          <hr>
+          <p>Salam,<br><strong>IoT Bridge Team</strong></p>
+        </div>
+        `
+      )
+
+      await this.otpRepository.save({
+        email: postEmailOtpDto.email,
+        otp,
+        type: 'email',
+        created_at: new Date(),
+      });
+
+      this.logger.log(`Email OTP sent successfully to email: ${postEmailOtpDto.email}`);
+      return { message: 'Email OTP sent successfully, please check your email or spam folder' };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to send email forgot password by email: ${postEmailOtpDto.email}, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to send email forgot password, please try another time');
+    }
   }
 
   async postLogin(postLoginDto: PostLoginDto) {

@@ -4,7 +4,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { AuthApiService } from './auth-api.service';
-import { PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto, PostForgotPasswordDto } from './dto';
+import { PostEmailOtpDto, PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto, PostForgotPasswordDto } from './dto';
 import { AuthGuard } from '../guard/auth.guard';
 import AuthenticatedRequest from '../guard/AuthenticatedRequest';
 
@@ -13,6 +13,33 @@ import AuthenticatedRequest from '../guard/AuthenticatedRequest';
 export class AuthApiController {
   private readonly logger = new Logger(AuthApiController.name);
   constructor(private readonly authService: AuthApiService) {}
+
+  @ApiOperation({ summary: 'Email OTP' })
+  @ApiOkResponse({ 
+    description: 'Email OTP sent successfully', 
+    schema: {
+      example: {
+        message: 'Email OTP sent successfully',
+      }
+    }
+  })
+  @ApiUnauthorizedResponse({ 
+    description: 'Email is incorrect', 
+    schema: { 
+      example: { 
+        message: [
+          'email must be an email'
+        ],
+        error: 'Bad Request',
+        statusCode: 400
+      }      
+    } 
+  })
+  @Post('email-otp')
+  postEmailOtp(@Body() postEmailOtpDto: PostEmailOtpDto) {
+    this.logger.log(`There is a email otp request`);
+    return this.authService.postEmailOtp(postEmailOtpDto);
+  }
 
   @ApiOperation({ summary: 'Login' })
   @ApiOkResponse({ 

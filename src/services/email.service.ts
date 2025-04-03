@@ -9,7 +9,7 @@ export class EmailService {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: this.configService.get<string>('EMAIL_SERVICE_USER'),
+        user: this.configService.get<string>('EMAIL_SERVICE_ADDRESS'),
         pass: this.configService.get<string>('EMAIL_SERVICE_PASSWORD'),
       },
     });
@@ -17,7 +17,7 @@ export class EmailService {
 
   async sendEmail(to: string, subject: string, text: string, html: string) {
     await this.transporter.sendMail({
-      from: `IoT Bridge Aplication <${this.configService.get<string>('EMAIL_SERVICE_USER')}>`,
+      from: `IoT Bridge Aplication <${this.configService.get<string>('EMAIL_SERVICE_ADDRESS')}>`,
       to,
       subject,
       text,
