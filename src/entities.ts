@@ -1,24 +1,23 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
-import { Matches, Length } from "class-validator";
 
 @Entity({ name: 'otp' })
 export class Otp {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: true })
+  @Column({ length: 255, nullable: true })
   email: string;
 
-  @Column({ nullable: true })
+  @Column({ length: 15, nullable: true })
   phone_number: string;
 
-  @Column()
+  @Column({ nullable: false })
   otp: string;
 
-  @Column({ type: 'enum', enum: ['email', 'phone_number'] })
+  @Column({ type: 'enum', enum: ['email', 'phone_number'], nullable: false })
   type: 'email' | 'phone_number';
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 }
 
@@ -32,18 +31,16 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true, length: 255, nullable: false })
+  @Column({ length: 255, unique: true, nullable: true })
   email: string;
 
-  @Column({ unique: true, length: 15, nullable: false })
-  @Matches(/^\d+$/, { message: 'Phone number must be a number' })
+  @Column({ length: 15, unique: true, nullable: true })
   phone_number: string;
 
-  @Column({ unique: true, length: 20, nullable: false })
+  @Column({ length: 20, unique: true, nullable: false })
   username: string;
 
   @Column({ nullable: false })
-  @Length(60, 72, { message: 'Password must be between 6 and 20 characters' })
   password: string;
 
   @Column({ type: 'text', nullable: true })
@@ -56,7 +53,51 @@ export class User {
   })
   role: UserRole;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 }
 
+@Entity({ name: 'organizations' })
+export class Organization {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ length: 100, nullable: false })
+  name: string;
+
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  logo_picture: string | null;
+
+  @Column({ default: false })
+  verified: boolean;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
+}
+
+export enum OrganizationMemberRole {
+  ADMIN = 'Admin',
+  OPERATOR = 'Operator',
+  VIEWER = 'Viewer',
+}
+
+@Entity({ name: 'organization_members' })
+export class OrganizationMember {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'uuid', nullable: false })
+  user_id: string;
+
+  @Column({ type: 'uuid', nullable: false })
+  organization_id: string;
+
+  @Column({ type: 'enum', enum: OrganizationMemberRole, nullable: false })
+  role: OrganizationMemberRole;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  joined_at: Date;
+}

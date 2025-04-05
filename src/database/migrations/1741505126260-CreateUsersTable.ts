@@ -1,36 +1,67 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class CreateUsersTable1741505126260 implements MigrationInterface {
-
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Jika PostgreSQL, buat ENUM secara eksplisit
-    const isPostgres = queryRunner.connection.options.type === "postgres";
-    if (isPostgres) {
-      await queryRunner.query(`
-        DO $$ 
-          BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role_enum') THEN
-              CREATE TYPE "user_role_enum" AS ENUM ('Admin System', 'Regular User');
-            END IF;
-        END $$;
-      `);
-    }
-
-    await queryRunner.query(`
-      CREATE TABLE users (
-        id VARCHAR(36) PRIMARY KEY,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        phone_number VARCHAR(15) UNIQUE NOT NULL,
-        username VARCHAR(20) UNIQUE NOT NULL,
-        password VARCHAR(100) NOT NULL,
-        profile_picture TEXT,
-        role ${isPostgres ? `"user_role_enum"` : `ENUM('Admin System', 'Regular User')`} NOT NULL DEFAULT 'Regular User',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+    await queryRunner.createTable(
+      new Table({
+        name: 'users',
+        columns: [
+          {
+            name: 'id',
+            type: 'varchar',
+            length: '36',
+            isPrimary: true,
+          },
+          {
+            name: 'email',
+            type: 'varchar',
+            length: '255',
+            isUnique: true,
+            isNullable: true,
+          },
+          {
+            name: 'phone_number',
+            type: 'varchar',
+            length: '15',
+            isUnique: true,
+            isNullable: true,
+          },
+          {
+            name: 'username',
+            type: 'varchar',
+            length: '20',
+            isUnique: true,
+            isNullable: false,
+          },
+          {
+            name: 'password',
+            type: 'varchar',
+            isNullable: false,
+          },
+          {
+            name: 'profile_picture',
+            type: 'text',
+            isNullable: true,
+          },
+          {
+            name: 'role',
+            type: 'enum',
+            enum: ['Admin System', 'Regular User'],
+            default: `'Regular User'`,
+            isNullable: false,
+          },
+          {
+            name: 'created_at',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
+        ],
+      }),
+      true,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE "users"`);
+    await queryRunner.dropTable('users');
   }
 }

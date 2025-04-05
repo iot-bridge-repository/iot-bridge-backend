@@ -15,16 +15,16 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Ambil request dari context
-    const request = context.switchToHttp().getRequest<Request>();
-    // Ambil header Authorization
-    const authHeader = request.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Token not provided');
-    }
-    const token = authHeader.split(' ')[1];
-
     try {
+      // Ambil request dari context
+      const request = context.switchToHttp().getRequest<Request>();
+      // Ambil header Authorization
+      const authHeader = request.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        throw new UnauthorizedException('Token not provided');
+      }
+      const token = authHeader.split(' ')[1];
+
       const decoded = this.jwtService.verify(token);
       const { id, username } = decoded;
       const user = await this.userRepository.findOne({ where: { id, username } });

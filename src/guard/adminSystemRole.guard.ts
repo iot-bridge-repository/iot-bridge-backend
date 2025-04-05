@@ -7,24 +7,24 @@ import AuthenticatedRequest from './AuthenticatedRequest';
 import { User, UserRole } from '../entities';
 
 @Injectable()
-export class AdminSystemRolesGuard implements CanActivate {
-  private readonly logger = new Logger(AdminSystemRolesGuard.name);
+export class AdminSystemRoleGuard implements CanActivate {
+  private readonly logger = new Logger(AdminSystemRoleGuard.name);
   constructor(
     private readonly jwtService: JwtService,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Ambil request dari context
-    const request = context.switchToHttp().getRequest<Request>();
-    // Ambil header Authorization
-    const authHeader = request.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Token not provided');
-    }
-    const token = authHeader.split(' ')[1];
-
     try {
+      // Ambil request dari context
+      const request = context.switchToHttp().getRequest<Request>();
+      // Ambil header Authorization
+      const authHeader = request.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        throw new UnauthorizedException('Token not provided');
+      }
+      const token = authHeader.split(' ')[1];
+
       const decoded = this.jwtService.verify(token);
       const { id, username } = decoded;
       const user = await this.userRepository.findOne({ where: { id, username } });
@@ -39,6 +39,7 @@ export class AdminSystemRolesGuard implements CanActivate {
       // Set user ke request
       (request as AuthenticatedRequest).user = { id, username };
       return true;
+
     } catch (error) {
       this.logger.warn(`Authentication failed: ${error.message}`);
       if (error instanceof HttpException || error?.status || error?.response) {
