@@ -71,13 +71,13 @@ export class AuthApiService {
 
   async postLogin(postLoginDto: PostLoginDto) {
     try {
-      const user = await this.userRepository.findOne({ where: { email: postLoginDto.email } });
+      const user = await this.userRepository.findOne({ where: { username: postLoginDto.username } });
       if (!user || !bcrypt.compareSync(postLoginDto.password, user.password)) {
-        this.logger.warn(`Login failed by email: ${postLoginDto.email}`);
-        throw new UnauthorizedException('Email or password is incorrect');
+        this.logger.warn(`Login failed by email: ${postLoginDto.username}`);
+        throw new UnauthorizedException('Username or password is incorrect');
       }
 
-      const payload = { id: user.id, username: user.username };
+      const payload = { id: user.id };
       const token = this.jwtService.sign(payload);
 
       this.logger.log(`User logged in: ${user.email}`);
@@ -87,8 +87,6 @@ export class AuthApiService {
           token,
           user: {
             id: user.id,
-            username: user.username,
-            role: user.role
           }
         },
       };
@@ -96,7 +94,7 @@ export class AuthApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to login by email: ${postLoginDto.email}, Error: ${error.message}`);
+      this.logger.error(`Failed to login by username: ${postLoginDto.username}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to login, please try another time');
     }
   }

@@ -9,10 +9,9 @@ export class PostEmailOtpDto {
 }
 
 export class PostLoginDto {
-  @ApiProperty({ example: 'user@example.com', description: 'User email' })
-  @IsNotEmpty({ message: 'Email cannot be empty' })
-  @IsEmail({}, { message: 'Email is not valid' })
-  email: string;
+  @ApiProperty({ example: 'username', description: 'User username' })
+  @IsNotEmpty({ message: 'Username cannot be empty' })
+  username: string;
 
   @ApiProperty({ example: 'password123', description: 'User password' })
   @IsNotEmpty({ message: 'Password cannot be empty' })

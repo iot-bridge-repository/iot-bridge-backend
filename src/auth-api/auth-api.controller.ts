@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { Controller, Logger, UseGuards, Req, Body, Post, Get, Put, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiOkResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiOkResponse, ApiUnauthorizedResponse, ApiBadRequestResponse, ApiNotFoundResponse } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { AuthApiService } from './auth-api.service';
 import { PostEmailOtpDto, PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto, PostForgotPasswordDto } from './dto';
@@ -23,7 +23,7 @@ export class AuthApiController {
       }
     }
   })
-  @ApiUnauthorizedResponse({ 
+  @ApiBadRequestResponse({ 
     description: 'Email is incorrect', 
     schema: { 
       example: { 
@@ -51,18 +51,16 @@ export class AuthApiController {
           token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c', 
           user: { 
             id: 'c353a34c-2aad-44c4-8830-796360c16d2e', 
-            username: 'Bill Valentinov', 
-            role: 'Admin System' 
           } 
         } 
       } 
     }  
   })
   @ApiUnauthorizedResponse({ 
-    description: 'Email or password is incorrect', 
+    description: 'Username or password is incorrect', 
     schema: { 
       example: { 
-        message: 'Email or password is incorrect',
+        message: 'Username or password is incorrect',
         error: 'Unauthorized',
         statusCode: 401
       }      
@@ -83,7 +81,7 @@ export class AuthApiController {
       }
     }
   })
-  @ApiUnauthorizedResponse({
+  @ApiNotFoundResponse({
     description: 'Email or phone number not found or does not match',
     schema: {
       example: {
@@ -158,7 +156,7 @@ export class AuthApiController {
       }
     }
   })
-  @ApiUnauthorizedResponse({
+  @ApiBadRequestResponse({
     description: 'Phone number validation failed',
     schema: {
       example: {
@@ -210,7 +208,7 @@ export class AuthApiController {
       }
     }
   })
-  @ApiUnauthorizedResponse({
+  @ApiBadRequestResponse({
     description: 'Incorrect old password',
     schema: {
       example: {

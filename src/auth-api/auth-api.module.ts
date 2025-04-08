@@ -15,11 +15,11 @@ import { AuthApiController } from './auth-api.controller';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET', 'default_secret'),
-        signOptions: { expiresIn: '1d' },
       }),
     }),
   ],
   providers: [AuthApiService],
-  controllers: [AuthApiController]
+  controllers: [AuthApiController],
+  exports: [JwtModule],
 })
 export class AuthApiModule {}
