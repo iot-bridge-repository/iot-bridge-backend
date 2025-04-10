@@ -8,9 +8,9 @@ import { Request } from 'express';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { Otp, User } from '../entities';
-import { PostEmailOtpDto, PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto, PostForgotPasswordDto } from './dto';
-import { EmailService } from '../services/email.service';
+import { Otp, User } from '../common/entities';
+import { PostEmailOtpDto, PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto, PutChangeEmailDto, PostForgotPasswordDto } from './dto';
+import { EmailService } from '../common/services/email.service';
 
 @Injectable()
 export class AuthApiService {
@@ -36,15 +36,15 @@ export class AuthApiService {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       await this.emailService.sendEmail(
         postEmailOtpDto.email,
-        '🔒 OTP Akun IoT Bridge Anda',
-        `Halo, berikut adalah OTP untuk akun IoT Bridge Anda: ${otp}. OTP ini berlaku selama 5 menit.`,
+        '🔒 Email OTP Akun IoT Bridge Anda',
+        `Halo, berikut adalah Email OTP untuk akun IoT Bridge Anda: ${otp}. Email OTP ini berlaku selama 5 menit.`,
         `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2>🔒 OTP Akun IoT Bridge Anda</h2>
+          <h2>🔒 Email OTP Akun IoT Bridge Anda</h2>
           <p>Halo,</p>
-          <p>Berikut adalah OTP untuk akun IoT Bridge Anda:</p>
+          <p>Berikut adalah Email OTP untuk akun IoT Bridge Anda:</p>
           <h3 style="color: #007bff;">${otp}</h3>
-          <p>OTP ini berlaku selama 5 menit.</p>
+          <p>Email OTP ini berlaku selama 5 menit.</p>
           <hr>
           <p>Salam,<br><strong>IoT Bridge Team</strong></p>
         </div>
@@ -122,16 +122,16 @@ export class AuthApiService {
         '🔒 Reset Password Akun Anda',
         `Halo ${user.username},\n\nKami telah menerima permintaan reset password untuk akun Anda. Berikut adalah password baru Anda:\n\n🔑 Password Baru: ${newPassword}\n\nHarap segera login dan ubah password Anda untuk keamanan akun.\n\nJika Anda tidak meminta reset password ini, abaikan email ini atau hubungi tim support kami.\n\nSalam,\nIoT Bridge Team`,
         `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2>🔒 Reset Password Akun Anda</h2>
-          <p>Halo <strong>${user.username}</strong>,</p>
-          <p>Kami telah menerima permintaan reset password untuk akun Anda.</p>
-          <p><strong>🔑 Password Baru:</strong> <code>${newPassword}</code></p>
-          <p>Harap segera login dan ubah password Anda untuk menjaga keamanan akun.</p>
-          <p>Jika Anda tidak meminta reset password ini, abaikan email ini atau hubungi tim support kami.</p>
-          <hr>
-          <p>Salam,<br><strong>IoT Bridge Team</strong></p>
-        </div>
+          <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>🔒 Reset Password Akun Anda</h2>
+            <p>Halo <strong>${user.username}</strong>,</p>
+            <p>Kami telah menerima permintaan reset password untuk akun Anda.</p>
+            <p><strong>🔑 Password Baru:</strong> <code>${newPassword}</code></p>
+            <p>Harap segera login dan ubah password Anda untuk menjaga keamanan akun.</p>
+            <p>Jika Anda tidak meminta reset password ini, abaikan email ini atau hubungi tim support kami.</p>
+            <hr>
+            <p>Salam,<br><strong>IoT Bridge Team</strong></p>
+          </div>
         `
       );
 
@@ -177,7 +177,7 @@ export class AuthApiService {
     }
   }
 
-  async updateUserProfile(req: Request, id: string, updateProfileDto: PutUpdateProfileDto, profile_picture: string | null) {
+  async updateUserProfile(id: string, updateProfileDto: PutUpdateProfileDto, profile_picture: string | null, req: Request) {
     try {
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
@@ -187,17 +187,16 @@ export class AuthApiService {
 
       const updateDataProfile: Partial<User> = {
         username: updateProfileDto.username,
-        email: updateProfileDto.email,
         phone_number: updateProfileDto.phone_number,
       };
       if (profile_picture) {
         const baseUrl = `${req.protocol}://${req.get('host')}`;
-        updateDataProfile.profile_picture = `${baseUrl}/uploads/profile_pictures/${profile_picture}`;
+        updateDataProfile.profile_picture = `${baseUrl}/uploads/profile_picture/${profile_picture}`;
 
         if (user.profile_picture) {
           const uploadDir = this.configService.get('NODE_ENV') === 'production'
-            ? '/var/www/uploads/profile_pictures'
-            : './uploads/profile_pictures';
+            ? '/var/www/uploads/profile_picture'
+            : './uploads/profile_picture';
           const oldFilePath = path.join(uploadDir, path.basename(user.profile_picture));
 
           if (fs.existsSync(oldFilePath)) {
@@ -208,23 +207,14 @@ export class AuthApiService {
 
       await this.userRepository.update(id, updateDataProfile);
 
-      const payload = {
-        id,
-        email: updateDataProfile.email,
-        username: updateDataProfile.username,
-        role: updateDataProfile.role,
-      };
-      const token = this.jwtService.sign(payload);
-
       this.logger.log(`User profile updated by id: ${id}`);
       return {
         message: 'Profile updated successfully',
         data: {
-          token,
           user: {
             id,
             username: updateDataProfile.username,
-            email: updateDataProfile.email,
+            email: user.email,
             phone_number: updateDataProfile.phone_number,
             profile_picture: updateDataProfile.profile_picture,
             role: updateDataProfile.role,
@@ -242,6 +232,53 @@ export class AuthApiService {
       }
       this.logger.error(`Failed to update profile by id: ${id}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to update profile, please try another time');
+    }
+  }
+
+  async changeEmail(id: string, changeEmailDto: PutChangeEmailDto) {
+    try {  
+      const user = await this.userRepository.findOne({ where: { id } });
+      if (!user) {
+        this.logger.warn(`User not found by id: ${id}`);
+        throw new NotFoundException('User not found');
+      }
+
+      const existingOtp = await this.otpRepository.findOne({ where: { email: changeEmailDto.email } });
+      if (!existingOtp) {
+        this.logger.warn(`No OTP found for email: ${changeEmailDto.email}`);
+        throw new NotFoundException('OTP not found for this email');
+      }
+      if (existingOtp.otp !== changeEmailDto.otp) {
+        this.logger.warn(`Invalid OTP for email: ${changeEmailDto.email}`);
+        throw new BadRequestException('Invalid OTP code');
+      }
+      const createdAt = new Date(existingOtp.created_at);
+      const now = new Date();
+      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000); // 5 menit
+      if (createdAt < fiveMinutesAgo) {
+        this.logger.warn(`OTP expired (created_at: ${createdAt.toISOString()}) for email: ${changeEmailDto.email}`);
+        await this.otpRepository.remove(existingOtp);
+        throw new BadRequestException('OTP has expired');
+      }
+
+      await this.userRepository.update(id, { email: changeEmailDto.email });
+      await this.otpRepository.remove(existingOtp);
+
+      this.logger.log(`Email updated successfully for user ID: ${id}`);
+      return {
+        message: 'Email changed successfully',
+        data: {
+          user: {
+            email: changeEmailDto.email,
+          },
+        },
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to change email by id: ${id}, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to change email, please try again later');
     }
   }
 

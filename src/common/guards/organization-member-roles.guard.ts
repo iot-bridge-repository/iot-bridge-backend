@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { Request } from 'express';
-import { ORGANIZATION_MEMBER_ROLES_KEY } from './organizationMemberRoles.decorator';
+import { ORGANIZATION_MEMBER_ROLES_KEY } from '../decorators/organization-member-roles.decorator';
 import { OrganizationMemberRole, OrganizationMember } from '../entities';
 
 @Injectable()

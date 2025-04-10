@@ -3,12 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { Request } from 'express';
-import AuthenticatedRequest from './AuthenticatedRequest';
+import AuthenticatedRequest from '../interfaces/authenticated-request.interface';
 import { User, UserRole } from '../entities';
 
 @Injectable()
-export class AdminSystemRoleGuard implements CanActivate {
-  private readonly logger = new Logger(AdminSystemRoleGuard.name);
+export class AdminSystemGuard implements CanActivate {
+  private readonly logger = new Logger(AdminSystemGuard.name);
   constructor(
     private readonly jwtService: JwtService,
     @InjectRepository(User) private readonly userRepository: Repository<User>,

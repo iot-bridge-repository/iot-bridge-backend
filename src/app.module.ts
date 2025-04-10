@@ -5,8 +5,9 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import * as entity from './common/entities';
 import { AuthApiModule } from './auth-api/auth-api.module';
-import { LoggingMiddleware } from './middleware/logging.middleware';
+import { LoggingMiddleware } from './common/middleware/logging.middleware';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { LoggingMiddleware } from './middleware/logging.middleware';
           username: configService.get<string>('DB_USERNAME'),
           password: configService.get<string>('DB_PASSWORD'),
           database: configService.get<string>('DB_NAME'),
-          entities: [__dirname + '/entities/*.entity{.ts,.js}'],
+          entities: [entity.User, entity.Otp, entity.Organization, entity.OrganizationMember],
           synchronize: false, 
           autoLoadEntities: true, 
           logging: true,
@@ -30,11 +31,17 @@ import { LoggingMiddleware } from './middleware/logging.middleware';
         } as TypeOrmModuleOptions;
       },
     }),
-    ServeStaticModule.forRoot({
-      rootPath: process.env.NODE_ENV === 'production'
-        ? '/var/www/uploads'
-        : path.join(__dirname, '..', 'uploads'),
-      serveRoot: '/uploads',
+    ServeStaticModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => [
+        {
+          rootPath: configService.get<string>('NODE_ENV') === 'production'
+            ? '/var/www/uploads'
+            : path.resolve(__dirname, '..', 'uploads'),
+          serveRoot: '/uploads',
+        },
+      ],
     }),
     AuthApiModule
   ],

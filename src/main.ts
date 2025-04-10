@@ -3,26 +3,28 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './filter/http-exception.filter';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
 
+  // Middleware untuk mengamankan HTTP headers
   app.use(helmet());
 
   // Konfigurasi Swagger
-  const env = process.env.NODE_ENV === 'production' ? 'production' : 'development';
-  if (env !== 'production') {
+  if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('IoT Bridge API Documentation')
       .setDescription('API Documentation for IoT Bridge Application')
       .setVersion('1.0')
-      .addTag('Auth')
+      .addBearerAuth()
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api-docs', app, document);
+    SwaggerModule.setup('api-docs', app, document, {
+      customSiteTitle: "IoT Bridge API Documentation",
+    });
     logger.log('📄 Swagger API Docs are available at: http://localhost:3000/api-docs');
   }
 

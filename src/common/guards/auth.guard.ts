@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { Request } from 'express';
-import AuthenticatedRequest from './AuthenticatedRequest';
+import AuthenticatedRequest from '../interfaces/authenticated-request.interface';
 import { User } from '../entities';
 
 @Injectable()

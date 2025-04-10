@@ -1,6 +1,6 @@
 import { DataSource, DataSourceOptions } from "typeorm";
 import 'dotenv/config'
-import { User } from "../entities";
+import { User } from "../common/entities";
 
 const AppDataSource = new DataSource({
   type: process.env.DB_TYPE as DataSourceOptions["type"],
