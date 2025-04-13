@@ -8,8 +8,9 @@ import { Request } from 'express';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { v4 as uuidv4 } from "uuid";
 import { Otp, User } from '../common/entities';
-import { PostEmailOtpDto, PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto, PutChangeEmailDto, PostForgotPasswordDto } from './dto';
+import * as dto from './dto';
 import { EmailService } from '../common/services/email.service';
 
 @Injectable()
@@ -25,11 +26,10 @@ export class AuthApiService {
     this.emailService = new EmailService(this.configService);
   }
 
-  async postEmailOtp(postEmailOtpDto: PostEmailOtpDto) {
+  async postEmailOtp(postEmailOtpDto: dto.PostEmailOtpDto) {
     try {
       const existingOtp = await this.otpRepository.findOneBy({ email: postEmailOtpDto.email });
       if (existingOtp) {
-        this.logger.log(`Deleting existing OTP for email: ${postEmailOtpDto.email}`);
         await this.otpRepository.remove(existingOtp);
       }
 
@@ -69,12 +69,94 @@ export class AuthApiService {
     }
   }
 
-  async postLogin(postLoginDto: PostLoginDto) {
+  async postRegister(postRegisterDto: dto.PostRegisterDto) {
     try {
-      const user = await this.userRepository.findOne({ where: { username: postLoginDto.username } });
-      if (!user || !bcrypt.compareSync(postLoginDto.password, user.password)) {
-        this.logger.warn(`Login failed by email: ${postLoginDto.username}`);
-        throw new UnauthorizedException('Username or password is incorrect');
+      const existingEmail = await this.userRepository.findOne({ where: { email: postRegisterDto.email } });
+      if (existingEmail) {
+        this.logger.warn(`Email already exists: ${postRegisterDto.email}`);
+        throw new BadRequestException('Email already exists');
+      }
+      const existingUsername = await this.userRepository.findOne({ where: { username: postRegisterDto.username } });
+      if (existingUsername) {
+        this.logger.warn(`Username already exists: ${postRegisterDto.username}`);
+        throw new BadRequestException('Username already exists');
+      }
+      const existingPhoneNumber = await this.userRepository.findOne({ where: { phone_number: postRegisterDto.phone_number } });
+      if (existingPhoneNumber) {
+        this.logger.warn(`Phone number already exists: ${postRegisterDto.phone_number}`);
+        throw new BadRequestException('Phone number already exists');
+      }
+
+      const existingOtp = await this.otpRepository.findOne({ where: { email: postRegisterDto.email } });
+      if (!existingOtp) {
+        this.logger.warn(`No OTP found for email: ${postRegisterDto.email}`);
+        throw new NotFoundException('OTP not found for this email');
+      }
+      if (existingOtp.otp !== postRegisterDto.otp) {
+        this.logger.warn(`Invalid OTP for email: ${postRegisterDto.email}`);
+        throw new BadRequestException('Invalid OTP code');
+      }
+      const createdAt = new Date(existingOtp.created_at);
+      const now = new Date();
+      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000); // 5 menit
+      if (createdAt < fiveMinutesAgo) {
+        this.logger.warn(`OTP expired (created_at: ${createdAt.toISOString()}) for email: ${postRegisterDto.email}`);
+        await this.otpRepository.remove(existingOtp);
+        throw new BadRequestException('OTP has expired');
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(postRegisterDto.password, salt);
+      const newUser = this.userRepository.create({
+        id: uuidv4(),
+        email: postRegisterDto.email,
+        phone_number: postRegisterDto.phone_number,
+        username: postRegisterDto.username,
+        password: hashedPassword,
+      });
+      await this.userRepository.save(newUser);
+      await this.otpRepository.remove(existingOtp);
+
+      const payload = { id: newUser.id };
+      const token = this.jwtService.sign(payload);
+
+      this.logger.log(`User registered successfully by email: ${postRegisterDto.email}`);
+      return {
+        message: "User registered successfully",
+        data: {
+          token,
+          user: {
+            id: newUser.id,
+          },
+        },
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to register by email: ${postRegisterDto.email}, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to register, please try another time');
+    }
+  }
+
+  async postLogin(postLoginDto: dto.PostLoginDto) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: [
+          { username: postLoginDto.identity },
+          { email: postLoginDto.identity },
+          { phone_number: postLoginDto.identity },
+        ],
+      });
+      if (!user) {
+        this.logger.warn(`Login failed. User not found: ${postLoginDto.identity}`);
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const isPasswordValid = await bcrypt.compare(postLoginDto.password, user.password);
+      if (!isPasswordValid) {
+        this.logger.warn(`Login failed. Invalid password for: ${postLoginDto.identity}`);
+        throw new UnauthorizedException('Invalid credentials');
       }
 
       const payload = { id: user.id };
@@ -94,12 +176,12 @@ export class AuthApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to login by username: ${postLoginDto.username}, Error: ${error.message}`);
+      this.logger.error(`Failed to login by identity: ${postLoginDto.identity}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to login, please try another time');
     }
   }
 
-  async postForgotPassword(postForgotPasswordDto: PostForgotPasswordDto) {
+  async postForgotPassword(postForgotPasswordDto: dto.PostForgotPasswordDto) {
     try {
       const user = await this.userRepository.findOne({ where: { email: postForgotPasswordDto.email, phone_number: postForgotPasswordDto.phone_number } });
       if (!user) {
@@ -112,7 +194,8 @@ export class AuthApiService {
         .toString('base64')
         .replace(/[^a-zA-Z0-9]/g, '')
         .slice(0, 8);
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
 
       user.password = hashedPassword;
       await this.userRepository.save(user);
@@ -177,12 +260,23 @@ export class AuthApiService {
     }
   }
 
-  async updateUserProfile(id: string, updateProfileDto: PutUpdateProfileDto, profile_picture: string | null, req: Request) {
+  async updateUserProfile(id: string, updateProfileDto: dto.PutUpdateProfileDto, profile_picture: string | null, req: Request) {
     try {
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
         this.logger.warn(`User not found by id: ${id}`);
-        throw new NotFoundException('User not found');
+        throw new UnauthorizedException('User not found');
+      }
+
+      const existingUsername = await this.userRepository.findOne({ where: { username: updateProfileDto.username } });
+      if (existingUsername && existingUsername.id !== id) {
+        this.logger.warn(`Username already exists: ${updateProfileDto.username}`);
+        throw new BadRequestException('Username already exists');
+      }
+      const existingPhoneNumber = await this.userRepository.findOne({ where: { phone_number: updateProfileDto.phone_number } });
+      if (existingPhoneNumber && existingPhoneNumber.id !== id) {
+        this.logger.warn(`Phone number already exists: ${updateProfileDto.phone_number}`);
+        throw new BadRequestException('Phone number already exists');
       }
 
       const updateDataProfile: Partial<User> = {
@@ -225,22 +319,24 @@ export class AuthApiService {
       this.logger.warn(`Failed to update profile by id: ${id}, Error: ${error.message}`);
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
-      } else if (error.code === '23505') { // PostgreSQL Unique Constraint Violation
-        throw new BadRequestException('Email, username, or phone number is already taken');
-      } else if (error.code === '22P02') { // PostgreSQL Invalid Text Representation (misalnya input string ke integer)
-        throw new BadRequestException('Invalid input: Please check your data format');
       }
       this.logger.error(`Failed to update profile by id: ${id}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to update profile, please try another time');
     }
   }
 
-  async changeEmail(id: string, changeEmailDto: PutChangeEmailDto) {
+  async changeEmail(id: string, changeEmailDto: dto.PutChangeEmailDto) {
     try {  
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
         this.logger.warn(`User not found by id: ${id}`);
-        throw new NotFoundException('User not found');
+        throw new UnauthorizedException('User not found');
+      }
+
+      const existingEmail = await this.userRepository.findOne({ where: { email: changeEmailDto.email } });
+      if (existingEmail) {
+        this.logger.warn(`Email already exists: ${changeEmailDto.email}`);
+        throw new BadRequestException('Email already exists');
       }
 
       const existingOtp = await this.otpRepository.findOne({ where: { email: changeEmailDto.email } });
@@ -282,12 +378,12 @@ export class AuthApiService {
     }
   }
 
-  async changePassword(id: string, changePasswordDto: PutChangePasswordDto) {
+  async changePassword(id: string, changePasswordDto: dto.PutChangePasswordDto) {
     try {
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
         this.logger.warn(`User not found by id: ${id}`);
-        throw new NotFoundException('User not found');
+        throw new UnauthorizedException('User not found');
       }
 
       const { oldPassword, newPassword } = changePasswordDto;
@@ -298,7 +394,8 @@ export class AuthApiService {
         throw new BadRequestException('Incorrect old password');
       }
 
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
       await this.userRepository.update(id, { password: hashedPassword });
 
       this.logger.log(`Password changed by id: ${id}`);

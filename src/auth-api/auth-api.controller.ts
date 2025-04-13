@@ -1,7 +1,7 @@
 import { Controller, Logger, UseGuards, Req, Body, Post, Get, Put, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { AuthApiService } from './auth-api.service';
-import { PostEmailOtpDto, PostLoginDto, PutUpdateProfileDto, PutChangePasswordDto, PutChangeEmailDto, PostForgotPasswordDto } from './dto';
+import * as dto from './dto';
 import { AuthGuard } from '../common/guards/auth.guard';
 import AuthenticatedRequest from '../common/interfaces/authenticated-request.interface';
 import { UploadPictureInterceptorFactory } from '../common/interceptors/upload-picture.interceptor';
@@ -24,9 +24,30 @@ export class AuthApiController {
     }
   })
   @Post('email-otp')
-  postEmailOtp(@Body() postEmailOtpDto: PostEmailOtpDto) {
+  postEmailOtp(@Body() postEmailOtpDto: dto.PostEmailOtpDto) {
     this.logger.log(`There is a email otp request`);
     return this.authService.postEmailOtp(postEmailOtpDto);
+  }
+
+  @ApiOperation({ summary: 'Register' })
+  @ApiOkResponse({
+    description: 'User registered successfully',
+    schema: {
+      example: {
+        message: "User registered successfully",
+        data: {
+          token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZmMmQ2ZTE2LTdiMTAtNDZhOC04ZWI2LWY0YzliMTg0YWM4OSIsImlhdCI6MTc0NDIyNDI2NX0.E2IqEjRvdHK26vN32vLauC1amGT0evpee_sBPGw25G0',
+          user: {
+            id: 'c353a34c-2aad-44c4-8830-796360c16d2e',
+          },
+        },
+      }
+    }
+  })
+  @Post('register')
+  postRegister(@Body() postRegisterDto: dto.PostRegisterDto) {
+    this.logger.log(`There is a register request`);
+    return this.authService.postRegister(postRegisterDto);
   }
 
   @ApiOperation({ summary: 'Login' })
@@ -45,7 +66,7 @@ export class AuthApiController {
     }  
   })
   @Post('login')
-  postLogin(@Body() postLoginDto: PostLoginDto) {
+  postLogin(@Body() postLoginDto: dto.PostLoginDto) {
     this.logger.log(`There is a login request`);
     return this.authService.postLogin(postLoginDto);
   }
@@ -60,7 +81,7 @@ export class AuthApiController {
     }
   })
   @Post('forgot-password')
-  postForgotPassword(@Body() PostForgotPasswordDto: PostForgotPasswordDto) {
+  postForgotPassword(@Body() PostForgotPasswordDto: dto.PostForgotPasswordDto) {
     this.logger.log(`There is a forgot password request`);
     return this.authService.postForgotPassword(PostForgotPasswordDto);
   }
@@ -126,7 +147,7 @@ export class AuthApiController {
   @Put('update-profile')
   @UseGuards(AuthGuard)
   @UseInterceptors(UploadPictureInterceptorFactory('profile_picture'))
-  async putUpdateProfile(@Req() request: AuthenticatedRequest, @Body() putUpdateProfileDto: PutUpdateProfileDto) {
+  async putUpdateProfile(@Req() request: AuthenticatedRequest, @Body() putUpdateProfileDto: dto.PutUpdateProfileDto) {
     this.logger.log(`There is an update profile request`);
     return this.authService.updateUserProfile(request.user.id, putUpdateProfileDto, request.file?.filename ?? null, request);
   }
@@ -143,7 +164,7 @@ export class AuthApiController {
   })
   @Put('change-email')
   @UseGuards(AuthGuard)
-  putChangeEmail(@Req() request: AuthenticatedRequest, @Body() putChangeEmailDto: PutChangeEmailDto) {
+  putChangeEmail(@Req() request: AuthenticatedRequest, @Body() putChangeEmailDto: dto.PutChangeEmailDto) {
     this.logger.log(`There is a change email request`);
     return this.authService.changeEmail(request.user.id, putChangeEmailDto);
   }
@@ -160,7 +181,7 @@ export class AuthApiController {
   })
   @Put('change-password')
   @UseGuards(AuthGuard)
-  putChangePassword(@Req() request: AuthenticatedRequest, @Body() putChangePasswordDto: PutChangePasswordDto) {
+  putChangePassword(@Req() request: AuthenticatedRequest, @Body() putChangePasswordDto: dto.PutChangePasswordDto) {
     this.logger.log(`There is a change password request`);
     return this.authService.changePassword(request.user.id, putChangePasswordDto);
   }
