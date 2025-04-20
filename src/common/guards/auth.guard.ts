@@ -29,15 +29,15 @@ export class AuthGuard implements CanActivate {
       const decoded = this.jwtService.verify(token);
 
       // Verify id
-      const { id } = decoded;
-      const user = await this.userRepository.findOne({ where: { id } });
+      const { id, role } = decoded;
+      const user = await this.userRepository.findOne({ where: { id, role } });
       if (!user) {
         this.logger.warn('User not found or token invalid');
         throw new UnauthorizedException('User not found or token invalid');
       }
 
       // Set user ke request
-      (request as AuthenticatedRequest).user = { id };
+      (request as AuthenticatedRequest).user = { id, role };
       return true;
     } catch (error) {
       this.logger.warn(`Authentication failed: ${error.message}`);

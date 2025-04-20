@@ -29,18 +29,18 @@ export class AdminSystemGuard implements CanActivate {
       const decoded = this.jwtService.verify(token);
 
       // Verify id and role
-      const { id } = decoded;
+      const { id, role } = decoded;
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
         this.logger.warn('User not found or token invalid');
         throw new UnauthorizedException('User not found or token invalid');
-      } else if (user.role !== UserRole.ADMIN_SYSTEM) {
+      } else if (user.role !== UserRole.ADMIN_SYSTEM && role !== UserRole.ADMIN_SYSTEM) {
         this.logger.warn('User not authorized to access, only Admin System can access');
         throw new UnauthorizedException('You are not authorized to access, only Admin System can access');
       }
 
       // Set user ke request
-      (request as AuthenticatedRequest).user = { id };
+      (request as AuthenticatedRequest).user = { id, role };
       return true;
 
     } catch (error) {

@@ -9,34 +9,28 @@ export class PostEmailOtpDto {
 }
 
 export class PostRegisterDto {
-  @ApiProperty({ example: 'user@example.com', description: 'User email' })
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-
-  @ApiProperty({ example: 'xxxxxx', description: 'OTP code' })
-  @IsNotEmpty({ message: 'OTP code cannot be empty' })
-  @Length(6, 6, { message: 'OTP code must be 6 characters' })
-  @IsString({ message: 'OTP code must be a string' })
-  otp: string;
-
   @ApiProperty({ example: 'username', description: 'User username' })
   @IsNotEmpty({ message: 'Username cannot be empty' })
   @IsString({ message: 'Username must be a string' })
   @Length(3, 20, { message: 'Username must be between 3 and 20 characters' })
   username: string;
 
-  @ApiProperty({ example: 'password123', description: 'User password' })
-  @IsNotEmpty({ message: 'Password cannot be empty' })
-  @IsString({ message: 'Password must be a string' })
-  @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
-  password: string;
+  @ApiProperty({ example: 'user@example.com', description: 'User email' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 
   @ApiProperty({ example: '08xxxxxxxx', description: 'User phone number' })
   @IsNotEmpty({ message: 'Phone number cannot be empty' })
   @Length(10, 15, { message: 'Phone number must be between 10 and 15 characters' })
   @IsPhoneNumber('ID', { message: 'Phone number is not valid' })
   phone_number: string;
+
+  @ApiProperty({ example: 'password123', description: 'User password' })
+  @IsNotEmpty({ message: 'Password cannot be empty' })
+  @IsString({ message: 'Password must be a string' })
+  @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
+  password: string;
 }
 
 export class PostLoginDto {

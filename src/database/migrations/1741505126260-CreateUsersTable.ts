@@ -13,6 +13,13 @@ export class CreateUsersTable1741505126260 implements MigrationInterface {
             isPrimary: true,
           },
           {
+            name: 'username',
+            type: 'varchar',
+            length: '20',
+            isUnique: true,
+            isNullable: false,
+          },
+          {
             name: 'email',
             type: 'varchar',
             length: '255',
@@ -27,13 +34,6 @@ export class CreateUsersTable1741505126260 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'username',
-            type: 'varchar',
-            length: '20',
-            isUnique: true,
-            isNullable: false,
-          },
-          {
             name: 'password',
             type: 'varchar',
             isNullable: false,
@@ -46,8 +46,14 @@ export class CreateUsersTable1741505126260 implements MigrationInterface {
           {
             name: 'role',
             type: 'enum',
-            enum: ['Admin System', 'Regular User'],
+            enum: ['Admin System', 'Regular User', 'Lokal Member'],
             default: `'Regular User'`,
+            isNullable: false,
+          },
+          {
+            name: 'is_email_verified',
+            type: 'boolean',
+            default: false,
             isNullable: false,
           },
           {

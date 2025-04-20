@@ -9,12 +9,12 @@ const createUsersAdminSystem = async (dataSource: DataSource) => {
   const userRepository = dataSource.getRepository(User);
 
   // Ambil data dari .env
+  const usernames = process.env.ADMIN_SYSTEM_USERNAMES?.split(",") || [];
   const emails = process.env.ADMIN_SYSTEM_EMAILS?.split(",") || [];
   const phoneNumbers = process.env.ADMIN_SYSTEM_PHONE_NUMBERS?.split(",") || [];
-  const usernames = process.env.ADMIN_SYSTEM_USERNAMES?.split(",") || [];
   const password = process.env.ADMIN_SYSTEM_PASSWORD ?? "12345678";
 
-  if (emails.length !== phoneNumbers.length || emails.length !== usernames.length) {
+  if (emails.length !== phoneNumbers.length || emails.length !== usernames.length || phoneNumbers.length !== usernames.length) {
     console.error("Data in .env is invalid. Emails, phone numbers, and usernames must have the same length.");
     return;
   }
@@ -24,14 +24,15 @@ const createUsersAdminSystem = async (dataSource: DataSource) => {
   const hashedPassword = await bcrypt.hash(password, salt);
 
   // Data seeder
-  const usersAdminSystem = emails.map((email, index) => ({
+  const usersAdminSystem = usernames.map((username, index) => ({
     id: uuidv4(),
-    email,
+    username,
+    email: emails[index],
     phone_number: phoneNumbers[index],
-    username: usernames[index],
     password: hashedPassword,
     profile_picture: null,
     role: UserRole.ADMIN_SYSTEM,
+    is_email_verified: true,
     created_at: new Date(),
   }));
 

@@ -1,5 +1,6 @@
-import { Controller, Logger, UseGuards, Req, Body, Post, Get, Put, UseInterceptors } from '@nestjs/common';
+import { Controller, Logger, UseGuards, Req, Res, Body, Query, Post, Get, Put, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { Response } from 'express';
 import { AuthApiService } from './auth-api.service';
 import * as dto from './dto';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -14,40 +15,54 @@ export class AuthApiController {
     private readonly authService: AuthApiService, 
   ) {}
 
-  @ApiOperation({ summary: 'Email OTP' })
-  @ApiOkResponse({ 
-    description: 'Email OTP sent successfully', 
-    schema: {
-      example: {
-        message: 'Email OTP sent successfully',
-      }
-    }
-  })
-  @Post('email-otp')
-  postEmailOtp(@Body() postEmailOtpDto: dto.PostEmailOtpDto) {
-    this.logger.log(`There is a email otp request`);
-    return this.authService.postEmailOtp(postEmailOtpDto);
-  }
-
   @ApiOperation({ summary: 'Register' })
   @ApiOkResponse({
-    description: 'User registered successfully',
+    description: 'User get email verification link',
     schema: {
       example: {
-        message: "User registered successfully",
-        data: {
-          token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZmMmQ2ZTE2LTdiMTAtNDZhOC04ZWI2LWY0YzliMTg0YWM4OSIsImlhdCI6MTc0NDIyNDI2NX0.E2IqEjRvdHK26vN32vLauC1amGT0evpee_sBPGw25G0',
-          user: {
-            id: 'c353a34c-2aad-44c4-8830-796360c16d2e',
-          },
-        },
+        message: "Check your email and spam folder for a link to verify your account.",
       }
     }
   })
   @Post('register')
-  postRegister(@Body() postRegisterDto: dto.PostRegisterDto) {
+  async postRegister(@Body() postRegisterDto: dto.PostRegisterDto) {
     this.logger.log(`There is a register request`);
     return this.authService.postRegister(postRegisterDto);
+  }
+
+  @ApiOperation({ summary: 'Verification email' })
+  @ApiOkResponse({
+    description: 'Returns an HTML page confirming successful email verification',
+    content: {
+      'text/html': {
+        example: `
+          <html>
+            <head>
+              <title>Verifikasi Berhasil - IoT Bridge</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center; background-color: #f8f9fa;">
+              <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); max-width: 500px; margin: auto;">
+                <h2 style="color: #28a745;">✅ Verifikasi Email Berhasil!</h2>
+                <p style="font-size: 16px; color: #333;">
+                  Selamat! Akun Anda di <strong>IoT Bridge</strong> telah berhasil diverifikasi.
+                </p>
+                <p style="font-size: 16px; color: #333;">
+                  Silakan kembali ke halaman login untuk mulai menggunakan aplikasi kami.
+                </p>
+                <p style="margin-top: 30px; font-size: 14px; color: #888;">
+                  © 2025 IoT Bridge. Semua hak dilindungi.
+                </p>
+              </div>
+            </body>
+          </html>
+        `,
+      },
+    },
+  })
+  @Get('verify-email')
+  async getVerifyEmail(@Res() res: Response, @Query('id') id: string) {
+    this.logger.log(`There is a verify email request`);
+    return this.authService.getVerifyEmail(id, res);
   }
 
   @ApiOperation({ summary: 'Login' })
@@ -66,7 +81,7 @@ export class AuthApiController {
     }  
   })
   @Post('login')
-  postLogin(@Body() postLoginDto: dto.PostLoginDto) {
+  async postLogin(@Body() postLoginDto: dto.PostLoginDto) {
     this.logger.log(`There is a login request`);
     return this.authService.postLogin(postLoginDto);
   }
@@ -81,7 +96,7 @@ export class AuthApiController {
     }
   })
   @Post('forgot-password')
-  postForgotPassword(@Body() PostForgotPasswordDto: dto.PostForgotPasswordDto) {
+  async postForgotPassword(@Body() PostForgotPasswordDto: dto.PostForgotPasswordDto) {
     this.logger.log(`There is a forgot password request`);
     return this.authService.postForgotPassword(PostForgotPasswordDto);
   }
@@ -108,7 +123,7 @@ export class AuthApiController {
   })
   @UseGuards(AuthGuard)
   @Get('profile')
-  getProfile(@Req() request: AuthenticatedRequest) {
+  async getProfile(@Req() request: AuthenticatedRequest) {
     return this.authService.getProfile(request.user.id);
   }
 
@@ -164,7 +179,7 @@ export class AuthApiController {
   })
   @Put('change-email')
   @UseGuards(AuthGuard)
-  putChangeEmail(@Req() request: AuthenticatedRequest, @Body() putChangeEmailDto: dto.PutChangeEmailDto) {
+  async putChangeEmail(@Req() request: AuthenticatedRequest, @Body() putChangeEmailDto: dto.PutChangeEmailDto) {
     this.logger.log(`There is a change email request`);
     return this.authService.changeEmail(request.user.id, putChangeEmailDto);
   }
@@ -181,7 +196,7 @@ export class AuthApiController {
   })
   @Put('change-password')
   @UseGuards(AuthGuard)
-  putChangePassword(@Req() request: AuthenticatedRequest, @Body() putChangePasswordDto: dto.PutChangePasswordDto) {
+  async putChangePassword(@Req() request: AuthenticatedRequest, @Body() putChangePasswordDto: dto.PutChangePasswordDto) {
     this.logger.log(`There is a change password request`);
     return this.authService.changePassword(request.user.id, putChangePasswordDto);
   }

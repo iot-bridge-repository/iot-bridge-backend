@@ -1,29 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
-@Entity({ name: 'otp' })
-export class Otp {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ length: 255, nullable: true })
-  email: string;
-
-  @Column({ length: 15, nullable: true })
-  phone_number: string;
-
-  @Column({ nullable: false })
-  otp: string;
-
-  @Column({ type: 'enum', enum: ['email', 'phone_number'], nullable: false })
-  type: 'email' | 'phone_number';
-
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at: Date;
-}
-
 export enum UserRole {
   ADMIN_SYSTEM = 'Admin System',
   REGULAR_USER = 'Regular User',
+  LOKAL_MEMBER = 'Lokal Member',
 }
 
 @Entity({ name: "users" })
@@ -53,6 +33,9 @@ export class User {
   })
   role: UserRole;
 
+  @Column({ default: false })
+  is_email_verified: boolean;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 }
@@ -69,10 +52,13 @@ export class Organization {
   description: string | null;
 
   @Column({ type: 'text', nullable: true })
-  logo_picture: string | null;
+  organization_picture: string | null;
 
   @Column({ default: false })
-  verified: boolean;
+  is_verified: boolean;
+
+  @Column({ type: 'varchar', length: 36, nullable: false })
+  created_by: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
@@ -89,15 +75,15 @@ export class OrganizationMember {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid', nullable: false })
-  user_id: string;
-
-  @Column({ type: 'uuid', nullable: false })
-  organization_id: string;
-
   @Column({ type: 'enum', enum: OrganizationMemberRole, nullable: false })
   role: OrganizationMemberRole;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   joined_at: Date;
+
+  @Column({ type: 'varchar', length: 36, nullable: false })
+  user_id: string;
+
+  @Column({ type: 'varchar', length: 36, nullable: false })
+  organization_id: Organization;
 }

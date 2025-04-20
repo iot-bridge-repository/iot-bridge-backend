@@ -24,14 +24,15 @@ export class CreateOrganizationsTable1743734171305 implements MigrationInterface
             isNullable: true,
           },
           {
-            name: 'logo_picture',
+            name: 'organization_picture',
             type: 'text',
             isNullable: true,
           },
           {
-            name: 'verified',
+            name: 'is_verified',
             type: 'boolean',
             default: false,
+            isNullable: false,
           },
           {
             name: 'created_by',

@@ -10,7 +10,7 @@ export function UploadPictureInterceptorFactory(fieldName: string) {
     public readonly interceptor: NestInterceptor;
 
     constructor(public configService: ConfigService) {
-      const uploadOptions = {
+      this.interceptor = new (FileInterceptor(fieldName, {
         fileFilter: (req, file, cb) => {
           const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
           if (!allowedMimeTypes.includes(file.mimetype)) {
@@ -30,9 +30,7 @@ export function UploadPictureInterceptorFactory(fieldName: string) {
             cb(null, `${uniqueSuffix}${path.extname(file.originalname)}`);
           },
         }),
-      };
-
-      this.interceptor = new (FileInterceptor(fieldName, uploadOptions))();
+      }))();
     }
 
     intercept(context: ExecutionContext, next: CallHandler) {
