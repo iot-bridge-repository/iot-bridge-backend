@@ -1,10 +1,12 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm";
 
-export class CreateOrganizationsTable1743734171305 implements MigrationInterface {
+export class CreatePasswordResetTokensTable1745210932627 implements MigrationInterface {
+  name = 'CreatePasswordResetTokensTable1745210932627'
+
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'organizations',
+        name: 'password_reset_tokens',
         columns: [
           {
             name: 'id',
@@ -13,33 +15,15 @@ export class CreateOrganizationsTable1743734171305 implements MigrationInterface
             isPrimary: true,
           },
           {
-            name: 'name',
+            name: 'user_id',
             type: 'varchar',
-            length: '100',
             isUnique: true,
             isNullable: false,
           },
           {
-            name: 'description',
-            type: 'text',
-            isNullable: true,
-          },
-          {
-            name: 'organization_picture',
-            type: 'text',
-            isNullable: true,
-          },
-          {
-            name: 'is_verified',
-            type: 'boolean',
-            default: false,
-            isNullable: false,
-          },
-          {
-            name: 'created_by',
+            name: 'token',
             type: 'varchar',
             isNullable: false,
-            isUnique: false,
           },
           {
             name: 'created_at',
@@ -52,18 +36,18 @@ export class CreateOrganizationsTable1743734171305 implements MigrationInterface
     );
 
     await queryRunner.createForeignKey(
-      'organizations',
+      'password_reset_tokens',
       new TableForeignKey({
-        columnNames: ['created_by'],
+        columnNames: ['user_id'],
         referencedTableName: 'users',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', // Optional: hapus token kalau user dihapus
         onUpdate: 'CASCADE',
       }),
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('organizations');
+    await queryRunner.dropTable('password_reset_tokens');
   }
 }

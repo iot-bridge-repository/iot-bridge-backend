@@ -1,12 +1,14 @@
+import { join } from 'path';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const logger = new Logger('Bootstrap');
 
   // Middleware untuk mengamankan HTTP headers
@@ -39,6 +41,10 @@ async function bootstrap() {
 
   // Konfigurasi filter
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  // Konfigurasi hbs
+  app.setBaseViewsDir(join(__dirname, '..', 'src', 'common', 'views'));
+  app.setViewEngine('hbs');
 
   await app.listen(process.env.PORT ?? 3000);
   logger.log(`Application is running on port ${process.env.PORT ?? 3000}`);

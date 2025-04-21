@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { v4 as uuidv4 } from "uuid";
-import { User } from '../common/entities';
+import { User, VerifyEmailToken, PasswordResetToken } from '../common/entities';
 import * as dto from './dto';
 import { EmailService } from '../common/services/email.service';
 
@@ -19,6 +19,8 @@ export class AuthApiService {
   private readonly emailService: EmailService;
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(VerifyEmailToken) private readonly verifyEmailTokenRepository: Repository<VerifyEmailToken>,
+    @InjectRepository(PasswordResetToken) private readonly passwordResetTokenRepository: Repository<PasswordResetToken>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService
   ) {
@@ -27,6 +29,7 @@ export class AuthApiService {
 
   async postRegister(postRegisterDto: dto.PostRegisterDto) {
     try {
+      // Check if the user already exists
       const existingUser = await this.userRepository.findOne({
         where: [
           { username: postRegisterDto.username },
@@ -49,12 +52,14 @@ export class AuthApiService {
         const expiredAt = new Date(existingUser.created_at);
         expiredAt.setHours(expiredAt.getHours() + 24);
         if (now < expiredAt) {
-          throw new BadRequestException('Email has been registered but not verified. Please check your email for the verification link.');
+          throw new BadRequestException('Email has been registered but not verified. Please check your email and spam folder for the verification link.');
         } else if (now >= expiredAt) {
+          await this.verifyEmailTokenRepository.delete({ user_id: existingUser.id });
           await this.userRepository.delete(existingUser.id);
         }
       }
 
+      // Create a new user
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(postRegisterDto.password, salt);
       const newUser = this.userRepository.create({
@@ -67,6 +72,18 @@ export class AuthApiService {
       });
       await this.userRepository.save(newUser);
 
+      // Create a verification token
+      const token = crypto.randomBytes(32).toString('hex');
+      const verifyEmailToken = this.verifyEmailTokenRepository.create({
+        id: uuidv4(),
+        user_id: newUser.id,
+        email: postRegisterDto.email,
+        token,
+        created_at: new Date(),
+      });
+      await this.verifyEmailTokenRepository.save(verifyEmailToken);
+
+      // Send verify email link
       const baseUrl = this.configService.get('NODE_ENV') === 'production'
         ? 'https://api.iotbridge.app'
         : 'http://localhost:3000';
@@ -80,20 +97,20 @@ export class AuthApiService {
             <p>Halo <strong>${postRegisterDto.username}</strong>,</p>
             <p>Terima kasih telah mendaftar di <strong>IoT Bridge</strong>. Untuk mengaktifkan akun Anda, silakan klik tombol di bawah ini untuk memverifikasi alamat email Anda:</p>
             <div style="margin: 20px 0;">
-              <a href="${baseUrl}/auth/verify-email/?id=${newUser.id}" style="
-                display: inline-block;
-                padding: 12px 24px;
-                background-color: #007bff;
-                color: #fff;
-                text-decoration: none;
-                border-radius: 5px;
-                font-size: 16px;
-                font-weight: bold;
-              ">
-                Verifikasi Email
-              </a>
+              <a href="${baseUrl}/auth/verify-email/?token=${token}" 
+                style="
+                  display: inline-block;
+                  padding: 12px 24px;
+                  background-color: #007bff;
+                  color: #fff;
+                  text-decoration: none;
+                  border-radius: 5px;
+                  font-size: 16px;
+                  font-weight: bold;
+                  "
+              >📧 Verifikasi Email</a>
             </div>
-            <p>Link verifikasi ini hanya berlaku selama <strong>24 jam</strong>. Jika Anda tidak melakukan pendaftaran, silakan abaikan email ini.</p>
+            <p>Link verifikasi ini hanya berlaku selama <strong>24 jam</strong> dan hanya dapat digunakan <strong>1 kali</strong>. Jika Anda tidak melakukan pendaftaran, silakan abaikan email ini.</p>
             <p style="margin-top: 40px;">Salam hangat,<br><strong>Tim IoT Bridge</strong></p>
             <hr style="margin-top: 40px;">
             <p style="font-size: 12px; color: #999;">Email ini dikirim secara otomatis. Mohon untuk tidak membalas ke alamat ini.</p>
@@ -114,61 +131,42 @@ export class AuthApiService {
     }
   }
 
-  async getVerifyEmail(id: string, res: Response) {
+  async getVerifyEmail(queryToken: string, res: Response) {
     try {
-      const user = await this.userRepository.findOne({ where: { id } });
-      if (!user) {
-        this.logger.warn(`Verify email failed. Id not found: ${id}`);
-        throw new UnauthorizedException('Invalid id');
-      }
-      if (user.is_email_verified) {
-        this.logger.warn(`Email already verified for user ID: ${id}`);
-        throw new BadRequestException('Email already verified');
+      // Check if the token is exist and valid
+      const verifyEmailToken = await this.verifyEmailTokenRepository.findOne({ where: { token: queryToken } });
+      if (!verifyEmailToken) {
+        this.logger.warn(`Verify email failed. Token not found: ${queryToken}`);
+        throw new NotFoundException('Token not found');
       }
       const now = new Date();
-      const expiredAt = new Date(user.created_at);
+      const expiredAt = new Date(verifyEmailToken.created_at);
       expiredAt.setHours(expiredAt.getHours() + 24);
       if (now >= expiredAt) {
-        await this.userRepository.delete(id);
-        this.logger.warn(`Email verification link expired for user ID: ${id}`);
+        await this.verifyEmailTokenRepository.delete(verifyEmailToken.id);
+        await this.userRepository.delete(verifyEmailToken.user_id);
+        this.logger.warn(`Email verification link expired for token: ${verifyEmailToken.token}`);
         throw new BadRequestException('Email verification link expired, please register again');
       }
 
-      await this.userRepository.update(id, { is_email_verified: true });
+      // Update the user to set email as verified and delete the token
+      await this.userRepository.update(verifyEmailToken.user_id, { email: verifyEmailToken.email, is_email_verified: true });
+      await this.verifyEmailTokenRepository.delete(verifyEmailToken.id);
 
-      this.logger.log(`Email verified successfully for user ID: ${id}`);
-      return res.status(200).send(`
-        <html>
-          <head>
-            <title>Verifikasi Berhasil - IoT Bridge</title>
-          </head>
-          <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center; background-color: #f8f9fa;">
-            <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); max-width: 500px; margin: auto;">
-              <h2 style="color: #28a745;">✅ Verifikasi Email Berhasil!</h2>
-              <p style="font-size: 16px; color: #333;">
-                Selamat! Akun Anda di <strong>IoT Bridge</strong> telah berhasil diverifikasi.
-              </p>
-              <p style="font-size: 16px; color: #333;">
-                Silakan kembali ke halaman login untuk mulai menggunakan aplikasi kami.
-              </p>
-              <p style="margin-top: 30px; font-size: 14px; color: #888;">
-                © 2025 IoT Bridge. Semua hak dilindungi.
-              </p>
-            </div>
-          </body>
-        </html>
-      `);
+      this.logger.log(`Email verified successfully for user ID: ${verifyEmailToken.user_id}`);
+      return res.render('get-verify-email');
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to verify email by id: ${id}, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to login, please try another time');
+      this.logger.error(`Failed to verify email by token: ${queryToken}, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to verify email, please try another time');
     }
   }
 
   async postLogin(postLoginDto: dto.PostLoginDto) {
     try {
+      // Check if the user exists
       const user = await this.userRepository.findOne({
         where: [
           { username: postLoginDto.identity },
@@ -178,30 +176,33 @@ export class AuthApiService {
       });
       if (!user) {
         this.logger.warn(`Login failed. User not found: ${postLoginDto.identity}`);
-        throw new UnauthorizedException('Invalid credentials');
+        throw new UnauthorizedException('Invalid identity');
       }
 
+      // Check if the email is not verified
       if (!user.is_email_verified) {
         const now = new Date();
         const expiredAt = new Date(user.created_at);
         expiredAt.setHours(expiredAt.getHours() + 24);
         if (now >= expiredAt) {
+          await this.verifyEmailTokenRepository.delete({ user_id: user.id });
           await this.userRepository.delete(user.id);
           this.logger.warn(`Email verification link expired for user ID: ${user.id}`);
           throw new BadRequestException('Email verification expired, please register again');
         }
-
-        this.logger.warn(`Login failed. Email not verified for: ${postLoginDto.identity}`);
+        this.logger.warn(`Login failed. Email not verified for identity: ${postLoginDto.identity}`);
         const timeRemaining = Math.ceil((expiredAt.getTime() - now.getTime()) / 1000 / 60); // dalam menit
         throw new UnauthorizedException(`Email not verified yet. Please verify your email within ${timeRemaining} minutes`);
       }
-      
+
+      // Check if the password is valid
       const isPasswordValid = await bcrypt.compare(postLoginDto.password, user.password);
       if (!isPasswordValid) {
         this.logger.warn(`Login failed. Invalid password for: ${postLoginDto.identity}`);
-        throw new UnauthorizedException('Invalid credentials');
+        throw new UnauthorizedException('Invalid password');
       }
 
+      // Generate JWT token
       const payload = { id: user.id, role: user.role };
       const token = this.jwtService.sign(payload);
 
@@ -227,49 +228,163 @@ export class AuthApiService {
 
   async postForgotPassword(postForgotPasswordDto: dto.PostForgotPasswordDto) {
     try {
-      const user = await this.userRepository.findOne({ where: { email: postForgotPasswordDto.email, phone_number: postForgotPasswordDto.phone_number } });
-      if (!user) {
-        this.logger.warn(`Email or phone number not found or does not match: ${postForgotPasswordDto.email}, ${postForgotPasswordDto.phone_number}`);
-        throw new NotFoundException('Email or phone number not found or does not match');
+      // Check if the email exists
+      const user = await this.userRepository.findOne({ where: { email: postForgotPasswordDto.email } });
+      if (!user?.email) {
+        this.logger.warn(`Email not found or does not match: ${postForgotPasswordDto.email}`);
+        throw new NotFoundException('Email not found');
       }
 
-      const newPassword = crypto
-        .randomBytes(8)
-        .toString('base64')
-        .replace(/[^a-zA-Z0-9]/g, '')
-        .slice(0, 8);
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(newPassword, salt);
+      // Check if the email is not verified
+      if (!user.is_email_verified) {
+        const now = new Date();
+        const expiredAt = new Date(user.created_at);
+        expiredAt.setHours(expiredAt.getHours() + 24);
+        if (now >= expiredAt) {
+          await this.verifyEmailTokenRepository.delete({ user_id: user.id });
+          await this.userRepository.delete(user.id);
+          this.logger.warn(`Email verification link expired for user ID: ${user.id}`);
+          throw new BadRequestException('Email verification expired, please register again');
+        }
+        this.logger.warn(`Password reset failed. Email not verified for: ${postForgotPasswordDto.email}`);
+        const timeRemaining = Math.ceil((expiredAt.getTime() - now.getTime()) / 1000 / 60); // dalam menit
+        throw new UnauthorizedException(`Email not verified yet. Please verify your email within ${timeRemaining} minutes`);
+      }
 
-      user.password = hashedPassword;
-      await this.userRepository.save(user);
+      // Check existing password reset token
+      const existingPasswordResetToken = await this.passwordResetTokenRepository.findOne({ where: { user_id: user.id } });
+      if (existingPasswordResetToken) {
+        await this.passwordResetTokenRepository.delete(existingPasswordResetToken.id);
+      }
 
+      // Create a new password reset token
+      const token = crypto.randomBytes(32).toString('hex');
+      const passwordResetToken = this.passwordResetTokenRepository.create({
+        id: uuidv4(),
+        user_id: user.id,
+        token,
+        created_at: new Date(),
+      });
+      await this.passwordResetTokenRepository.save(passwordResetToken);
+
+      // Send password reset email
+      const baseUrl = this.configService.get('NODE_ENV') === 'production'
+        ? 'https://api.iotbridge.app'
+        : 'http://localhost:3000';
       await this.emailService.sendEmail(
         user.email,
-        '🔒 Reset Password Akun Anda',
-        `Halo ${user.username},\n\nKami telah menerima permintaan reset password untuk akun Anda. Berikut adalah password baru Anda:\n\n🔑 Password Baru: ${newPassword}\n\nHarap segera login dan ubah password Anda untuk keamanan akun.\n\nJika Anda tidak meminta reset password ini, abaikan email ini atau hubungi tim support kami.\n\nSalam,\nIoT Bridge Team`,
+        '🔐 Permintaan Reset Password - IoT Bridge',
+        `Halo ${user.username}`,
         `
-          <div style="font-family: Arial, sans-serif; padding: 20px;">
-            <h2>🔒 Reset Password Akun Anda</h2>
+          <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; color: #333;">
+            <h2 style="color: #007bff;">🔐 Permintaan Reset Password</h2>
             <p>Halo <strong>${user.username}</strong>,</p>
-            <p>Kami telah menerima permintaan reset password untuk akun Anda.</p>
-            <p><strong>🔑 Password Baru:</strong> <code>${newPassword}</code></p>
-            <p>Harap segera login dan ubah password Anda untuk menjaga keamanan akun.</p>
-            <p>Jika Anda tidak meminta reset password ini, abaikan email ini atau hubungi tim support kami.</p>
-            <hr>
-            <p>Salam,<br><strong>IoT Bridge Team</strong></p>
+            <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun Anda di <strong>IoT Bridge</strong>. Klik tombol di bawah ini untuk melanjutkan proses reset password:</p>
+            <div style="margin: 20px 0;">
+              <a href="${baseUrl}/auth/password-reset/?token=${token}" 
+                style="
+                  display: inline-block;
+                  padding: 12px 24px;
+                  background-color: #007bff;
+                  color: #fff;
+                  text-decoration: none;
+                  border-radius: 5px;
+                  font-size: 16px;
+                  font-weight: bold;
+                ">🔁 Atur Ulang Kata Sandi</a>
+            </div>
+            <p>Link reset password ini hanya berlaku selama <strong>1 jam</strong> dan hanya bisa digunakan satu kali.</p>
+            <p>Jika Anda tidak meminta pengaturan ulang kata sandi, abaikan email ini. Akun Anda tetap aman.</p>
+            <p style="margin-top: 40px;">Salam hangat,<br><strong>Tim IoT Bridge</strong></p>
+            <hr style="margin-top: 40px;">
+            <p style="font-size: 12px; color: #999;">Email ini dikirim secara otomatis. Mohon untuk tidak membalas ke alamat ini.</p>
           </div>
         `
       );
 
-      this.logger.log(`New password sent to email: ${postForgotPasswordDto.email}`);
-      return { message: 'A new password has been sent to your email' };
+      this.logger.log(`Reset password sent to email: ${postForgotPasswordDto.email}`);
+      return { message: 'Check your email and spam folder for a link to reset your password.' };
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
       this.logger.error(`Failed to send email forgot password by email: ${postForgotPasswordDto.email}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to send email forgot password, please try another time');
+    }
+  }
+
+  async getResetPassword(queryToken: string, res: Response) {
+    try {
+      // Check if the token is exist and valid
+      const passwordResetToken = await this.passwordResetTokenRepository.findOne({ where: { token: queryToken } });
+      if (!passwordResetToken) {
+        this.logger.warn(`Password reset failed. Token not found: ${queryToken}`);
+        throw new NotFoundException('Token not found');
+      }
+      const now = new Date();
+      const expiredAt = new Date(passwordResetToken.created_at);
+      expiredAt.setHours(expiredAt.getHours() + 1);
+      if (now >= expiredAt) {
+        await this.passwordResetTokenRepository.delete(passwordResetToken.id);
+        this.logger.warn(`Password reset link expired for token: ${passwordResetToken.token}`);
+        throw new BadRequestException('Password reset link expired, please try again');
+      }
+
+      this.logger.log(`Password reset sent to email for user ID: ${passwordResetToken.user_id}`);
+      const baseUrl = this.configService.get('NODE_ENV') === 'production'
+        ? 'https://api.iotbridge.app'
+        : 'http://localhost:3000';
+      return res.render('get-reset-password', {baseUrl, queryToken})
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to reset password by token: ${queryToken}, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to reset password, please try another time');
+    }
+  }
+
+  async postResetPassword(postPasswordResetDto: dto.PostPasswordResetDto, res: Response) {
+    try {
+      // Check if the token is exist and valid
+      const passwordResetToken = await this.passwordResetTokenRepository.findOne({ where: { token: postPasswordResetDto.token } });
+      if (!passwordResetToken) {
+        this.logger.warn(`Password reset failed. Token not found: ${postPasswordResetDto.token}`);
+        throw new NotFoundException('Token not found');
+      }
+      const now = new Date();
+      const expiredAt = new Date(passwordResetToken.created_at);
+      expiredAt.setHours(expiredAt.getHours() + 1);
+      if (now >= expiredAt) {
+        await this.passwordResetTokenRepository.delete(passwordResetToken.id);
+        this.logger.warn(`Password reset link expired for token: ${passwordResetToken.token}`);
+        throw new BadRequestException('Password reset link expired, please try again');
+      }
+
+      // Check if the user exists
+      const user = await this.userRepository.findOne({ where: { id: passwordResetToken.user_id } });
+      if (!user) {
+        await this.passwordResetTokenRepository.delete(passwordResetToken.id);
+        this.logger.warn(`User not found for password reset token: ${passwordResetToken.token}`);
+        throw new NotFoundException('User not found');
+      }
+
+      // Update the user password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(postPasswordResetDto.newPassword, salt);
+      await this.userRepository.update(user.id, { password: hashedPassword });
+
+      // Delete the password reset token
+      await this.passwordResetTokenRepository.delete(passwordResetToken.id);
+
+      this.logger.log(`Successfully reset password, by ID: ${passwordResetToken.user_id}`);
+      return res.render('post-reset-password')
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to reset password by token: ${postPasswordResetDto.token}, Error: ${error}`);
+      throw new InternalServerErrorException('Failed to reset password, please try another time');
     }
   }
 

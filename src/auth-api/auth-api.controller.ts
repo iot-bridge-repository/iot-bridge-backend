@@ -60,9 +60,9 @@ export class AuthApiController {
     },
   })
   @Get('verify-email')
-  async getVerifyEmail(@Res() res: Response, @Query('id') id: string) {
+  async getVerifyEmail(@Query('token') token: string, @Res() res: Response) {
     this.logger.log(`There is a verify email request`);
-    return this.authService.getVerifyEmail(id, res);
+    return this.authService.getVerifyEmail(token, res);
   }
 
   @ApiOperation({ summary: 'Login' })
@@ -74,7 +74,8 @@ export class AuthApiController {
         data: { 
           token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZmMmQ2ZTE2LTdiMTAtNDZhOC04ZWI2LWY0YzliMTg0YWM4OSIsImlhdCI6MTc0NDIyNDI2NX0.E2IqEjRvdHK26vN32vLauC1amGT0evpee_sBPGw25G0', 
           user: { 
-            id: 'c353a34c-2aad-44c4-8830-796360c16d2e', 
+            id: 'c353a34c-2aad-44c4-8830-796360c16d2e',
+            role : 'Admin System',
           } 
         } 
       } 
@@ -91,7 +92,7 @@ export class AuthApiController {
     description: 'Forgot password request sent successfully',
     schema: {
       example: {
-        message: 'A new password has been sent to your email'
+        message: 'Check your email and spam folder for a link to reset your password.',
       }
     }
   })
@@ -99,6 +100,80 @@ export class AuthApiController {
   async postForgotPassword(@Body() PostForgotPasswordDto: dto.PostForgotPasswordDto) {
     this.logger.log(`There is a forgot password request`);
     return this.authService.postForgotPassword(PostForgotPasswordDto);
+  }
+
+  @ApiOperation({ summary: 'Reset password page' })
+  @ApiOkResponse({
+    description: 'Returns an HTML page for resetting the password',
+    content: {
+      'text/html': {
+        example: `
+          <html lang='id'>
+            <head>
+              <meta charset='UTF-8' />
+              <title>Perbarui Kata Sandi - IoT Bridge</title>
+              <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+            </head>
+            <body>
+              <div class='container'>
+                <div class='card p-4'>
+                  <div class='card-body'>
+                    <h3 class='card-title text-center mb-4'>🔐 Reset Kata Sandi <span class='text-primary'>IoT Bridge</span></h3>
+                    <form method='POST' action='{{baseUrl}}/auth/password-reset'>
+                      <input type='hidden' name='token' value='{{queryToken}}' />
+                      <div class='mb-3'>
+                        <label for='newPassword' class='form-label'>Kata Sandi Baru</label>
+                        <input type='password' id='newPassword' name='newPassword' class='form-control' required minlength='6' maxlength='20' pattern="^[a-zA-Z0-9]{6,20}$"  aria-describedby='passwordHelp'/>
+                        <div id='passwordHelp' class='form-text'>
+                          Minimal 6 karakter, harus mengandung huruf atau angka, tanpa spasi.
+                        </div>
+                      </div>
+                      <button type='submit' class='btn btn-primary w-100'>
+                        🔁 Simpan Kata Sandi Baru
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </body>
+          </html>
+        `,
+      },
+    },
+  })
+  @Get('password-reset')
+  async getResetPassword(@Query('token') token: string, @Res() res: Response,) {
+    this.logger.log(`There is a get password reset request`);
+    return this.authService.getResetPassword(token, res);
+  }
+
+  @ApiOperation({ summary: 'Reset password form' })
+  @ApiOkResponse({
+    description: 'Returns an HTML page confirming successful password reset',
+    content: {
+      'text/html': {
+        example:`
+          <html lang='id'>
+            <head>
+              <meta charset='UTF-8' />
+              <title>Kata Sandi Berhasil Diperbarui - IoT Bridge</title>
+              <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+            </head>
+            <body>
+              <div class='container'>
+                <h2>✅ Kata Sandi Berhasil Diperbarui!</h2>
+                <p>Kata sandi Anda telah diperbarui. Silakan login dengan kata sandi baru Anda.</p>
+              </div>
+            </body>
+          </html>
+        `
+      }
+    }
+  })
+  @Post('password-reset')
+  async postResetPassword(@Body() passwordRestDto: dto.PostPasswordResetDto, @Res() res: Response) {
+    this.logger.log(`There is a post password reset request`);
+    return this.authService.postResetPassword(passwordRestDto, res);
   }
 
   @ApiOperation({ summary: 'Get profile' })

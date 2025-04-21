@@ -23,7 +23,7 @@ import { LoggingMiddleware } from './common/middleware/logging.middleware';
           username: configService.get<string>('DB_USERNAME'),
           password: configService.get<string>('DB_PASSWORD'),
           database: configService.get<string>('DB_NAME'),
-          entities: [entity.User, entity.Organization, entity.OrganizationMember],
+          entities: [entity.User, entity.VerifyEmailToken, entity.PasswordResetToken, entity.Organization, entity.OrganizationMember],
           synchronize: false, 
           autoLoadEntities: true, 
           logging: true,

@@ -1,10 +1,12 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm";
 
-export class CreateOrganizationsTable1743734171305 implements MigrationInterface {
+export class CreateVerifyEmailTokensTable1745195587363 implements MigrationInterface {
+  name = 'CreateVerifyEmailTokensTable1745195587363'
+
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'organizations',
+        name: 'verify_email_tokens',
         columns: [
           {
             name: 'id',
@@ -13,33 +15,22 @@ export class CreateOrganizationsTable1743734171305 implements MigrationInterface
             isPrimary: true,
           },
           {
-            name: 'name',
+            name: 'user_id',
             type: 'varchar',
-            length: '100',
             isUnique: true,
             isNullable: false,
           },
           {
-            name: 'description',
-            type: 'text',
-            isNullable: true,
-          },
-          {
-            name: 'organization_picture',
-            type: 'text',
-            isNullable: true,
-          },
-          {
-            name: 'is_verified',
-            type: 'boolean',
-            default: false,
+            name: 'email',
+            type: 'varchar',
+            length: '255',
+            isUnique: true,
             isNullable: false,
           },
           {
-            name: 'created_by',
+            name: 'token',
             type: 'varchar',
             isNullable: false,
-            isUnique: false,
           },
           {
             name: 'created_at',
@@ -52,18 +43,18 @@ export class CreateOrganizationsTable1743734171305 implements MigrationInterface
     );
 
     await queryRunner.createForeignKey(
-      'organizations',
+      'verify_email_tokens',
       new TableForeignKey({
-        columnNames: ['created_by'],
+        columnNames: ['user_id'],
         referencedTableName: 'users',
         referencedColumnNames: ['id'],
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', // Optional: hapus token kalau user dihapus
         onUpdate: 'CASCADE',
       }),
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('organizations');
+    await queryRunner.dropTable('verify_email_tokens');
   }
 }

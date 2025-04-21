@@ -1,13 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsString, Length, IsPhoneNumber } from 'class-validator';
 
-export class PostEmailOtpDto {
-  @ApiProperty({ example: 'user@example.com', description: 'User email' })
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-}
-
 export class PostRegisterDto {
   @ApiProperty({ example: 'username', description: 'User username' })
   @IsNotEmpty({ message: 'Username cannot be empty' })
@@ -16,8 +9,8 @@ export class PostRegisterDto {
   username: string;
 
   @ApiProperty({ example: 'user@example.com', description: 'User email' })
-  @IsEmail()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'Email cannot be empty' })
+  @IsEmail({}, { message: 'Email is not valid' })
   email: string;
 
   @ApiProperty({ example: '08xxxxxxxx', description: 'User phone number' })
@@ -34,7 +27,7 @@ export class PostRegisterDto {
 }
 
 export class PostLoginDto {
-  @ApiProperty({ example: 'username', description: 'Can be email, phone number or username' })
+  @ApiProperty({ example: 'username or email or number phone', description: 'Can be email, phone number or username' })
   @IsNotEmpty({ message: 'Identity cannot be empty' })
   @IsString({ message: 'Identity must be a string' })
   identity: string;
@@ -51,12 +44,19 @@ export class PostForgotPasswordDto {
   @IsNotEmpty({ message: 'Email cannot be empty' })
   @IsEmail({}, { message: 'Email is not valid' })
   email: string;
+}
 
-  @ApiProperty({ example: '08xxxxxxxx', description: 'User phone number' })
-  @IsNotEmpty({ message: 'Phone number cannot be empty' })
-  @Length(10, 15, { message: 'Phone number must be between 10 and 15 characters' })
-  @IsPhoneNumber('ID', { message: 'Phone number is not valid' })
-  phone_number: string;
+export class PostPasswordResetDto{
+  @ApiProperty({ example: 'xxxxxx', description: 'Token reset password' })
+  @IsNotEmpty({ message: 'Token cannot be empty' })
+  @IsString({ message: 'Token must be a string' })
+  token: string;
+
+  @ApiProperty({ example: 'newPassword123!', description: 'New password' })
+  @IsNotEmpty({ message: 'New password cannot be empty' })
+  @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
+  @IsString({ message: 'New password must be a string' })
+  newPassword: string;
 }
 
 export class PutUpdateProfileDto {
