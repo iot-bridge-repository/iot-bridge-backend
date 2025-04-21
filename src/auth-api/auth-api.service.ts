@@ -27,37 +27,59 @@ export class AuthApiService {
     this.emailService = new EmailService(this.configService);
   }
 
-  async postRegister(postRegisterDto: dto.PostRegisterDto) {
-    try {
-      // Check if the user already exists
-      const existingUser = await this.userRepository.findOne({
-        where: [
-          { username: postRegisterDto.username },
-          { email: postRegisterDto.email },
-          { phone_number: postRegisterDto.phone_number },
-        ],
-      });
-      if (existingUser?.is_email_verified === true) {
-        if (existingUser.username === postRegisterDto.username) {
-          throw new BadRequestException('Username already exists');
-        }
-        if (existingUser.email === postRegisterDto.email) {
+  private async checkExistingUserPostRegister(postRegisterDto: dto.PostRegisterDto) {
+    const existingUser = await this.userRepository.findOne({
+      where: [
+        { username: postRegisterDto.username },
+        { email: postRegisterDto.email },
+        { phone_number: postRegisterDto.phone_number },
+      ],
+    });
+
+    if (existingUser) {
+      if (existingUser.username === postRegisterDto.username) {
+        throw new BadRequestException('Username already exists');
+      }
+      if (existingUser.phone_number === postRegisterDto.phone_number) {
+        throw new BadRequestException('Phone number already exists');
+      }
+      if (existingUser.email === postRegisterDto.email) {
+        if (existingUser.is_email_verified) {
           throw new BadRequestException('Email already exists');
         }
-        if (existingUser.phone_number === postRegisterDto.phone_number) {
-          throw new BadRequestException('Phone number already exists');
-        }
-      } else if (existingUser?.is_email_verified === false) {
         const now = new Date();
         const expiredAt = new Date(existingUser.created_at);
         expiredAt.setHours(expiredAt.getHours() + 24);
         if (now < expiredAt) {
           throw new BadRequestException('Email has been registered but not verified. Please check your email and spam folder for the verification link.');
-        } else if (now >= expiredAt) {
-          await this.verifyEmailTokenRepository.delete({ user_id: existingUser.id });
-          await this.userRepository.delete(existingUser.id);
         }
+        await this.verifyEmailTokenRepository.delete(existingUser.email);
+        await this.userRepository.delete(existingUser.email);
       }
+    }
+  }
+
+  private async checkExistingVerifyEmailTokenPostRegister(email: string) {
+    const existingVerifyEmailToken = await this.verifyEmailTokenRepository.findOne({
+      where: { email },
+    });
+
+    if (existingVerifyEmailToken) {
+      const now = new Date();
+      const expiredAt = new Date(existingVerifyEmailToken.created_at);
+      expiredAt.setHours(expiredAt.getHours() + 24);
+      if (now < expiredAt) {
+        throw new BadRequestException('Email already exists, please check your email and spam folder for the verification link.');
+      }
+      await this.verifyEmailTokenRepository.delete(existingVerifyEmailToken.email);
+      await this.userRepository.delete(existingVerifyEmailToken.email);
+    }
+  }
+
+  async postRegister(postRegisterDto: dto.PostRegisterDto) {
+    try {
+      await this.checkExistingUserPostRegister(postRegisterDto);
+      await this.checkExistingVerifyEmailTokenPostRegister(postRegisterDto.email);
 
       // Create a new user
       const salt = await bcrypt.genSalt(10);
@@ -139,12 +161,25 @@ export class AuthApiService {
         this.logger.warn(`Verify email failed. Token not found: ${queryToken}`);
         throw new NotFoundException('Token not found');
       }
+
+      // Check if the user exists
+      const user = await this.userRepository.findOne({ where: { id: verifyEmailToken.user_id } });
+      if (!user) {
+        await this.verifyEmailTokenRepository.delete(verifyEmailToken.id);
+        this.logger.warn(`User not found for verify email token: ${queryToken}`);
+        throw new NotFoundException('User not found');
+      }
+
+      // Check if token is expired
       const now = new Date();
       const expiredAt = new Date(verifyEmailToken.created_at);
       expiredAt.setHours(expiredAt.getHours() + 24);
       if (now >= expiredAt) {
         await this.verifyEmailTokenRepository.delete(verifyEmailToken.id);
-        await this.userRepository.delete(verifyEmailToken.user_id);
+        // Check if the user is not verified
+        if (!user.is_email_verified) {
+          await this.userRepository.delete(verifyEmailToken.user_id);
+        }
         this.logger.warn(`Email verification link expired for token: ${verifyEmailToken.token}`);
         throw new BadRequestException('Email verification link expired, please register again');
       }
@@ -184,6 +219,7 @@ export class AuthApiService {
         const now = new Date();
         const expiredAt = new Date(user.created_at);
         expiredAt.setHours(expiredAt.getHours() + 24);
+        // Check if the email verification link is expired
         if (now >= expiredAt) {
           await this.verifyEmailTokenRepository.delete({ user_id: user.id });
           await this.userRepository.delete(user.id);
@@ -248,7 +284,7 @@ export class AuthApiService {
         }
         this.logger.warn(`Password reset failed. Email not verified for: ${postForgotPasswordDto.email}`);
         const timeRemaining = Math.ceil((expiredAt.getTime() - now.getTime()) / 1000 / 60); // dalam menit
-        throw new UnauthorizedException(`Email not verified yet. Please verify your email within ${timeRemaining} minutes`);
+        throw new UnauthorizedException(`Email not verified yet. Please verify your email first, within ${timeRemaining} minutes`);
       }
 
       // Check existing password reset token
@@ -267,7 +303,7 @@ export class AuthApiService {
       });
       await this.passwordResetTokenRepository.save(passwordResetToken);
 
-      // Send password reset email
+      // Send password reset link via email
       const baseUrl = this.configService.get('NODE_ENV') === 'production'
         ? 'https://api.iotbridge.app'
         : 'http://localhost:3000';
@@ -390,6 +426,7 @@ export class AuthApiService {
 
   async getProfile(id: string) {
     try {
+      // Check if the user exists
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
         this.logger.warn(`User not found by id: ${id}`);
@@ -421,12 +458,14 @@ export class AuthApiService {
 
   async updateUserProfile(id: string, updateProfileDto: dto.PutUpdateProfileDto, profile_picture: string | null, req: Request) {
     try {
+      // Check if the user exists
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
         this.logger.warn(`User not found by id: ${id}`);
         throw new UnauthorizedException('User not found');
       }
 
+      // Check if the username and phone number already exist
       const checkDuplicate = async (field: keyof User, value: string, fieldName: string) => {
         const existing = await this.userRepository.findOne({ where: { [field]: value } });
         if (existing && existing.id !== id) {
@@ -437,10 +476,12 @@ export class AuthApiService {
       await checkDuplicate('username', updateProfileDto.username, 'Username');
       await checkDuplicate('phone_number', updateProfileDto.phone_number, 'Phone number');
 
+      // User profile update data
       const updateDataProfile: Partial<User> = {
         username: updateProfileDto.username,
         phone_number: updateProfileDto.phone_number,
       };
+      // Check if the profile picture is provided
       if (profile_picture) {
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         updateDataProfile.profile_picture = `${baseUrl}/uploads/profile_picture/${profile_picture}`;
@@ -457,11 +498,12 @@ export class AuthApiService {
         }
       }
 
+      // Update the user profile
       await this.userRepository.update(id, updateDataProfile);
 
       this.logger.log(`User profile updated by id: ${id}`);
       return {
-        message: 'Profile updated successfully',
+        message: 'Profile updated successfully.',
         data: {
           user: {
             id,
@@ -469,7 +511,7 @@ export class AuthApiService {
             email: user.email,
             phone_number: updateDataProfile.phone_number,
             profile_picture: updateDataProfile.profile_picture,
-            role: updateDataProfile.role,
+            role: user.role,
           },
         },
       };
@@ -484,29 +526,85 @@ export class AuthApiService {
   }
 
   async changeEmail(id: string, changeEmailDto: dto.PutChangeEmailDto) {
-    try {  
+    try {
+      // Check if the user exists
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
         this.logger.warn(`User not found by id: ${id}`);
         throw new UnauthorizedException('User not found');
       }
 
-      const existingEmail = await this.userRepository.findOne({ where: { email: changeEmailDto.email } });
+      // Check if the new email is not duplicate in user table
+      const existingEmail = await this.userRepository.findOne({ where: { email: changeEmailDto.newEmail } });
       if (existingEmail) {
-        this.logger.warn(`Email already exists: ${changeEmailDto.email}`);
+        this.logger.warn(`Email already exists: ${changeEmailDto.newEmail}`);
         throw new BadRequestException('Email already exists');
       }
 
-      await this.userRepository.update(id, { email: changeEmailDto.email });
+      // Check if verify email token already exists in verify email token table
+      const existingVerifyEmailToken = await this.verifyEmailTokenRepository.findOne({
+        where: [
+          { email: changeEmailDto.newEmail },
+          { user_id: user.id },
+        ],
+      });
+      if (existingVerifyEmailToken?.email === changeEmailDto.newEmail) {
+        this.logger.warn(`Email already exists: ${changeEmailDto.newEmail}`);
+        throw new BadRequestException('Email already exists');
+      }
+      if (existingVerifyEmailToken?.user_id === user.id) {
+        await this.verifyEmailTokenRepository.delete(existingVerifyEmailToken.id);
+      }
 
-      this.logger.log(`Email updated successfully for user ID: ${id}`);
+      // Create a verification token
+      const token = crypto.randomBytes(32).toString('hex');
+      const verifyEmailToken = this.verifyEmailTokenRepository.create({
+        id: uuidv4(),
+        user_id: user.id,
+        email: changeEmailDto.newEmail,
+        token,
+        created_at: new Date(),
+      });
+      await this.verifyEmailTokenRepository.save(verifyEmailToken);
+
+      // Send verify email link
+      const baseUrl = this.configService.get('NODE_ENV') === 'production'
+        ? 'https://api.iotbridge.app'
+        : 'http://localhost:3000';
+      await this.emailService.sendEmail(
+        changeEmailDto.newEmail,
+        '🔄 Verifikasi Email Baru Anda - IoT Bridge',
+        `Halo ${user.username}`,
+        `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; color: #333;">
+          <h2 style="color: #007bff;">🔄 Verifikasi Alamat Email Baru Anda</h2>
+          <p>Halo <strong>${user.username}</strong>,</p>
+          <p>Anda telah mengajukan permintaan untuk mengganti alamat email akun <strong>IoT Bridge</strong> Anda ke:</p>
+          <p style="font-size: 16px; font-weight: bold;">📧 ${changeEmailDto.newEmail}</p>
+          <p>Untuk menyelesaikan perubahan ini, silakan klik tombol di bawah ini untuk memverifikasi alamat email baru:</p>
+          <div style="margin: 20px 0;">
+            <a href="${baseUrl}/auth/verify-email?token=${token}" style="
+              display: inline-block;
+              padding: 12px 24px;
+              background-color: #007bff;
+              color: #fff;
+              text-decoration: none;
+              border-radius: 5px;
+              font-size: 16px;
+              font-weight: bold;
+            ">✅ Verifikasi Email Baru</a>
+          </div>
+          <p>Link ini hanya berlaku selama <strong>24 jam</strong>. Jika Anda tidak mengajukan permintaan ini, abaikan saja email ini dan perubahan tidak akan dilakukan.</p>
+          <p style="margin-top: 40px;">Terima kasih,<br><strong>Tim IoT Bridge</strong></p>
+          <hr style="margin-top: 40px;">
+          <p style="font-size: 12px; color: #999;">Email ini dikirim secara otomatis. Mohon untuk tidak membalas ke alamat ini.</p>
+        </div>
+        `
+      );
+
+      this.logger.log(`User registered by email: ${user.email}`);
       return {
-        message: 'Email changed successfully',
-        data: {
-          user: {
-            email: changeEmailDto.email,
-          },
-        },
+        message: "Check your email and spam folder for a link to verify your new email.",
       };
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
@@ -519,6 +617,7 @@ export class AuthApiService {
 
   async changePassword(id: string, changePasswordDto: dto.PutChangePasswordDto) {
     try {
+      // Check if the user exists
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
         this.logger.warn(`User not found by id: ${id}`);
@@ -527,19 +626,21 @@ export class AuthApiService {
 
       const { oldPassword, newPassword } = changePasswordDto;
 
+      // Check if the old password is valid
       const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
       if (!isPasswordValid) {
         this.logger.warn(`Incorrect old password by id: ${id}`);
         throw new BadRequestException('Incorrect old password');
       }
 
+      // Update the password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(newPassword, salt);
       await this.userRepository.update(id, { password: hashedPassword });
 
       this.logger.log(`Password changed by id: ${id}`);
       return {
-        message: 'Password changed successfully',
+        message: 'Password changed successfully.',
       };
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {

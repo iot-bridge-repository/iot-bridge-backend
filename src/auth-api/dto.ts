@@ -54,7 +54,7 @@ export class PostPasswordResetDto{
 
   @ApiProperty({ example: 'newPassword123!', description: 'New password' })
   @IsNotEmpty({ message: 'New password cannot be empty' })
-  @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
+  @Length(6, 20, { message: 'New password must be between 6 and 20 characters' })
   @IsString({ message: 'New password must be a string' })
   newPassword: string;
 }
@@ -75,15 +75,9 @@ export class PutUpdateProfileDto {
 
 export class PutChangeEmailDto {
   @ApiProperty({ example: 'user@example.com', description: 'User email' })
-  @IsNotEmpty({ message: 'Email cannot be empty' })
-  @IsEmail({}, { message: 'Email is not valid' })
-  email: string;
-
-  @ApiProperty({ example: 'xxxxxx', description: 'OTP code' })
-  @IsNotEmpty({ message: 'OTP code cannot be empty' })
-  @Length(6, 6, { message: 'OTP code must be 6 characters' })
-  @IsString({ message: 'OTP code must be a string' })
-  otp: string;
+  @IsNotEmpty({ message: 'newEmail cannot be empty' })
+  @IsEmail({}, { message: 'newEmail is not valid' })
+  newEmail: string;
 }
 
 export class PutChangePasswordDto {
@@ -94,7 +88,7 @@ export class PutChangePasswordDto {
 
   @ApiProperty({ example: 'NewPassword123!', description: 'New password' })
   @IsNotEmpty({ message: 'New password cannot be empty' })
-  @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
+  @Length(6, 20, { message: 'New password must be between 6 and 20 characters' })
   @IsString({ message: 'New password must be a string' })
   newPassword: string;
 }

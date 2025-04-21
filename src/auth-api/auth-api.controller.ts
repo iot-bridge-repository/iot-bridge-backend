@@ -70,7 +70,7 @@ export class AuthApiController {
     description: 'User logged in successfully', 
     schema: { 
       example: { 
-        message: 'User logged in successfully', 
+        message: 'User logged in successfully.', 
         data: { 
           token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZmMmQ2ZTE2LTdiMTAtNDZhOC04ZWI2LWY0YzliMTg0YWM4OSIsImlhdCI6MTc0NDIyNDI2NX0.E2IqEjRvdHK26vN32vLauC1amGT0evpee_sBPGw25G0', 
           user: { 
@@ -182,7 +182,7 @@ export class AuthApiController {
     description: 'User profile retrieved successfully',
     schema: {
       example: {
-        message: 'User profile retrieved successfully',
+        message: 'User profile retrieved successfully.',
         data: {
           user: {
             id: 'c353a34c-2aad-44c4-8830-796360c16d2e',
@@ -219,7 +219,7 @@ export class AuthApiController {
     description: 'Profile updated successfully',
     schema: {
       example: {
-        message: 'Profile updated successfully',
+        message: 'Profile updated successfully.',
         data: {
           token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c', 
           user: {
@@ -245,10 +245,10 @@ export class AuthApiController {
   @ApiOperation({ summary: 'Change email' })
   @ApiBearerAuth()
   @ApiOkResponse({
-    description: 'Email changed successfully',
+    description: 'Successfully sent email verification link',
     schema: {
       example: {
-        message: 'Email changed successfully',
+        message: 'Check your email and spam folder for a link to verify your account.',
       }
     }
   })
@@ -265,7 +265,7 @@ export class AuthApiController {
     description: 'Password changed successfully',
     schema: {
       example: {
-        message: 'Password changed successfully',
+        message: 'Password changed successfully.',
       }
     }
   })
