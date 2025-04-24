@@ -38,19 +38,23 @@ export class AuthApiService {
 
     if (existingUser) {
       if (existingUser.username === postRegisterDto.username) {
+        this.logger.error(`Username already exists: ${postRegisterDto.username}`);
         throw new BadRequestException('Username already exists');
       }
       if (existingUser.phone_number === postRegisterDto.phone_number) {
+        this.logger.error(`Phone number already exists: ${postRegisterDto.phone_number}`);
         throw new BadRequestException('Phone number already exists');
       }
       if (existingUser.email === postRegisterDto.email) {
         if (existingUser.is_email_verified) {
+          this.logger.error(`Email already exists: ${postRegisterDto.email}`);
           throw new BadRequestException('Email already exists');
         }
         const now = new Date();
         const expiredAt = new Date(existingUser.created_at);
         expiredAt.setHours(expiredAt.getHours() + 24);
         if (now < expiredAt) {
+          this.logger.error(`Email has been registered but not verified: ${postRegisterDto.email}`);
           throw new BadRequestException('Email has been registered but not verified. Please check your email and spam folder for the verification link.');
         }
         await this.verifyEmailTokenRepository.delete(existingUser.email);
@@ -69,16 +73,19 @@ export class AuthApiService {
       const expiredAt = new Date(existingVerifyEmailToken.created_at);
       expiredAt.setHours(expiredAt.getHours() + 24);
       if (now < expiredAt) {
-        throw new BadRequestException('Email already exists, please check your email and spam folder for the verification link.');
+        this.logger.error(`Email has been registered but not verified: ${email}`);
+        throw new BadRequestException('Email has been registered but not verified. Please check your email and spam folder for the verification link.');
       }
       await this.verifyEmailTokenRepository.delete(existingVerifyEmailToken.email);
       await this.userRepository.delete(existingVerifyEmailToken.email);
     }
   }
 
-  async postRegister(postRegisterDto: dto.PostRegisterDto) {
+  async postRegister(req: Request, postRegisterDto: dto.PostRegisterDto) {
     try {
+      // Check if the user already exists
       await this.checkExistingUserPostRegister(postRegisterDto);
+      // Check if the email already exists in verify email token table
       await this.checkExistingVerifyEmailTokenPostRegister(postRegisterDto.email);
 
       // Create a new user
@@ -106,9 +113,7 @@ export class AuthApiService {
       await this.verifyEmailTokenRepository.save(verifyEmailToken);
 
       // Send verify email link
-      const baseUrl = this.configService.get('NODE_ENV') === 'production'
-        ? 'https://api.iotbridge.app'
-        : 'http://localhost:3000';
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
       await this.emailService.sendEmail(
         postRegisterDto.email,
         '🔒 Verifikasi Akun Anda - IoT Bridge',
@@ -158,7 +163,7 @@ export class AuthApiService {
       // Check if the token is exist and valid
       const verifyEmailToken = await this.verifyEmailTokenRepository.findOne({ where: { token: queryToken } });
       if (!verifyEmailToken) {
-        this.logger.warn(`Verify email failed. Token not found: ${queryToken}`);
+        this.logger.error(`Verify email failed. Token not found: ${queryToken}`);
         throw new NotFoundException('Token not found');
       }
 
@@ -166,7 +171,7 @@ export class AuthApiService {
       const user = await this.userRepository.findOne({ where: { id: verifyEmailToken.user_id } });
       if (!user) {
         await this.verifyEmailTokenRepository.delete(verifyEmailToken.id);
-        this.logger.warn(`User not found for verify email token: ${queryToken}`);
+        this.logger.error(`User not found for verify email token: ${queryToken}`);
         throw new NotFoundException('User not found');
       }
 
@@ -180,7 +185,7 @@ export class AuthApiService {
         if (!user.is_email_verified) {
           await this.userRepository.delete(verifyEmailToken.user_id);
         }
-        this.logger.warn(`Email verification link expired for token: ${verifyEmailToken.token}`);
+        this.logger.error(`Email verification link expired for token: ${verifyEmailToken.token}`);
         throw new BadRequestException('Email verification link expired, please register again');
       }
 
@@ -210,7 +215,7 @@ export class AuthApiService {
         ],
       });
       if (!user) {
-        this.logger.warn(`Login failed. User not found: ${postLoginDto.identity}`);
+        this.logger.error(`Login failed. User not found: ${postLoginDto.identity}`);
         throw new UnauthorizedException('Invalid identity');
       }
 
@@ -223,10 +228,10 @@ export class AuthApiService {
         if (now >= expiredAt) {
           await this.verifyEmailTokenRepository.delete({ user_id: user.id });
           await this.userRepository.delete(user.id);
-          this.logger.warn(`Email verification link expired for user ID: ${user.id}`);
+          this.logger.error(`Email verification link expired for user ID: ${user.id}`);
           throw new BadRequestException('Email verification expired, please register again');
         }
-        this.logger.warn(`Login failed. Email not verified for identity: ${postLoginDto.identity}`);
+        this.logger.error(`Login failed. Email not verified for identity: ${postLoginDto.identity}`);
         const timeRemaining = Math.ceil((expiredAt.getTime() - now.getTime()) / 1000 / 60); // dalam menit
         throw new UnauthorizedException(`Email not verified yet. Please verify your email within ${timeRemaining} minutes`);
       }
@@ -234,7 +239,7 @@ export class AuthApiService {
       // Check if the password is valid
       const isPasswordValid = await bcrypt.compare(postLoginDto.password, user.password);
       if (!isPasswordValid) {
-        this.logger.warn(`Login failed. Invalid password for: ${postLoginDto.identity}`);
+        this.logger.error(`Login failed. Invalid password for: ${postLoginDto.identity}`);
         throw new UnauthorizedException('Invalid password');
       }
 
@@ -262,12 +267,12 @@ export class AuthApiService {
     }
   }
 
-  async postForgotPassword(postForgotPasswordDto: dto.PostForgotPasswordDto) {
+  async postForgotPassword(req: Request, postForgotPasswordDto: dto.PostForgotPasswordDto) {
     try {
       // Check if the email exists
       const user = await this.userRepository.findOne({ where: { email: postForgotPasswordDto.email } });
       if (!user?.email) {
-        this.logger.warn(`Email not found or does not match: ${postForgotPasswordDto.email}`);
+        this.logger.error(`Email not found or does not match: ${postForgotPasswordDto.email}`);
         throw new NotFoundException('Email not found');
       }
 
@@ -279,10 +284,10 @@ export class AuthApiService {
         if (now >= expiredAt) {
           await this.verifyEmailTokenRepository.delete({ user_id: user.id });
           await this.userRepository.delete(user.id);
-          this.logger.warn(`Email verification link expired for user ID: ${user.id}`);
+          this.logger.error(`Email verification link expired for user ID: ${user.id}`);
           throw new BadRequestException('Email verification expired, please register again');
         }
-        this.logger.warn(`Password reset failed. Email not verified for: ${postForgotPasswordDto.email}`);
+        this.logger.error(`Password reset failed. Email not verified for: ${postForgotPasswordDto.email}`);
         const timeRemaining = Math.ceil((expiredAt.getTime() - now.getTime()) / 1000 / 60); // dalam menit
         throw new UnauthorizedException(`Email not verified yet. Please verify your email first, within ${timeRemaining} minutes`);
       }
@@ -304,9 +309,7 @@ export class AuthApiService {
       await this.passwordResetTokenRepository.save(passwordResetToken);
 
       // Send password reset link via email
-      const baseUrl = this.configService.get('NODE_ENV') === 'production'
-        ? 'https://api.iotbridge.app'
-        : 'http://localhost:3000';
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
       await this.emailService.sendEmail(
         user.email,
         '🔐 Permintaan Reset Password - IoT Bridge',
@@ -349,12 +352,12 @@ export class AuthApiService {
     }
   }
 
-  async getResetPassword(queryToken: string, res: Response) {
+  async getResetPassword(req: Request, queryToken: string, res: Response) {
     try {
       // Check if the token is exist and valid
       const passwordResetToken = await this.passwordResetTokenRepository.findOne({ where: { token: queryToken } });
       if (!passwordResetToken) {
-        this.logger.warn(`Password reset failed. Token not found: ${queryToken}`);
+        this.logger.error(`Password reset failed. Token not found: ${queryToken}`);
         throw new NotFoundException('Token not found');
       }
       const now = new Date();
@@ -362,14 +365,12 @@ export class AuthApiService {
       expiredAt.setHours(expiredAt.getHours() + 1);
       if (now >= expiredAt) {
         await this.passwordResetTokenRepository.delete(passwordResetToken.id);
-        this.logger.warn(`Password reset link expired for token: ${passwordResetToken.token}`);
+        this.logger.error(`Password reset link expired for token: ${passwordResetToken.token}`);
         throw new BadRequestException('Password reset link expired, please try again');
       }
 
       this.logger.log(`Password reset sent to email for user ID: ${passwordResetToken.user_id}`);
-      const baseUrl = this.configService.get('NODE_ENV') === 'production'
-        ? 'https://api.iotbridge.app'
-        : 'http://localhost:3000';
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
       return res.render('get-reset-password', {baseUrl, queryToken})
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
@@ -385,7 +386,7 @@ export class AuthApiService {
       // Check if the token is exist and valid
       const passwordResetToken = await this.passwordResetTokenRepository.findOne({ where: { token: postPasswordResetDto.token } });
       if (!passwordResetToken) {
-        this.logger.warn(`Password reset failed. Token not found: ${postPasswordResetDto.token}`);
+        this.logger.error(`Password reset failed. Token not found: ${postPasswordResetDto.token}`);
         throw new NotFoundException('Token not found');
       }
       const now = new Date();
@@ -393,7 +394,7 @@ export class AuthApiService {
       expiredAt.setHours(expiredAt.getHours() + 1);
       if (now >= expiredAt) {
         await this.passwordResetTokenRepository.delete(passwordResetToken.id);
-        this.logger.warn(`Password reset link expired for token: ${passwordResetToken.token}`);
+        this.logger.error(`Password reset link expired for token: ${passwordResetToken.token}`);
         throw new BadRequestException('Password reset link expired, please try again');
       }
 
@@ -401,7 +402,7 @@ export class AuthApiService {
       const user = await this.userRepository.findOne({ where: { id: passwordResetToken.user_id } });
       if (!user) {
         await this.passwordResetTokenRepository.delete(passwordResetToken.id);
-        this.logger.warn(`User not found for password reset token: ${passwordResetToken.token}`);
+        this.logger.error(`User not found for password reset token: ${passwordResetToken.token}`);
         throw new NotFoundException('User not found');
       }
 
@@ -429,7 +430,7 @@ export class AuthApiService {
       // Check if the user exists
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
-        this.logger.warn(`User not found by id: ${id}`);
+        this.logger.error(`User not found by id: ${id}`);
         throw new UnauthorizedException('User not found');
       }
 
@@ -456,12 +457,12 @@ export class AuthApiService {
     }
   }
 
-  async updateUserProfile(id: string, updateProfileDto: dto.PutUpdateProfileDto, profile_picture: string | null, req: Request) {
+  async updateUserProfile(req: Request, id: string, updateProfileDto: dto.PutUpdateProfileDto, profile_picture: string | null) {
     try {
       // Check if the user exists
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
-        this.logger.warn(`User not found by id: ${id}`);
+        this.logger.error(`User not found by id: ${id}`);
         throw new UnauthorizedException('User not found');
       }
 
@@ -469,7 +470,7 @@ export class AuthApiService {
       const checkDuplicate = async (field: keyof User, value: string, fieldName: string) => {
         const existing = await this.userRepository.findOne({ where: { [field]: value } });
         if (existing && existing.id !== id) {
-          this.logger.warn(`${fieldName} already exists: ${value}`);
+          this.logger.error(`${fieldName} already exists: ${value}`);
           throw new BadRequestException(`${fieldName} already exists`);
         }
       };
@@ -486,6 +487,7 @@ export class AuthApiService {
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         updateDataProfile.profile_picture = `${baseUrl}/uploads/profile_picture/${profile_picture}`;
 
+        // Check if the old profile picture exists and delete it
         if (user.profile_picture) {
           const uploadDir = this.configService.get('NODE_ENV') === 'production'
             ? '/var/www/uploads/profile_picture'
@@ -516,7 +518,7 @@ export class AuthApiService {
         },
       };
     } catch (error) {
-      this.logger.warn(`Failed to update profile by id: ${id}, Error: ${error.message}`);
+      this.logger.error(`Failed to update profile by id: ${id}, Error: ${error.message}`);
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
@@ -525,19 +527,19 @@ export class AuthApiService {
     }
   }
 
-  async changeEmail(id: string, changeEmailDto: dto.PutChangeEmailDto) {
+  async changeEmail(req: Request, id: string, changeEmailDto: dto.PutChangeEmailDto) {
     try {
       // Check if the user exists
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
-        this.logger.warn(`User not found by id: ${id}`);
+        this.logger.error(`User not found by id: ${id}`);
         throw new UnauthorizedException('User not found');
       }
 
       // Check if the new email is not duplicate in user table
       const existingEmail = await this.userRepository.findOne({ where: { email: changeEmailDto.newEmail } });
       if (existingEmail) {
-        this.logger.warn(`Email already exists: ${changeEmailDto.newEmail}`);
+        this.logger.error(`Email already exists: ${changeEmailDto.newEmail}`);
         throw new BadRequestException('Email already exists');
       }
 
@@ -549,7 +551,7 @@ export class AuthApiService {
         ],
       });
       if (existingVerifyEmailToken?.email === changeEmailDto.newEmail) {
-        this.logger.warn(`Email already exists: ${changeEmailDto.newEmail}`);
+        this.logger.error(`Email already exists: ${changeEmailDto.newEmail}`);
         throw new BadRequestException('Email already exists');
       }
       if (existingVerifyEmailToken?.user_id === user.id) {
@@ -568,9 +570,7 @@ export class AuthApiService {
       await this.verifyEmailTokenRepository.save(verifyEmailToken);
 
       // Send verify email link
-      const baseUrl = this.configService.get('NODE_ENV') === 'production'
-        ? 'https://api.iotbridge.app'
-        : 'http://localhost:3000';
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
       await this.emailService.sendEmail(
         changeEmailDto.newEmail,
         '🔄 Verifikasi Email Baru Anda - IoT Bridge',
@@ -620,7 +620,7 @@ export class AuthApiService {
       // Check if the user exists
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
-        this.logger.warn(`User not found by id: ${id}`);
+        this.logger.error(`User not found by id: ${id}`);
         throw new UnauthorizedException('User not found');
       }
 
@@ -629,7 +629,7 @@ export class AuthApiService {
       // Check if the old password is valid
       const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
       if (!isPasswordValid) {
-        this.logger.warn(`Incorrect old password by id: ${id}`);
+        this.logger.error(`Incorrect old password by id: ${id}`);
         throw new BadRequestException('Incorrect old password');
       }
 

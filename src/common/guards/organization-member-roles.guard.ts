@@ -22,7 +22,7 @@ export class OrganizationMemberRolesGuard implements CanActivate {
 
       const request = context.switchToHttp().getRequest<Request>();
 
-      // Get userId from JWT token
+      // Get user id from JWT token
       const authHeader = request.headers.authorization;
       if (!authHeader?.startsWith('Bearer ')) {
         throw new UnauthorizedException('Token not provided');
@@ -31,7 +31,7 @@ export class OrganizationMemberRolesGuard implements CanActivate {
       const decoded = this.jwtService.verify(token);
       const userId = decoded.id;
 
-      // Get organizationId from request body
+      // Get organization id from request body
       const organizationId = request.body?.organization_id;
       if (!userId || !organizationId) {
         throw new UnauthorizedException('User ID or organization ID not provided');
@@ -58,14 +58,14 @@ export class OrganizationMemberRolesGuard implements CanActivate {
       return true;
 
     } catch (error) {
-      this.logger.warn(`Authentication failed: ${error.message}`);
+      this.logger.error(`Authentication failed: ${error.message}`);
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       } else if (error.name === 'TokenExpiredError') {
-        this.logger.warn('User attempted login with expired token');
+        this.logger.error('User attempted login with expired token');
         throw new UnauthorizedException('Token expired');
       } else if (error.name === 'JsonWebTokenError') {
-        this.logger.warn('User attempted login with invalid token');
+        this.logger.error('User attempted login with invalid token');
         throw new UnauthorizedException('Invalid token');
       } else if (error.code === '08006' || error.code === '08001') {
         this.logger.error(`Database connection error: ${error.message}`);

@@ -1,6 +1,6 @@
 import { Controller, Logger, UseGuards, Req, Res, Body, Query, Post, Get, Put, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthApiService } from './auth-api.service';
 import * as dto from './dto';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -25,9 +25,9 @@ export class AuthApiController {
     }
   })
   @Post('register')
-  async postRegister(@Body() postRegisterDto: dto.PostRegisterDto) {
+  async postRegister(@Req() request: Request, @Body() postRegisterDto: dto.PostRegisterDto) {
     this.logger.log(`There is a register request`);
-    return this.authService.postRegister(postRegisterDto);
+    return this.authService.postRegister(request, postRegisterDto);
   }
 
   @ApiOperation({ summary: 'Verification email' })
@@ -97,9 +97,9 @@ export class AuthApiController {
     }
   })
   @Post('forgot-password')
-  async postForgotPassword(@Body() PostForgotPasswordDto: dto.PostForgotPasswordDto) {
+  async postForgotPassword(@Req() request: Request, @Body() PostForgotPasswordDto: dto.PostForgotPasswordDto) {
     this.logger.log(`There is a forgot password request`);
-    return this.authService.postForgotPassword(PostForgotPasswordDto);
+    return this.authService.postForgotPassword(request, PostForgotPasswordDto);
   }
 
   @ApiOperation({ summary: 'Reset password page' })
@@ -142,9 +142,9 @@ export class AuthApiController {
     },
   })
   @Get('password-reset')
-  async getResetPassword(@Query('token') token: string, @Res() res: Response,) {
+  async getResetPassword(@Req() request: Request, @Query('token') token: string, @Res() res: Response,) {
     this.logger.log(`There is a get password reset request`);
-    return this.authService.getResetPassword(token, res);
+    return this.authService.getResetPassword(request, token, res);
   }
 
   @ApiOperation({ summary: 'Reset password form' })
@@ -239,7 +239,7 @@ export class AuthApiController {
   @UseInterceptors(UploadPictureInterceptorFactory('profile_picture'))
   async putUpdateProfile(@Req() request: AuthenticatedRequest, @Body() putUpdateProfileDto: dto.PutUpdateProfileDto) {
     this.logger.log(`There is an update profile request`);
-    return this.authService.updateUserProfile(request.user.id, putUpdateProfileDto, request.file?.filename ?? null, request);
+    return this.authService.updateUserProfile(request, request.user.id, putUpdateProfileDto, request.file?.filename ?? null);
   }
 
   @ApiOperation({ summary: 'Change email' })
@@ -256,7 +256,7 @@ export class AuthApiController {
   @UseGuards(AuthGuard)
   async putChangeEmail(@Req() request: AuthenticatedRequest, @Body() putChangeEmailDto: dto.PutChangeEmailDto) {
     this.logger.log(`There is a change email request`);
-    return this.authService.changeEmail(request.user.id, putChangeEmailDto);
+    return this.authService.changeEmail(request, request.user.id, putChangeEmailDto);
   }
 
   @ApiOperation({ summary: 'Change password' })

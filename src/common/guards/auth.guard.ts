@@ -16,9 +16,9 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
-      // Ambil request dari context
+      // Get request from context
       const request = context.switchToHttp().getRequest<Request>();
-      // Ambil header Authorization
+      // Get Authorization header
       const authHeader = request.headers.authorization;
       if (!authHeader?.startsWith('Bearer ')) {
         throw new UnauthorizedException('Token not provided');
@@ -32,22 +32,22 @@ export class AuthGuard implements CanActivate {
       const { id, role } = decoded;
       const user = await this.userRepository.findOne({ where: { id, role } });
       if (!user) {
-        this.logger.warn('User not found or token invalid');
+        this.logger.error('User not found or token invalid');
         throw new UnauthorizedException('User not found or token invalid');
       }
 
-      // Set user ke request
+      // Set user to request
       (request as AuthenticatedRequest).user = { id, role };
       return true;
     } catch (error) {
-      this.logger.warn(`Authentication failed: ${error.message}`);
+      this.logger.error(`Authentication failed: ${error.message}`);
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       } else if (error.name === 'TokenExpiredError') {
-        this.logger.warn('User attempted login with expired token');
+        this.logger.error('User attempted login with expired token');
         throw new UnauthorizedException('Token expired');
       } else if (error.name === 'JsonWebTokenError') {
-        this.logger.warn('User attempted login with invalid token');
+        this.logger.error('User attempted login with invalid token');
         throw new UnauthorizedException('Invalid token');
       } else if (error.code === '08006' || error.code === '08001') {
         this.logger.error(`Database connection error: ${error.message}`);

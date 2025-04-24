@@ -11,10 +11,10 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const logger = new Logger('Bootstrap');
 
-  // Middleware untuk mengamankan HTTP headers
+  // Middleware for security
   app.use(helmet());
 
-  // Konfigurasi Swagger
+  // Swagger configuration
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('IoT Bridge API Documentation')
@@ -30,19 +30,19 @@ async function bootstrap() {
     logger.log('📄 Swagger API Docs are available at: http://localhost:3000/api-docs');
   }
 
-  // Konfigurasi pipes
+  // Pipes configuration
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Hanya menerima properti yang ada di DTO
-      forbidNonWhitelisted: true, // Tolak request dengan properti yang tidak ada di DTO
-      transform: true, // Otomatis mengubah request menjadi instance DTO
+      whitelist: true, // Only allow properties that are defined in the DTO
+      forbidNonWhitelisted: true, // Reject requests with non-whitelisted properties
+      transform: true, // Transform payloads to DTO instances
     }),
   );
 
-  // Konfigurasi filter
+  // Filter configuration
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Konfigurasi hbs
+  // hbs configuration
   app.setBaseViewsDir(join(__dirname, '..', 'src', 'common', 'views'));
   app.setViewEngine('hbs');
 

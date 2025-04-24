@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
   private readonly transporter: nodemailer.Transporter;
+  private readonly logger = new Logger(EmailService.name);
   constructor(private readonly configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -16,6 +17,7 @@ export class EmailService {
   }
 
   async sendEmail(to: string, subject: string, text: string, html: string) {
+    this.logger.log(`Sending email to ${to} with subject "${subject}"`);
     await this.transporter.sendMail({
       from: `IoT Bridge Aplication <${this.configService.get<string>('EMAIL_SERVICE_ADDRESS')}>`,
       to,

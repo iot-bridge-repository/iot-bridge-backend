@@ -8,7 +8,7 @@ import AppDataSource from "../database.config";
 const createUsersAdminSystem = async (dataSource: DataSource) => {
   const userRepository = dataSource.getRepository(User);
 
-  // Ambil data dari .env
+  // Get data from environment variables
   const usernames = process.env.ADMIN_SYSTEM_USERNAMES?.split(",") || [];
   const emails = process.env.ADMIN_SYSTEM_EMAILS?.split(",") || [];
   const phoneNumbers = process.env.ADMIN_SYSTEM_PHONE_NUMBERS?.split(",") || [];
@@ -19,7 +19,7 @@ const createUsersAdminSystem = async (dataSource: DataSource) => {
     return;
   }
 
-  // Hash password sebelum disimpan
+  // Hash password
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -36,7 +36,7 @@ const createUsersAdminSystem = async (dataSource: DataSource) => {
     created_at: new Date(),
   }));
 
-  // Insert data ke database
+  // Insert data into the database
   await userRepository.save(usersAdminSystem);
   console.log("User admin system successfully added.");
 };

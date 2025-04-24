@@ -1,22 +1,28 @@
 import * as path from 'path';
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor, mixin, BadRequestException } from '@nestjs/common';
+import * as fs from 'fs';
+import { Injectable, ExecutionContext, CallHandler, NestInterceptor, mixin, Logger, BadRequestException,  } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 export function UploadPictureInterceptorFactory(fieldName: string) {
   @Injectable()
   class UploadPictureInterceptor implements NestInterceptor {
     public readonly interceptor: NestInterceptor;
+    public readonly logger = new Logger("UploadPictureInterceptor");
 
     constructor(public configService: ConfigService) {
       this.interceptor = new (FileInterceptor(fieldName, {
         fileFilter: (req, file, cb) => {
           const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
           if (!allowedMimeTypes.includes(file.mimetype)) {
-            return cb(new BadRequestException( 'Only jpg, jpeg, and png image types are allowed!'), false);
+            this.logger.error(`Invalid file type: ${file.mimetype}`);
+            return cb(new BadRequestException('Only jpg, jpeg, and png image types are allowed!'), false);
           }
           if (file.size > 2 * 1024 * 1024) {
+            this.logger.error(`File size exceeds limit: ${file.size}`);
             return cb(new BadRequestException('Max file size is 2MB'), false);
           }
           cb(null, true);
@@ -33,8 +39,26 @@ export function UploadPictureInterceptorFactory(fieldName: string) {
       }))();
     }
 
-    intercept(context: ExecutionContext, next: CallHandler) {
-      return this.interceptor.intercept(context, next);
+    async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
+      // Run Interceptors (pre-handler)
+      this.logger.log('Intercepting request for file upload...');
+      await this.interceptor.intercept(context, next);
+
+      // Run Interceptors (post-handler)
+      return next.handle().pipe(
+        catchError((err) => {
+          const request = context.switchToHttp().getRequest();
+          if (request.file) {
+            try {
+              this.logger.log(`Deleting file due to error: ${err.message}`);
+              fs.unlinkSync(request.file.path);
+            } catch (err) {
+              this.logger.error(`Failed to delete file ${request.file.path}: ${err.message}`);
+            }
+          }
+          return throwError(() => err);
+        }),
+      );
     }
   }
 
