@@ -1,4 +1,4 @@
-import { Controller, Logger, UseGuards, Req, Body, Post } from '@nestjs/common';
+import { Controller, Logger, UseGuards, Req, Body, Post, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { OrganizationApiService } from './organization-api.service';
 import * as dto from './dto';
@@ -40,5 +40,32 @@ export class OrganizationApiController {
   async postPropose(@Req() request: AuthenticatedRequest, @Body() postProposeDto: dto.PostProposeDto) {
     this.logger.log(`There is a request to propose an organization`);
     return this.organizationApiService.postPropose(request.user.id, postProposeDto);
+  }
+
+  @ApiOperation({ summary: 'Get list of organizations' })
+  @ApiOkResponse({
+    description: 'List of organizations',
+    schema: {
+      example: {
+        "message": "List of organizations",
+        "data": [
+          {
+            "id": "4cd1eb2f-319f-42aa-8a04-40e1728ecdfc",
+            "name": "POKDAKAN BINTANG ROSELA JAYA",
+            "description": null,
+            "organization_picture": null,
+            "is_verified": false,
+            "created_by": "da50de59-1f67-4007-ab33-3de8d08825b9",
+            "created_at": "2025-04-26T07:40:39.715Z"
+          }
+        ]
+      }
+    }
+  })
+  @Get('list')
+  async getList(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to get organization list`);
+    console.log('ASW', request.user.id, request.user.role);
+    return this.organizationApiService.getList(request.user.id, request.user.role);
   }
 }

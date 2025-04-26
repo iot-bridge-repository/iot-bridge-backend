@@ -31,6 +31,13 @@ export class CreateOrganizationMembersTable1743862903079 implements MigrationInt
             isNullable: false,
           },
           {
+            name: 'status',
+            type: 'enum',
+            enum: ['Pending', 'Accepted'],
+            default: `'Pending'`,
+            isNullable: false,
+          },
+          {
             name: 'joined_at',
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',

@@ -106,6 +106,11 @@ export enum OrganizationMemberRole {
   VIEWER = 'Viewer',
 }
 
+export enum OrganizationMemberStatus {
+  PENDING = 'Pending',
+  ACCEPTED = 'Accepted',
+}
+
 @Entity({ name: 'organization_members' })
 export class OrganizationMember {
   @PrimaryGeneratedColumn('uuid')
@@ -115,10 +120,13 @@ export class OrganizationMember {
   user_id: string;
 
   @Column({ type: 'varchar', unique: false, nullable: false })
-  organization_id: Organization;
+  organization_id: string;
 
   @Column({ type: 'enum', enum: OrganizationMemberRole, nullable: false })
   role: OrganizationMemberRole;
+
+  @Column({ type: 'enum', enum: OrganizationMemberStatus, default: OrganizationMemberStatus.PENDING, nullable: false })
+  status: OrganizationMemberStatus;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   joined_at: Date;

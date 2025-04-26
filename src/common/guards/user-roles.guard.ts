@@ -29,21 +29,19 @@ export class UserRolesGuard implements CanActivate {
       // Verify token
       const decoded = this.jwtService.verify(token);
 
-      // Verify role
+      // Add id and role to request object
       const { id, role } = decoded;
+      (request as AuthenticatedRequest).user = { id, role };
+
+      // Verify role
       const requiredRoles = this.reflector.get<UserRole>(USER_ROLES_KEY, context.getHandler());
       if (!requiredRoles) return true;
       const roleHierarchy = [UserRole.ADMIN_SYSTEM, UserRole.REGULAR_USER, UserRole.LOKAL_MEMBER];
-      const hasAccess = [requiredRoles].some(requiredRole => {
-        return roleHierarchy.indexOf(role) <= roleHierarchy.indexOf(requiredRole);
-      });
+      const hasAccess = [requiredRoles].some(requiredRole => roleHierarchy.indexOf(role) <= roleHierarchy.indexOf(requiredRole));
       if (!hasAccess) {
         this.logger.warn(`User with role ${role} tried to access ${context.getHandler().name} without sufficient permissions`);
         throw new UnauthorizedException('Insufficient role permissions');
       }
-
-      // Add id and role to request object
-      (request as AuthenticatedRequest).user = { id, role };
       return true;
     } catch (error) {
       this.logger.warn(`Authentication failed: ${error}`);
