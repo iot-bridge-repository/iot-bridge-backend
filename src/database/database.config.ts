@@ -1,6 +1,5 @@
 import { DataSource, DataSourceOptions } from "typeorm";
 import 'dotenv/config'
-import { User, Organization } from "../common/entities";
 
 const AppDataSource = new DataSource({
   type: process.env.DB_TYPE as DataSourceOptions["type"],
@@ -9,7 +8,6 @@ const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  entities: [User, Organization],
   migrations: ["src/database/migrations/*.ts"],
   synchronize: false,
 } as DataSourceOptions);

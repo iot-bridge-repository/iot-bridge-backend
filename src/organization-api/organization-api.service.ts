@@ -63,7 +63,7 @@ export class OrganizationApiService {
 
       this.logger.log(`Organization ${newOrganization.name} proposed by user with id ${id}`);
       return {
-        message: 'Organization proposed successfully.',
+        message: 'Organization proposed successfully, please contanct admin system for verification.',
         data: newOrganization,
       };
     } catch (error) {
@@ -77,7 +77,6 @@ export class OrganizationApiService {
 
   async getList(id: string, role: UserRole) {
     try {
-      console.log('ASW')
       if (role == UserRole.ADMIN_SYSTEM) {
         const organizations = await this.organizationRepository.find();
         return {
@@ -108,6 +107,74 @@ export class OrganizationApiService {
       }
       this.logger.error(`Failed to get list of organizations by id: ${id}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to get list of organizations, please try again later');
+    }
+  }
+
+  async patchVerify(patchVerifyDto: dto.PatchVerifyDto) {
+    try {
+      // Check if organization exists
+      const organization = await this.organizationRepository.findOne({ select: { created_by: true, name: true }, where: { id: patchVerifyDto.organizationId } });
+      if (!organization) {
+        this.logger.warn(`Organization with id ${patchVerifyDto.organizationId} does not exist`);
+        throw new BadRequestException('Organization does not exist');
+      }
+
+      // Verify organization
+      await this.organizationRepository.update({ id: patchVerifyDto.organizationId }, { is_verified: true });
+
+      // Create notification for user
+      const userNotification = this.userNotificationRepository.create({
+        id: uuidv4(),
+        user_id: organization.created_by,
+        subject: `Organisasi anda telah diverifikasi`,
+        message: `Organisasi ${organization.name} telah diverifikasi, silahkan mengelola organisasi anda :)`,      
+      });
+      await this.userNotificationRepository.save(userNotification);
+
+      this.logger.log(`Organization with id ${patchVerifyDto.organizationId} verified`);
+      return {
+        message: 'Organization verified successfully',
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to verify organization, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to verify organization, please try again later');
+    }
+  }
+
+  async patchUnverify(patchUnverifyDto: dto.PatchUnverifyDto) {
+    try {
+      // Check if organization exists
+      const organization = await this.organizationRepository.findOne({ select: { created_by: true, name: true }, where: { id: patchUnverifyDto.organizationId } });
+      if (!organization) {
+        this.logger.warn(`Organization with id ${patchUnverifyDto.organizationId} does not exist`);
+        throw new BadRequestException('Organization does not exist');
+      }
+
+      // Unverify organization
+      await this.organizationRepository.update({ id: patchUnverifyDto.organizationId }, { is_verified: false });
+
+      // Create notification for user
+      const userNotification = this.userNotificationRepository.create({
+        id: uuidv4(),
+        user_id: organization.created_by,
+        subject: `Organisasi anda tidak diverifikasi`,
+        message: `Organisasi ${organization.name} tidak diverifikasi, silahkan menghubungi admin system untuk diverifikasi ulang :)`,      
+      });
+      await this.userNotificationRepository.save(userNotification);
+
+      this.logger.log(`Organization with id ${patchUnverifyDto.organizationId} unverified`);
+      return {
+        message: 'Organization unverified successfully',
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to unverify organization, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to unverify organization, please try again later');
     }
   }
 }

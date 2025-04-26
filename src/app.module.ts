@@ -5,7 +5,6 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import * as entity from './common/entities';
 import { AuthApiModule } from './auth-api/auth-api.module';
 import { LoggingMiddleware } from './common/middleware/logging.middleware';
 import { OrganizationApiModule } from './organization-api/organization-api.module';
@@ -24,7 +23,6 @@ import { OrganizationApiModule } from './organization-api/organization-api.modul
           username: configService.get<string>('DB_USERNAME'),
           password: configService.get<string>('DB_PASSWORD'),
           database: configService.get<string>('DB_NAME'),
-          entities: [entity.User, entity.VerifyEmailToken, entity.PasswordResetToken, entity.Organization, entity.OrganizationMember],
           synchronize: false, 
           autoLoadEntities: true, 
           logging: true,

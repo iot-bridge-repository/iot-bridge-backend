@@ -1,4 +1,4 @@
-import { Controller, Logger, UseGuards, Req, Body, Post, Get } from '@nestjs/common';
+import { Controller, Logger, UseGuards, Req, Body, Post, Get, Patch } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { OrganizationApiService } from './organization-api.service';
 import * as dto from './dto';
@@ -22,7 +22,7 @@ export class OrganizationApiController {
     description: 'Organization proposed successfully',
     schema: {
       example: {
-        message: "Organization proposed successfully.",
+        message: "Organization proposed successfully, please contanct admin system for verification.",
         data: {
           id: "cbb5e309-b7e9-424a-a0bf-a0e8b53c93b8",
           name: "Proposed Organization",
@@ -67,5 +67,37 @@ export class OrganizationApiController {
     this.logger.log(`There is a request to get organization list`);
     console.log('ASW', request.user.id, request.user.role);
     return this.organizationApiService.getList(request.user.id, request.user.role);
+  }
+
+  @ApiOperation({ summary: 'Verify organization' })
+  @ApiOkResponse({
+    description: 'Organization verified successfully',
+    schema: {
+      example: {
+        message: "Organization verified successfully",
+      }
+    }
+  })
+  @Patch('verify')
+  @UserRoles(UserRole.ADMIN_SYSTEM)
+  async patchVerify(@Body() patchVerifyDto: dto.PatchVerifyDto) {
+    this.logger.log(`There is a request to verify an organization`);
+    return this.organizationApiService.patchVerify(patchVerifyDto);
+  }
+
+  @ApiOperation({ summary: 'Unverify organization' })
+  @ApiOkResponse({
+    description: 'Organization unverified successfully',
+    schema: {
+      example: {
+        message: "Organization unverified successfully",
+      }
+    }
+  })
+  @Patch('unverify')
+  @UserRoles(UserRole.ADMIN_SYSTEM)
+  async patchUnverify(@Body() patchUnverifyDto: dto.PatchUnverifyDto) {
+    this.logger.log(`There is a request to unverify an organization`);
+    return this.organizationApiService.patchUnverify(patchUnverifyDto);
   }
 }
