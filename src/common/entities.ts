@@ -80,6 +80,7 @@ export class Organization {
   id: string;
 
   @Column({ type: 'varchar', length: 100, unique: true, nullable: false })
+  @Length(5, 100, { message: 'Name must be between 5 and 100 characters' })
   name: string;
 
   @Column({ type: 'text', nullable: true })
@@ -121,4 +122,24 @@ export class OrganizationMember {
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   joined_at: Date;
+}
+
+@Entity({ name: 'user_notifications' })
+export class UserNotification {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'varchar', unique: false, nullable: false })
+  user_id: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: false })
+  @Length(5, 100, { message: 'Subject must be between 5 and 100 characters' })
+  subject: string;
+
+  @Column({ type: 'text', nullable: false })
+  @Length(5, 1000, { message: 'Message must be between 5 and 1000 characters' })
+  message: string;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
 }

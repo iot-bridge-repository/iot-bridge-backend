@@ -1,13 +1,17 @@
 import { Injectable, CanActivate, Logger, ExecutionContext, UnauthorizedException, InternalServerErrorException, HttpException, } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import AuthenticatedRequest from '../interfaces/authenticated-request.interface';
+import { USER_ROLES_KEY } from '../decorators/user-roles.decorator';
+import { UserRole } from '../entities';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
-  private readonly logger = new Logger(AuthGuard.name);
+export class UserRolesGuard implements CanActivate {
+  private readonly logger = new Logger(UserRolesGuard.name);
   constructor(
     private readonly jwtService: JwtService,
+    private readonly reflector: Reflector,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -25,12 +29,24 @@ export class AuthGuard implements CanActivate {
       // Verify token
       const decoded = this.jwtService.verify(token);
 
-      // Add id and role to request object
+      // Verify role
       const { id, role } = decoded;
+      const requiredRoles = this.reflector.get<UserRole>(USER_ROLES_KEY, context.getHandler());
+      if (!requiredRoles) return true;
+      const roleHierarchy = [UserRole.ADMIN_SYSTEM, UserRole.REGULAR_USER, UserRole.LOKAL_MEMBER];
+      const hasAccess = [requiredRoles].some(requiredRole => {
+        return roleHierarchy.indexOf(role) <= roleHierarchy.indexOf(requiredRole);
+      });
+      if (!hasAccess) {
+        this.logger.warn(`User with role ${role} tried to access ${context.getHandler().name} without sufficient permissions`);
+        throw new UnauthorizedException('Insufficient role permissions');
+      }
+
+      // Add id and role to request object
       (request as AuthenticatedRequest).user = { id, role };
       return true;
     } catch (error) {
-      this.logger.warn(`Authentication failed: ${error.message}`);
+      this.logger.warn(`Authentication failed: ${error}`);
 
       if (error instanceof HttpException || error?.status || error?.response) throw error;
       if (error.name === 'TokenExpiredError') throw new UnauthorizedException('Token expired');

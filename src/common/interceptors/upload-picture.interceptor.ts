@@ -12,17 +12,16 @@ export function UploadPictureInterceptorFactory(fieldName: string) {
   class UploadPictureInterceptor implements NestInterceptor {
     public readonly interceptor: NestInterceptor;
     public readonly logger = new Logger("UploadPictureInterceptor");
-
     constructor(public configService: ConfigService) {
       this.interceptor = new (FileInterceptor(fieldName, {
         fileFilter: (req, file, cb) => {
           const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
           if (!allowedMimeTypes.includes(file.mimetype)) {
-            this.logger.error(`Invalid file type: ${file.mimetype}`);
+            this.logger.warn(`Invalid file type: ${file.mimetype}`);
             return cb(new BadRequestException('Only jpg, jpeg, and png image types are allowed!'), false);
           }
           if (file.size > 2 * 1024 * 1024) {
-            this.logger.error(`File size exceeds limit: ${file.size}`);
+            this.logger.warn(`File size exceeds limit: ${file.size}`);
             return cb(new BadRequestException('Max file size is 2MB'), false);
           }
           cb(null, true);
