@@ -1,4 +1,4 @@
-import { Controller, Logger, UseGuards, Req, Res, Body, Query, Post, Get, Put, UseInterceptors } from '@nestjs/common';
+import { Controller, Logger, UseGuards, Req, Res, Body, Query, Post, Get, Patch, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { AuthApiService } from './auth-api.service';
@@ -30,7 +30,7 @@ export class AuthApiController {
     return this.authService.postRegister(request, postRegisterDto);
   }
 
-  @ApiOperation({ summary: 'Verification email' })
+  @ApiOperation({ summary: 'Verify email' })
   @ApiOkResponse({
     description: 'Returns an HTML page confirming successful email verification',
     content: {
@@ -87,7 +87,7 @@ export class AuthApiController {
     return this.authService.postLogin(postLoginDto);
   }
 
-  @ApiOperation({ summary: 'Forgot password' })
+  @ApiOperation({ summary: 'Forgot password email' })
   @ApiOkResponse({
     description: 'Forgot password request sent successfully',
     schema: {
@@ -202,7 +202,7 @@ export class AuthApiController {
     return this.authService.getProfile(request.user.id);
   }
 
-  @ApiOperation({ summary: 'Update profile' })
+  @ApiOperation({ summary: 'Update profile username, phone number, and profile picture' })
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -234,12 +234,12 @@ export class AuthApiController {
       }
     }
   })
-  @Put('update-profile')
+  @Patch('update-profile')
   @UseGuards(AuthGuard)
   @UseInterceptors(UploadPictureInterceptorFactory('profile_picture'))
-  async putUpdateProfile(@Req() request: AuthenticatedRequest, @Body() putUpdateProfileDto: dto.PutUpdateProfileDto) {
+  async patchUpdateProfile(@Req() request: AuthenticatedRequest, @Body() patchUpdateProfileDto: dto.PatchUpdateProfileDto) {
     this.logger.log(`There is an update profile request`);
-    return this.authService.updateUserProfile(request, request.user.id, putUpdateProfileDto, request.file?.filename ?? null);
+    return this.authService.patchUpdateUserProfile(request, request.user.id, patchUpdateProfileDto, request.file?.filename ?? null);
   }
 
   @ApiOperation({ summary: 'Change email' })
@@ -252,11 +252,11 @@ export class AuthApiController {
       }
     }
   })
-  @Put('change-email')
+  @Patch('change-email')
   @UseGuards(AuthGuard)
-  async putChangeEmail(@Req() request: AuthenticatedRequest, @Body() putChangeEmailDto: dto.PutChangeEmailDto) {
+  async patchChangeEmail(@Req() request: AuthenticatedRequest, @Body() patchChangeEmailDto: dto.PatchChangeEmailDto) {
     this.logger.log(`There is a change email request`);
-    return this.authService.changeEmail(request, request.user.id, putChangeEmailDto);
+    return this.authService.patchChangeEmail(request, request.user.id, patchChangeEmailDto);
   }
 
   @ApiOperation({ summary: 'Change password' })
@@ -269,10 +269,10 @@ export class AuthApiController {
       }
     }
   })
-  @Put('change-password')
+  @Patch('change-password')
   @UseGuards(AuthGuard)
-  async putChangePassword(@Req() request: AuthenticatedRequest, @Body() putChangePasswordDto: dto.PutChangePasswordDto) {
+  async patchChangePassword(@Req() request: AuthenticatedRequest, @Body() patchChangePasswordDto: dto.PatchChangePasswordDto) {
     this.logger.log(`There is a change password request`);
-    return this.authService.changePassword(request.user.id, putChangePasswordDto);
+    return this.authService.patchChangePassword(request.user.id, patchChangePasswordDto);
   }
 }

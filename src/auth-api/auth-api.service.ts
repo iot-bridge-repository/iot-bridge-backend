@@ -137,6 +137,7 @@ export class AuthApiService {
                   "
               >📧 Verifikasi Email</a>
             </div>
+            <p>Setelah Anda memverifikasi alamat email ini, Anda dapat menggunakan alamat email, username, atau nomer telepon yang anda daftarkan untuk login ke akun <strong>IoT Bridge</strong>.</p>
             <p>Link verifikasi ini hanya berlaku selama <strong>24 jam</strong> dan hanya dapat digunakan <strong>1 kali</strong>. Jika Anda tidak melakukan pendaftaran, silakan abaikan email ini.</p>
             <p style="margin-top: 40px;">Salam hangat,<br><strong>Tim IoT Bridge</strong></p>
             <hr style="margin-top: 40px;">
@@ -457,7 +458,7 @@ export class AuthApiService {
     }
   }
 
-  async updateUserProfile(req: Request, id: string, updateProfileDto: dto.PutUpdateProfileDto, profile_picture: string | null) {
+  async patchUpdateUserProfile(req: Request, id: string, updateProfileDto: dto.PatchUpdateProfileDto, profile_picture: string | null) {
     try {
       // Check if the user exists
       const user = await this.userRepository.findOne({ where: { id } });
@@ -527,7 +528,7 @@ export class AuthApiService {
     }
   }
 
-  async changeEmail(req: Request, id: string, changeEmailDto: dto.PutChangeEmailDto) {
+  async patchChangeEmail(req: Request, id: string, changeEmailDto: dto.PatchChangeEmailDto) {
     try {
       // Check if the user exists
       const user = await this.userRepository.findOne({ where: { id } });
@@ -595,7 +596,7 @@ export class AuthApiService {
             ">✅ Verifikasi Email Baru</a>
           </div>
           <p>Link ini hanya berlaku selama <strong>24 jam</strong>. Jika Anda tidak mengajukan permintaan ini, abaikan saja email ini dan perubahan tidak akan dilakukan.</p>
-          <p style="margin-top: 40px;">Terima kasih,<br><strong>Tim IoT Bridge</strong></p>
+          <p style="margin-top: 40px;">Salam hangat,<br><strong>Tim IoT Bridge</strong></p>
           <hr style="margin-top: 40px;">
           <p style="font-size: 12px; color: #999;">Email ini dikirim secara otomatis. Mohon untuk tidak membalas ke alamat ini.</p>
         </div>
@@ -615,7 +616,7 @@ export class AuthApiService {
     }
   }
 
-  async changePassword(id: string, changePasswordDto: dto.PutChangePasswordDto) {
+  async patchChangePassword(id: string, changePasswordDto: dto.PatchChangePasswordDto) {
     try {
       // Check if the user exists
       const user = await this.userRepository.findOne({ where: { id } });
