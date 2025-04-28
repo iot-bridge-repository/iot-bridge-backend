@@ -18,7 +18,7 @@ export class OrganizationApiService {
     @InjectRepository(Organization) private readonly organizationRepository: Repository<Organization>,
     @InjectRepository(OrganizationMember) private readonly organizationMemberRepository: Repository<OrganizationMember>,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   async postPropose(id: string, postProposeDto: dto.PostProposeDto) {
     try {
@@ -84,7 +84,7 @@ export class OrganizationApiService {
       if (role == UserRole.ADMIN_SYSTEM) {
         const organizations = await this.organizationRepository.find();
         return {
-          message: 'List of all organizations',
+          message: 'List of all organizations.',
           data: organizations,
         };
       } else if (role == UserRole.REGULAR_USER || role == UserRole.LOKAL_MEMBER) {
@@ -101,7 +101,7 @@ export class OrganizationApiService {
         });
 
         return {
-          message: 'List of your organizations',
+          message: 'List of your organizations.',
           data: organizations,
         };
       }
@@ -137,7 +137,7 @@ export class OrganizationApiService {
 
       this.logger.log(`Organization with id ${patchVerifyDto.organizationId} verified`);
       return {
-        message: 'Organization verified successfully',
+        message: 'Organization verified successfully.',
       };
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
@@ -171,7 +171,7 @@ export class OrganizationApiService {
 
       this.logger.log(`Organization with id ${patchUnverifyDto.organizationId} unverified`);
       return {
-        message: 'Organization unverified successfully',
+        message: 'Organization unverified successfully.',
       };
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
@@ -197,6 +197,16 @@ export class OrganizationApiService {
 
   async patchOrganizationProfile(req: Request, organizationId: string, patchOrganizationProfileDto: dto.PatchOrganizationProfileDto, organization_picture: string | null) {
     try {
+      // Check if organization name duplicate
+      const existingUsername = await this.organizationRepository.findOne({
+        select: { id: true },
+        where: { name: patchOrganizationProfileDto.name } 
+      });
+      if (existingUsername && existingUsername.id !== organizationId) {
+        this.logger.warn(`Organization name already exists: ${patchOrganizationProfileDto.name}`);
+        throw new BadRequestException(`Organization name already exists: ${patchOrganizationProfileDto.name}`);
+      }
+
       // Organization profile update data
       const updateOrganizationProfile: Partial<Organization> = {
         name: patchOrganizationProfileDto.name,
@@ -229,7 +239,7 @@ export class OrganizationApiService {
 
       this.logger.log(`Organization profile with id ${organizationId} updated`);
       return {
-        message: 'Organization profile updated successfully',
+        message: 'Organization profile updated successfully.',
         data: {
           organization: {
             id: organizationId,

@@ -1,5 +1,5 @@
 import { Controller, Logger, UseGuards, UseInterceptors, Req, Body, Post, Get, Patch } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody, ApiParam } from '@nestjs/swagger';
 import { OrganizationApiService } from './organization-api.service';
 import * as dto from './dto';
 import AuthenticatedRequest from '../common/interfaces/authenticated-request.interface';
@@ -107,6 +107,22 @@ export class OrganizationApiController {
     return this.organizationApiService.patchUnverify(patchUnverifyDto);
   }
 
+  @ApiOperation({ summary: 'Get organization profile' })
+  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
+  @ApiOkResponse({
+    description: 'Organization profile',
+    schema: {
+      example: {
+        id: "9acc6316-f8b0-44a7-9b2f-f8f9005c2973",
+        name: "POKDAKAN BINTANG ROSELA JAYA 2",
+        description: null,
+        organization_picture: null,
+        is_verified: false,
+        created_by: "da50de59-1f67-4007-ab33-3de8d08825b9",
+        created_at  : "2025-04-26T07:58:00.278Z"
+      }
+    }
+  })
   @Get(':organizationId/profile')
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.LOKAL_MEMBER)
@@ -115,6 +131,35 @@ export class OrganizationApiController {
     return this.organizationApiService.getOrganizationProfile(request.params.organizationId);
   }
 
+  @ApiOperation({ summary: 'Update organization profile' })
+  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'POKDAKAN BINTANG ROSELA JAYA' },
+        description: { type: 'string', example: 'description of organization' },
+        organization_picture: { type: 'string', format: 'binary', description: '(optional)' },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Profile updated successfully',
+    schema: {
+      example: {
+        message: "Organization profile updated successfully",
+        data: {
+          organization: {
+            id: "4cd1eb2f-319f-42aa-8a04-40e1728ecdfc",
+            name: "POKDAKAN BINTANG ROSELA JAYA",
+            description: "kolam ikan lampung",
+            organization_picture: "http://localhost:3000/uploads/organization_picture/1745810588643-360135057.png"
+          }
+        }
+      }
+    }
+  })
   @Patch(':organizationId/profile')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)

@@ -35,20 +35,6 @@ export class OrganizationMemberRolesGuard implements CanActivate {
         throw new ForbiddenException('Organization ID not provided');
       }
 
-      // Check if user is part of the organization
-      const { id } = (request as AuthenticatedRequest).user;
-      const memberOrganization = await this.organizationMemberRepository.findOne({
-        select: { role: true },
-        where: {
-          user_id: id,
-          organization_id: organizationId,
-        },
-      });
-      if (!memberOrganization) {
-        this.logger.warn(`User with id ${id} is not part of the organization with id ${organizationId}`);
-        throw new ForbiddenException('User not part of organization');
-      }
-
       // Check if organizationId is verified
       const organization = await this.organizationRepository.findOne({
         select: { is_verified: true },
@@ -61,6 +47,20 @@ export class OrganizationMemberRolesGuard implements CanActivate {
       if (!organization.is_verified) {
         this.logger.warn(`Organization with id ${organizationId} is not verified`);
         throw new ForbiddenException('Organization is not verified');
+      }
+
+      // Check if user is part of the organization
+      const { id } = (request as AuthenticatedRequest).user;
+      const memberOrganization = await this.organizationMemberRepository.findOne({
+        select: { role: true },
+        where: {
+          user_id: id,
+          organization_id: organizationId,
+        },
+      });
+      if (!memberOrganization) {
+        this.logger.warn(`User with id ${id} is not part of the organization with id ${organizationId}`);
+        throw new ForbiddenException('User not part of organization');
       }
 
       // Check if user has the required role
