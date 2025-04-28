@@ -4,6 +4,9 @@ import { Request, Response } from 'express';
 import { AuthApiService } from './auth-api.service';
 import * as dto from './dto';
 import { AuthGuard } from '../common/guards/auth.guard';
+import { UserRolesGuard } from '../common/guards/user-roles.guard';
+import { UserRole } from '../common/entities';
+import { UserRoles } from '../common/decorators/user-roles.decorator';
 import AuthenticatedRequest from '../common/interfaces/authenticated-request.interface';
 import { UploadPictureInterceptorFactory } from '../common/interceptors/upload-picture.interceptor';
 
@@ -235,7 +238,8 @@ export class AuthApiController {
     }
   })
   @Patch('update-profile')
-  @UseGuards(AuthGuard)
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.REGULAR_USER)  
   @UseInterceptors(UploadPictureInterceptorFactory('profile_picture'))
   async patchUpdateProfile(@Req() request: AuthenticatedRequest, @Body() patchUpdateProfileDto: dto.PatchUpdateProfileDto) {
     this.logger.log(`There is an update profile request`);
@@ -253,7 +257,8 @@ export class AuthApiController {
     }
   })
   @Patch('change-email')
-  @UseGuards(AuthGuard)
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.REGULAR_USER)  
   async patchChangeEmail(@Req() request: AuthenticatedRequest, @Body() patchChangeEmailDto: dto.PatchChangeEmailDto) {
     this.logger.log(`There is a change email request`);
     return this.authService.patchChangeEmail(request, request.user.id, patchChangeEmailDto);
