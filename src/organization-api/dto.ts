@@ -23,3 +23,14 @@ export class PatchUnverifyDto {
   organizationId: string;
 }
 
+export class PatchOrganizationProfileDto {
+  @ApiProperty({ example: 'POKDAKAN BINTANG ROSELA JAYA', description: 'Organization name' })
+  @IsNotEmpty({ message: 'Name cannot be empty' })
+  @IsString({ message: 'Name must be a string' })
+  name: string;
+
+  @ApiProperty({ example: 'This is a description of the organization', description: 'Organization description' })
+  @IsNotEmpty({ message: 'Description cannot be empty' })
+  @IsString({ message: 'Description must be a string' })
+  description: string;
+}

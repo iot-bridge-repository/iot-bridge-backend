@@ -1,5 +1,9 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { Injectable, Logger, HttpException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Request } from 'express';
 import { Repository, In } from 'typeorm';
 import { v4 as uuidv4 } from "uuid";
 import { User, UserRole, UserNotification, Organization, OrganizationMember, OrganizationMemberRole, OrganizationMemberStatus } from '../common/entities';
@@ -13,16 +17,17 @@ export class OrganizationApiService {
     @InjectRepository(UserNotification) private readonly userNotificationRepository: Repository<UserNotification>,
     @InjectRepository(Organization) private readonly organizationRepository: Repository<Organization>,
     @InjectRepository(OrganizationMember) private readonly organizationMemberRepository: Repository<OrganizationMember>,
-  ) {}
+    private readonly configService: ConfigService,
+  ) { }
 
   async postPropose(id: string, postProposeDto: dto.PostProposeDto) {
     try {
       // Check if user exists
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
-          this.logger.warn(`User with id ${id} does not exist`);
-          throw new BadRequestException('User does not exist');
-        }
+        this.logger.warn(`User with id ${id} does not exist`);
+        throw new BadRequestException('User does not exist');
+      }
       // Check if organization already exists
       const existingOrganization = await this.organizationRepository.findOne({ where: { name: postProposeDto.name } });
       if (existingOrganization) {
@@ -38,7 +43,6 @@ export class OrganizationApiService {
         created_by: id,
       });
       await this.organizationRepository.save(newOrganization);
-      console.log(`ASW`, newOrganization.id);
 
       // Create organization member
       const newOrganizationMember = this.organizationMemberRepository.create({
@@ -57,7 +61,7 @@ export class OrganizationApiService {
           id: uuidv4(),
           user_id: admin.id,
           subject: `Pengajuan organisasi baru: ${newOrganization.name}`,
-          message: `User ${user.username} mengajukan organisasi: ${newOrganization.name}`,        
+          message: `User ${user.username} mengajukan organisasi: ${newOrganization.name}`,
         }))
       );
 
@@ -80,7 +84,7 @@ export class OrganizationApiService {
       if (role == UserRole.ADMIN_SYSTEM) {
         const organizations = await this.organizationRepository.find();
         return {
-          message: 'List of organizations',
+          message: 'List of all organizations',
           data: organizations,
         };
       } else if (role == UserRole.REGULAR_USER || role == UserRole.LOKAL_MEMBER) {
@@ -97,7 +101,7 @@ export class OrganizationApiService {
         });
 
         return {
-          message: 'List of organizations',
+          message: 'List of your organizations',
           data: organizations,
         };
       }
@@ -127,7 +131,7 @@ export class OrganizationApiService {
         id: uuidv4(),
         user_id: organization.created_by,
         subject: `Organisasi anda telah diverifikasi`,
-        message: `Organisasi ${organization.name} telah diverifikasi, silahkan mengelola organisasi anda :)`,      
+        message: `Organisasi ${organization.name} telah diverifikasi, silahkan mengelola organisasi anda :)`,
       });
       await this.userNotificationRepository.save(userNotification);
 
@@ -161,7 +165,7 @@ export class OrganizationApiService {
         id: uuidv4(),
         user_id: organization.created_by,
         subject: `Organisasi anda tidak diverifikasi`,
-        message: `Organisasi ${organization.name} tidak diverifikasi, silahkan menghubungi admin system untuk diverifikasi ulang :)`,      
+        message: `Organisasi ${organization.name} tidak diverifikasi, silahkan menghubungi admin system untuk diverifikasi ulang :)`,
       });
       await this.userNotificationRepository.save(userNotification);
 
@@ -175,6 +179,73 @@ export class OrganizationApiService {
       }
       this.logger.error(`Failed to unverify organization, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to unverify organization, please try again later');
+    }
+  }
+
+  async getOrganizationProfile(organizationId: string) {
+    try {
+      const organization = await this.organizationRepository.findOne({ where: { id: organizationId } });
+      return organization;
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to get organization profile, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get organization profile, please try again later');
+    }
+  }
+
+  async patchOrganizationProfile(req: Request, organizationId: string, patchOrganizationProfileDto: dto.PatchOrganizationProfileDto, organization_picture: string | null) {
+    try {
+      // Organization profile update data
+      const updateOrganizationProfile: Partial<Organization> = {
+        name: patchOrganizationProfileDto.name,
+        description: patchOrganizationProfileDto.description,
+      };
+      // Check if the old profile picture exists and delete it
+      const organization = await this.organizationRepository.findOne({
+        select: { organization_picture: true },
+        where: { id: organizationId } 
+      });
+      // Check if the organization picture is provided
+      if (organization_picture) {
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        updateOrganizationProfile.organization_picture = `${baseUrl}/uploads/organization_picture/${organization_picture}`;
+
+        if (organization?.organization_picture) {
+          const uploadDir = this.configService.get('NODE_ENV') === 'production'
+            ? '/var/www/uploads/organization_picture'
+            : './uploads/organization_picture';
+          const oldFilePath = path.join(uploadDir, path.basename(organization.organization_picture));
+
+          if (fs.existsSync(oldFilePath)) {
+            fs.unlinkSync(oldFilePath);
+          }
+        }
+      }
+
+      // Update the organization profile
+      await this.organizationRepository.update(organizationId, updateOrganizationProfile);
+
+      this.logger.log(`Organization profile with id ${organizationId} updated`);
+      return {
+        message: 'Organization profile updated successfully',
+        data: {
+          organization: {
+            id: organizationId,
+            name: updateOrganizationProfile.name,
+            description: updateOrganizationProfile.description,
+            organization_picture: organization?.organization_picture,
+          },
+        },
+      };
+    } catch (error) {
+      this.logger.error(`Failed to update organization profile by organization id: ${organizationId}, Error: ${error.message}`);
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to update organization profile, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to update organization profile, please try another time');
     }
   }
 }

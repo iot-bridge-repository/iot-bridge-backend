@@ -1,16 +1,19 @@
-import { Controller, Logger, UseGuards, Req, Body, Post, Get, Patch } from '@nestjs/common';
+import { Controller, Logger, UseGuards, UseInterceptors, Req, Body, Post, Get, Patch } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { OrganizationApiService } from './organization-api.service';
 import * as dto from './dto';
 import AuthenticatedRequest from '../common/interfaces/authenticated-request.interface';
 import { UserRolesGuard } from '../common/guards/user-roles.guard';
+import { OrganizationMemberRolesGuard } from '../common/guards/organization-member-roles.guard';
 import { UserRoles } from '../common/decorators/user-roles.decorator';
-import { UserRole } from '../common/entities';
+import { OrganizationMemberRoles } from '../common/decorators/organization-member-roles.decorator';
+import { UploadPictureInterceptorFactory } from '../common/interceptors/upload-picture.interceptor';
+import { UserRole, OrganizationMemberRole } from '../common/entities';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @ApiTags('Organization')
 @ApiBearerAuth()
 @Controller('organization')
-@UseGuards(UserRolesGuard)
 export class OrganizationApiController {
   private readonly logger = new Logger(OrganizationApiController.name);
   constructor(
@@ -36,6 +39,7 @@ export class OrganizationApiController {
     }
   })
   @Post('propose')
+  @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.REGULAR_USER)  
   async postPropose(@Req() request: AuthenticatedRequest, @Body() postProposeDto: dto.PostProposeDto) {
     this.logger.log(`There is a request to propose an organization`);
@@ -63,9 +67,9 @@ export class OrganizationApiController {
     }
   })
   @Get('list')
+  @UseGuards(AuthGuard)
   async getList(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get organization list`);
-    console.log('ASW', request.user.id, request.user.role);
     return this.organizationApiService.getList(request.user.id, request.user.role);
   }
 
@@ -79,6 +83,7 @@ export class OrganizationApiController {
     }
   })
   @Patch('verify')
+  @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.ADMIN_SYSTEM)
   async patchVerify(@Body() patchVerifyDto: dto.PatchVerifyDto) {
     this.logger.log(`There is a request to verify an organization`);
@@ -95,9 +100,27 @@ export class OrganizationApiController {
     }
   })
   @Patch('unverify')
+  @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.ADMIN_SYSTEM)
   async patchUnverify(@Body() patchUnverifyDto: dto.PatchUnverifyDto) {
     this.logger.log(`There is a request to unverify an organization`);
     return this.organizationApiService.patchUnverify(patchUnverifyDto);
+  }
+
+  @Get(':organizationId/profile')
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.LOKAL_MEMBER)
+  async getOrganizationProfile(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to get organization profile`);
+    return this.organizationApiService.getOrganizationProfile(request.params.organizationId);
+  }
+
+  @Patch(':organizationId/profile')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
+  @UseInterceptors(UploadPictureInterceptorFactory('organization_picture'))
+  async patchOrganizationProfile(@Req() request: AuthenticatedRequest, @Body() patchOrganizationProfileDto: dto.PatchOrganizationProfileDto) {
+    this.logger.log(`There is a request to update organization profile`);
+    return this.organizationApiService.patchOrganizationProfile(request, request.params.organizationId, patchOrganizationProfileDto, request.file?.filename ?? null);
   }
 }

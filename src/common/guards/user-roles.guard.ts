@@ -5,6 +5,7 @@ import { Request } from 'express';
 import AuthenticatedRequest from '../interfaces/authenticated-request.interface';
 import { USER_ROLES_KEY } from '../decorators/user-roles.decorator';
 import { UserRole } from '../entities';
+import { checkToken } from '../utils/check-token.util';
 
 @Injectable()
 export class UserRolesGuard implements CanActivate {
@@ -12,32 +13,24 @@ export class UserRolesGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly reflector: Reflector,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
-      // Get request from context
+      // Check token from Authorization header
       const request = context.switchToHttp().getRequest<Request>();
-      // Get token from Authorization header
-      const authHeader = request.headers.authorization;
-      if (!authHeader?.startsWith('Bearer ')) {
-        this.logger.warn('Token not provided');
-        throw new UnauthorizedException('Token not provided');
-      }
-      const token = authHeader.split(' ')[1];
+      await checkToken(request, this.jwtService, this.logger);
 
-      // Verify token
-      const decoded = this.jwtService.verify(token);
+      // Get required role
+      const requiredRole = this.reflector.get<UserRole>(USER_ROLES_KEY, context.getHandler());
+      if (!requiredRole) return true;
 
-      // Add id and role to request object
-      const { id, role } = decoded;
-      (request as AuthenticatedRequest).user = { id, role };
+      // Get user role from request
+      const { role } = (request as AuthenticatedRequest).user;
 
       // Verify role
-      const requiredRoles = this.reflector.get<UserRole>(USER_ROLES_KEY, context.getHandler());
-      if (!requiredRoles) return true;
       const roleHierarchy = [UserRole.ADMIN_SYSTEM, UserRole.REGULAR_USER, UserRole.LOKAL_MEMBER];
-      const hasAccess = [requiredRoles].some(requiredRole => roleHierarchy.indexOf(role) <= roleHierarchy.indexOf(requiredRole));
+      const hasAccess = [requiredRole].some(requiredRole => roleHierarchy.indexOf(role) <= roleHierarchy.indexOf(requiredRole));
       if (!hasAccess) {
         this.logger.warn(`User with role ${role} tried to access ${context.getHandler().name} without sufficient permissions`);
         throw new UnauthorizedException('Insufficient role permissions');
