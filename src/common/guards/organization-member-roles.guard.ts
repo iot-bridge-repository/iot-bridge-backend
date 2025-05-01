@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { Request } from 'express';
 import AuthenticatedRequest from '../interfaces/authenticated-request.interface';
 import { ORGANIZATION_MEMBER_ROLES_KEY } from '../decorators/organization-member-roles.decorator';
-import { Organization, OrganizationMemberRole, OrganizationMember } from '../entities';
+import { Organization, OrganizationMemberRole, OrganizationMember, OrganizationMemberStatus } from '../entities';
 import { checkToken } from '../utils/check-token.util';
 
 @Injectable()
@@ -56,6 +56,7 @@ export class OrganizationMemberRolesGuard implements CanActivate {
         where: {
           user_id: id,
           organization_id: organizationId,
+          status: OrganizationMemberStatus.ACCEPTED
         },
       });
       if (!memberOrganization) {

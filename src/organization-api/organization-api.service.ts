@@ -318,4 +318,53 @@ export class OrganizationApiService {
       throw new InternalServerErrorException('Failed to search members, please try another time');
     }
   }
+
+  async postAddMember(organizationId: string, postAddMemberDto: dto.PostAddMemberDto) {
+    try {
+      // Create new organization member
+      const newOrganizationMember = this.organizationMemberRepository.create({
+        id: uuidv4(),
+        user_id: postAddMemberDto.user_id,
+        organization_id: organizationId,
+        role: OrganizationMemberRole.VIEWER,
+        status: OrganizationMemberStatus.PENDING,
+      });
+      await this.organizationMemberRepository.save(newOrganizationMember);
+
+      // Create notification for user
+      const organization = await this.organizationRepository.findOne({
+        select: { name: true },
+        where: { id: organizationId } 
+      });
+      const userNotification = this.userNotificationRepository.create({
+        id: uuidv4(),
+        user_id: postAddMemberDto.user_id,
+        subject: `Undangan untuk bergabung di organisasi`,
+        message: `Anda telah diundang untuk bergabung di organisasi ${organization?.name}`,
+        type: 'organization_member_invitation',
+      });
+      await this.userNotificationRepository.save(userNotification);
+
+      this.logger.log(`Member with id ${postAddMemberDto.user_id} added to organization with id ${organizationId}`);
+      return {
+        message: 'Member added successfully.',
+        data: {
+          organization_member: {
+            id: newOrganizationMember.id,
+            user_id: newOrganizationMember.user_id,
+            organization_id: newOrganizationMember.organization_id,
+            role: newOrganizationMember.role,
+            status: newOrganizationMember.status,
+          },
+        },
+      };
+    } catch (error) {
+      this.logger.error(`Failed to add member, Error: ${error.message}`);
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to add member, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to add member, please try another time');
+    }
+  }
 }

@@ -34,3 +34,10 @@ export class PatchOrganizationProfileDto {
   @IsString({ message: 'Description must be a string' })
   description: string;
 }
+
+export class PostAddMemberDto {
+  @ApiProperty({ example: 'xxxxxx', description: 'User id' })
+  @IsNotEmpty({ message: 'User id cannot be empty' })
+  @IsString({ message: 'User id must be a string' })
+  user_id: string;
+}

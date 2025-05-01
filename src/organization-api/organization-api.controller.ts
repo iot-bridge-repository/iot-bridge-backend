@@ -206,4 +206,30 @@ export class OrganizationApiController {
     this.logger.log(`There is a request to search members`);
     return this.organizationApiService.getSearchMembers(query);
   }
+
+  @ApiOperation({ summary: 'Add member' })
+  @ApiOkResponse({
+    description: 'Add member',
+    schema: {
+      example: {
+        message: "Member added successfully.",
+        data: {
+          organization_member: {
+            id: "921df4c5-6c5c-46aa-8f60-44f0810a65c2",
+            user_id: "25d35595-fd8c-4f3f-ad93-023a7c799bd4",
+            organization_id: "4cd1eb2f-319f-42aa-8a04-40e1728ecdfc",
+            role: "Viewer",
+            status: "Pending"
+          }
+        }
+      }
+    }
+  })
+  @Post(':organizationId/add-member')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
+  async postAddMember(@Req() request: AuthenticatedRequest, @Body() postAddMemberDto: dto.PostAddMemberDto) {
+    this.logger.log(`There is a request to add member`);
+    return this.organizationApiService.postAddMember(request.params.organizationId, postAddMemberDto);
+  }
 }
