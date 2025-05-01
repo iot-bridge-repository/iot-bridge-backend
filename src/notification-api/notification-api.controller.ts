@@ -1,8 +1,10 @@
 import { Controller, Logger, Req, UseGuards, Get } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { NotificationApiService } from './notification-api.service';
-import { AuthGuard } from 'src/common/guards/auth.guard';
 import AuthenticatedRequest from '../common/interfaces/authenticated-request.interface';
+import { UserRolesGuard } from '../common/guards/user-roles.guard';
+import { UserRoles } from '../common/decorators/user-roles.decorator';
+import { UserRole } from '../common/entities';
 
 @ApiTags('Notification')
 @ApiBearerAuth()
@@ -35,7 +37,8 @@ export class NotificationApiController {
         }
       }
     })
-  @UseGuards(AuthGuard)
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.LOKAL_MEMBER)
   async get(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get notifications`);
     return this.notificationApiService.get(request.user.id);

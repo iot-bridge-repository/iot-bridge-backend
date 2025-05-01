@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { Length } from 'class-validator';
 
 export enum UserRole {
@@ -39,6 +39,12 @@ export class User {
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
+
+  @OneToMany(() => OrganizationMember, (organization_member) => organization_member.user)
+  organization_members: OrganizationMember[];
+
+  @OneToMany(() => Organization, Organization => Organization.created_by)
+  created_organizations: Organization[];
 }
 
 @Entity({ name: 'verify_email_tokens' })
@@ -98,6 +104,13 @@ export class Organization {
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
+
+  @ManyToOne(() => User, User => User.created_organizations)
+  @JoinColumn({ name: 'created_by' })
+  user: User;
+
+  @OneToMany(() => OrganizationMember, OrganizationMember => OrganizationMember.organization)
+  members: OrganizationMember[];
 }
 
 export enum OrganizationMemberRole {
@@ -130,6 +143,14 @@ export class OrganizationMember {
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   joined_at: Date;
+
+  @ManyToOne(() => User, User => User.organization_members)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @ManyToOne(() => Organization, Organization => Organization.members)
+  @JoinColumn({ name: 'organization_id' })
+  organization: Organization;
 }
 
 @Entity({ name: 'user_notifications' })

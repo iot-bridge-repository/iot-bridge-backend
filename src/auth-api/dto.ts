@@ -1,11 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, Length, IsPhoneNumber } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Length, IsPhoneNumber, Matches } from 'class-validator';
 
 export class PostRegisterDto {
   @ApiProperty({ example: 'username', description: 'User username' })
   @IsNotEmpty({ message: 'Username cannot be empty' })
   @IsString({ message: 'Username must be a string' })
   @Length(3, 20, { message: 'Username must be between 3 and 20 characters' })
+  @Matches(/^\S.*\S$/, { message: 'Username cannot have leading or trailing spaces' })
   username: string;
 
   @ApiProperty({ example: 'user@example.com', description: 'User email' })

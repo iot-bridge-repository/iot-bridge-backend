@@ -9,7 +9,6 @@ import { UserRoles } from '../common/decorators/user-roles.decorator';
 import { OrganizationMemberRoles } from '../common/decorators/organization-member-roles.decorator';
 import { UploadPictureInterceptorFactory } from '../common/interceptors/upload-picture.interceptor';
 import { UserRole, OrganizationMemberRole } from '../common/entities';
-import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @ApiTags('Organization')
 @ApiBearerAuth()
@@ -54,20 +53,28 @@ export class OrganizationApiController {
         "message": "List of organizations",
         "data": [
           {
-            "id": "4cd1eb2f-319f-42aa-8a04-40e1728ecdfc",
-            "name": "POKDAKAN BINTANG ROSELA JAYA",
+            "id": "9acc6316-f8b0-44a7-9b2f-f8f9005c2973",
+            "name": "POKDAKAN BINTANG ROSELA JAYA 2",
             "description": null,
-            "organization_picture": null,
             "is_verified": false,
             "created_by": "da50de59-1f67-4007-ab33-3de8d08825b9",
-            "created_at": "2025-04-26T07:40:39.715Z"
-          }
+            "creator_username": "Kanaya"
+          },
+          {
+            "id": "bf32647d-a747-44ff-8693-8b73ac4cbbfb",
+            "name": "POKDAKAN BINTANG ROSELA JAYA 3",
+            "description": null,
+            "is_verified": false,
+            "created_by": "2914071d-36aa-45f3-a7f3-cf106b126f69",
+            "creator_username": "pak Eko"
+          },
         ]
       }
     }
   })
   @Get('list')
-  @UseGuards(AuthGuard)
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.LOKAL_MEMBER)
   async getList(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get organization list`);
     return this.organizationApiService.getList(request.user.id, request.user.role);

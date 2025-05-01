@@ -63,6 +63,8 @@ $ npx typeorm-ts-node-commonjs migration:run -d src/database/database.config.ts
 
 #### 5️⃣ Run seeders (Admin System)
 
+If you don't want to add a Admin System user, you can skip this step.
+
 To add a System Admin user to the database, add the following variables in .env:
 
 ```bash
@@ -81,8 +83,6 @@ Then run the following command:
 ```bash
 $ npx ts-node src/database/seeders/CreateUsersAdminSystem.ts
 ```
-
-If you don't want to add a Admin System user, you can skip this step.
 
 #### 6️⃣ Configure .env
 
@@ -107,8 +107,8 @@ EMAIL_SERVICE_PASSWORD → Do not use your regular Gmail password. Use an App Pa
 🔗 How to get an App Password:
 1. Go to Google Account Security.
 2. Enable 2-Step Verification (if not already enabled).
-3. Go to App Passwords, select "Mail," and generate a unique password.
-4. Use this password for EMAIL_SERVICE_PASSWORD.
+3. Search App passwords, and create an app password.
+4. Use the password for EMAIL_SERVICE_PASSWORD.
 
 ## Compile and run the project
 

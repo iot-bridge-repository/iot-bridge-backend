@@ -3,7 +3,6 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBo
 import { Request, Response } from 'express';
 import { AuthApiService } from './auth-api.service';
 import * as dto from './dto';
-import { AuthGuard } from '../common/guards/auth.guard';
 import { UserRolesGuard } from '../common/guards/user-roles.guard';
 import { UserRole } from '../common/entities';
 import { UserRoles } from '../common/decorators/user-roles.decorator';
@@ -199,7 +198,8 @@ export class AuthApiController {
       }
     }
   })
-  @UseGuards(AuthGuard)
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.LOKAL_MEMBER)
   @Get('profile')
   async getProfile(@Req() request: AuthenticatedRequest) {
     return this.authService.getProfile(request.user.id);
@@ -275,7 +275,8 @@ export class AuthApiController {
     }
   })
   @Patch('change-password')
-  @UseGuards(AuthGuard)
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.LOKAL_MEMBER)
   async patchChangePassword(@Req() request: AuthenticatedRequest, @Body() patchChangePasswordDto: dto.PatchChangePasswordDto) {
     this.logger.log(`There is a change password request`);
     return this.authService.patchChangePassword(request.user.id, patchChangePasswordDto);

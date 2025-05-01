@@ -4,7 +4,7 @@ import { Injectable, Logger, HttpException, BadRequestException, InternalServerE
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from 'express';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from "uuid";
 import { User, UserRole, UserNotification, Organization, OrganizationMember, OrganizationMemberRole, OrganizationMemberStatus } from '../common/entities';
 import * as dto from './dto';
@@ -82,27 +82,45 @@ export class OrganizationApiService {
   async getList(id: string, role: UserRole) {
     try {
       if (role == UserRole.ADMIN_SYSTEM) {
-        const organizations = await this.organizationRepository.find();
+        const organizations = await this.organizationRepository
+        .createQueryBuilder('o')
+        .leftJoin('users', 'u', 'o.created_by = u.id')
+        .select([
+          'o.id AS id',
+          'o.name AS name',
+          'o.description AS description',
+          'o.is_verified AS is_verified',
+          'o.created_by AS created_by',
+          'u.username AS creator_username',
+        ])
+        .getRawMany();
+
         return {
           message: 'List of all organizations.',
           data: organizations,
         };
       } else if (role == UserRole.REGULAR_USER || role == UserRole.LOKAL_MEMBER) {
         // Get organizations id where user is a member
-        const organizationMember = await this.organizationMemberRepository.find({
-          select: { organization_id: true },
-          where: { user_id: id },
-        });
-        const organizationIds = organizationMember.map((member) => member.organization_id);
+        const memberOrganizations = await this.userRepository
+          .createQueryBuilder('u')
+          .leftJoin('organization_members', 'om', 'u.id = om.user_id')
+          .leftJoin('organizations', 'o', 'om.organization_id = o.id')
+          .leftJoin('users', 'creator', 'o.created_by = creator.id')
+          .select([
+            'om.organization_id AS id',
+            'o.name AS name',
+            'o.description AS description',
+            'o.is_verified AS is_verified',
+            'o.created_by AS created_by',
+            'creator.username AS creator_username',
+          ])
+          .where('u.id = :userId', { userId: id })
+          .getRawMany();
 
-        // Get organizations by organization ids
-        const organizations = await this.organizationRepository.find({
-          where: { id: In(organizationIds) },
-        });
-
+        this.logger.log(`User with id: ${id} get list of organizations with number of organizations: ${memberOrganizations.length}`);
         return {
           message: 'List of your organizations.',
-          data: organizations,
+          data: memberOrganizations,
         };
       }
     } catch (error) {
