@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString, Length, Matches } from 'class-validator';
 
 export class PostProposeDto {
   @ApiProperty({ example: 'POKDAKAN BINTANG ROSELA JAYA', description: 'Organization name' })
@@ -47,4 +47,19 @@ export class PatchInvitationResponseDto {
   @IsNotEmpty({ message: 'Invitation response cannot be empty' })
   @IsBoolean({ message: 'Invitation response must be a boolean' })
   is_accepted: boolean;
+}
+
+export class PostCreateLokalMemberDto {
+  @ApiProperty({ example: 'username', description: 'User username' })
+  @IsNotEmpty({ message: 'Username cannot be empty' })
+  @IsString({ message: 'Username must be a string' })
+  @Length(3, 20, { message: 'Username must be between 3 and 20 characters' })
+  @Matches(/^\S.*\S$/, { message: 'Username cannot have leading or trailing spaces' })
+  username: string;
+
+  @ApiProperty({ example: 'password123', description: 'User password' })
+  @IsNotEmpty({ message: 'Password cannot be empty' })
+  @IsString({ message: 'Password must be a string' })
+  @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
+  password: string;
 }

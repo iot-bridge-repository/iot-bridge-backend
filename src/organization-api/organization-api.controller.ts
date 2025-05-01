@@ -50,15 +50,15 @@ export class OrganizationApiController {
     description: 'List of organizations',
     schema: {
       example: {
-        "message": "List of organizations",
-        "data": [
+        message: "List of organizations",
+        data: [
           {
-            "id": "9acc6316-f8b0-44a7-9b2f-f8f9005c2973",
-            "name": "POKDAKAN BINTANG ROSELA JAYA 2",
-            "description": null,
-            "is_verified": false,
-            "created_by": "da50de59-1f67-4007-ab33-3de8d08825b9",
-            "creator_username": "Kanaya"
+            id: "9acc6316-f8b0-44a7-9b2f-f8f9005c2973",
+            name: "POKDAKAN BINTANG ROSELA JAYA 2",
+            description: null,
+            is_verified: false,
+            created_by: "da50de59-1f67-4007-ab33-3de8d08825b9",
+            creator_username: "Kanaya"
           },
         ]
       }
@@ -194,6 +194,7 @@ export class OrganizationApiController {
   }
 
   @ApiOperation({ summary: 'Member invitation' })
+  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     description: 'Member invitation',
     schema: {
@@ -220,6 +221,7 @@ export class OrganizationApiController {
   }
 
   @ApiOperation({ summary: 'Invitation response' })
+  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     description: 'Invitation response',
     schema: {
@@ -237,5 +239,63 @@ export class OrganizationApiController {
   async patchInvitationResponse(@Req() request: AuthenticatedRequest, @Body() patchInvitationResponseDto: dto.PatchInvitationResponseDto) {
     this.logger.log(`There is a request to accept or reject invitation to join organization`);
     return this.organizationApiService.patchInvitationResponse(request.user.id, request.params.organizationId, patchInvitationResponseDto);
+  }
+
+  @ApiOperation({ summary: 'Create lokal member' })
+  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
+  @ApiOkResponse({
+    description: 'Create lokal member',
+    schema: {
+      example: {
+        message: 'Lokal member created successfully.',
+        data: {
+          user: {
+            id: "25d35595-fd8c-4f3f-ad93-023a7c799bd4",
+            username: "Bill Valentinov",
+            role: "LOKAL_MEMBER",
+          },
+          organization_member: {
+            id: "921df4c5-6c5c-46aa-8f60-44f0810a65c2",
+            user_id: "25d35595-fd8c-4f3f-ad93-023a7c799bd4",
+            organization_id: "4cd1eb2f-319f-42aa-8a04-40e1728ecdfc",
+            role: "Viewer",
+            status: "Accepted",
+          },
+        },
+      }
+    }
+  })
+  @Post(':organizationId/create-lokal-member')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
+  async postCreateLokalMember(@Req() request: AuthenticatedRequest, @Body() createLokalMemberDto: dto.PostCreateLokalMemberDto) {
+    this.logger.log(`There is a request to create lokal member`);
+    return this.organizationApiService.postCreateLokalMember(request.params.organizationId, createLokalMemberDto);
+  }
+
+  @ApiOperation({ summary: 'Get member list' })
+  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
+  @ApiOkResponse({
+    description: 'Get member list',
+    schema: {
+      example: {
+        message: 'Get member list successfully.',
+        data: [
+          {
+            user_id: "da50de59-1f67-4007-ab33-3de8d08825b9",
+            username: "Kanaya",
+            role: "Admin",
+            status: "Accepted"
+          },
+        ]
+      }
+    }
+  })
+  @Get(':organizationId/member-list')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
+  async getMemberList(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to get lokal member list`);
+    return this.organizationApiService.getMemberList(request.params.organizationId);
   }
 }

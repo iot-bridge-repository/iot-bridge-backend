@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from 'express';
 import { Repository, ILike } from 'typeorm';
 import { v4 as uuidv4 } from "uuid";
+import * as bcrypt from 'bcrypt';
 import { User, UserRole, UserNotification, Organization, OrganizationMember, OrganizationMemberRole, OrganizationMemberStatus } from '../common/entities';
 import * as dto from './dto';
 
@@ -376,6 +377,7 @@ export class OrganizationApiService {
 
   async patchInvitationResponse(id: string, organizationId: string, patchInvitationResponseDto: dto.PatchInvitationResponseDto) {
     try {
+      // Check if user in organization_members
       const existingUserOrganizationMember = await this.organizationMemberRepository.findOne({
         select: { id: true },
         where: { user_id: id, organization_id: organizationId, status: OrganizationMemberStatus.PENDING },
@@ -433,6 +435,90 @@ export class OrganizationApiService {
       }
       this.logger.error(`Failed invitation response, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed invitation response, please try another time');
+    }
+  }
+
+  async postCreateLokalMember(organizationId: string, postCreateLokalMemberDto: dto.PostCreateLokalMemberDto) {
+    try {
+      // Check if username already exists
+      const existingUser = await this.userRepository.findOne({ select: { id: true }, where: { username: postCreateLokalMemberDto.username } });
+      if (existingUser) {
+        this.logger.warn(`Username ${postCreateLokalMemberDto.username} already exists`);
+        throw new BadRequestException('Username already exists');
+      }
+      // Create user
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(postCreateLokalMemberDto.password, salt);
+      const newUser = this.userRepository.create({
+        id: uuidv4(),
+        username: postCreateLokalMemberDto.username,
+        password: hashedPassword,
+        role: UserRole.LOKAL_MEMBER,
+      });
+      await this.userRepository.save(newUser);
+
+      // Create organization member
+      const newOrganizationMember = this.organizationMemberRepository.create({
+        id: uuidv4(),
+        user_id: newUser.id,
+        organization_id: organizationId,
+        role: OrganizationMemberRole.VIEWER,
+        status: OrganizationMemberStatus.ACCEPTED,
+      });
+      await this.organizationMemberRepository.save(newOrganizationMember);
+
+      this.logger.log(`Lokal member created successfully`);
+      return {
+        message: 'Lokal member created successfully.',
+        data: {
+          user: {
+            id: newUser.id,
+            username: newUser.username,
+            role: newUser.role,
+          },
+          organization_member: {
+            id: newOrganizationMember.id,
+            user_id: newOrganizationMember.user_id,
+            organization_id: newOrganizationMember.organization_id,
+            role: newOrganizationMember.role,
+            status: newOrganizationMember.status,
+          },
+        },
+      }
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed create lokal member, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed create lokal member, please try another time');
+    }
+  }
+
+  async getMemberList(organizationId: string) {
+    try {
+      const organizationMemberList = await this.organizationMemberRepository
+        .createQueryBuilder('om')
+        .leftJoin('users', 'u', 'u.id = om.user_id')
+        .select([
+          'om.user_id AS user_id',
+          'u.username AS username',
+          'om.role AS role',
+          'om.status AS status',
+        ])
+        .where('om.organization_id = :organizationId', { organizationId })
+        .getRawMany();
+
+      this.logger.log(`Get member list for organization with id ${organizationId}`);
+      return {
+        message: 'Get member list successfully.',
+        data: organizationMemberList,
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed get member list, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed get member list, please try another time');
     }
   }
 }

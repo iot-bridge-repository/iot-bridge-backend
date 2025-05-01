@@ -221,7 +221,7 @@ export class AuthApiService {
       }
 
       // Check if the email is not verified
-      if (!user.is_email_verified) {
+      if (!user.is_email_verified && user.email) {
         const now = new Date();
         const expiredAt = new Date(user.created_at);
         expiredAt.setHours(expiredAt.getHours() + 24);
