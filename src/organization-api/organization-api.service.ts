@@ -62,6 +62,7 @@ export class OrganizationApiService {
           user_id: admin.id,
           subject: `Pengajuan organisasi baru: ${newOrganization.name}`,
           message: `User ${user.username} mengajukan organisasi: ${newOrganization.name}`,
+          type: 'organization_propose',
         }))
       );
 
@@ -114,7 +115,8 @@ export class OrganizationApiService {
             'o.created_by AS created_by',
             'creator.username AS creator_username',
           ])
-          .where('u.id = :userId', { userId: id })
+          .where('u.id = :id', { id })
+          .andWhere('om.status = :status', { status: 'Accepted' })
           .getRawMany();
 
         this.logger.log(`User with id: ${id} get list of organizations with number of organizations: ${memberOrganizations.length}`);
@@ -150,6 +152,7 @@ export class OrganizationApiService {
         user_id: organization.created_by,
         subject: `Organisasi anda telah diverifikasi`,
         message: `Organisasi ${organization.name} telah diverifikasi, silahkan mengelola organisasi anda :)`,
+        type: 'organization_verified',
       });
       await this.userNotificationRepository.save(userNotification);
 
@@ -183,7 +186,8 @@ export class OrganizationApiService {
         id: uuidv4(),
         user_id: organization.created_by,
         subject: `Organisasi anda tidak diverifikasi`,
-        message: `Organisasi ${organization.name} tidak diverifikasi, silahkan menghubungi admin system untuk diverifikasi ulang :)`,
+        message: `Organisasi ${organization.name} tidak terverifikasi, silahkan menghubungi admin system untuk diverifikasi ulang :)`,
+        type: 'organization_unverified',
       });
       await this.userNotificationRepository.save(userNotification);
 
@@ -200,8 +204,19 @@ export class OrganizationApiService {
     }
   }
 
-  async getOrganizationProfile(organizationId: string) {
+  async getOrganizationProfile(id: string, organizationId: string) {
     try {
+      // Check if user is a member of the organization
+      const organizationMember = await this.organizationMemberRepository.findOne({
+        select: { id: true },
+        where: { user_id: id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
+      });
+      if (!organizationMember) {
+        this.logger.warn(`User with id ${id} is not a member of organization with id ${organizationId}`);
+        throw new BadRequestException('You are not a member of this organization');
+      }
+
+      this.logger.log(`User with id: ${id} get organization profile with id: ${organizationId}`);
       const organization = await this.organizationRepository.findOne({ where: { id: organizationId } });
       return organization;
     } catch (error) {

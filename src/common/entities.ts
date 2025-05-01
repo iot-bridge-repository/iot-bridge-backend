@@ -169,6 +169,10 @@ export class UserNotification {
   @Length(5, 1000, { message: 'Message must be between 5 and 1000 characters' })
   message: string;
 
+  @Column({ type: 'varchar', length: 100, nullable: false })
+  @Length(5, 100, { message: 'Type must be between 5 and 100 characters' })
+  type: string;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 }

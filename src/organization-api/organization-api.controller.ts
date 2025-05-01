@@ -135,7 +135,7 @@ export class OrganizationApiController {
   @UserRoles(UserRole.LOKAL_MEMBER)
   async getOrganizationProfile(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get organization profile`);
-    return this.organizationApiService.getOrganizationProfile(request.params.organizationId);
+    return this.organizationApiService.getOrganizationProfile(request.user.id, request.params.organizationId);
   }
 
   @ApiOperation({ summary: 'Update organization profile' })

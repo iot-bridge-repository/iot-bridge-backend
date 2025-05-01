@@ -31,6 +31,12 @@ export class CreateUserNotificationsTable1745631841660 implements MigrationInter
             isNullable: false,
           },
           {
+            name: 'type',
+            type: 'varchar',
+            length: '100',
+            isNullable: false,
+          },
+          {
             name: 'created_at',
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',

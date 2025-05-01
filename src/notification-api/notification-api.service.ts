@@ -13,7 +13,7 @@ export class NotificationApiService {
   async get(id: string) {
     try {
       const notifications = await this.userNotificationRepository.find({
-        select: { subject: true, message: true, created_at: true },
+        select: { subject: true, message: true, type: true, created_at: true },
         where: { user_id: id },
         order: { created_at: 'DESC' },
       });

@@ -26,11 +26,13 @@ export class NotificationApiController {
             {
               subject: "Pengajuan organisasi baru: POKDAKAN BINTANG ROSELA JAYA 3",
               message: "User pak Eko mengajukan organisasi: POKDAKAN BINTANG ROSELA JAYA 3",
+              type: "organization_propose",
               created_at: "2025-04-26T13:21:37.416Z"
             },
             {
               subject: "Pengajuan organisasi baru: POKDAKAN BINTANG ROSELA JAYA 2",
               message: "User Kanaya Valentinur mengajukan organisasi: POKDAKAN BINTANG ROSELA JAYA 2",
+              type: "organization_propose",
               created_at: "2025-04-26T07:58:00.363Z"
             },
           ]
