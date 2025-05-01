@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class PostProposeDto {
   @ApiProperty({ example: 'POKDAKAN BINTANG ROSELA JAYA', description: 'Organization name' })
@@ -13,14 +13,14 @@ export class PatchVerifyDto {
   @ApiProperty({ example: 'xxxxxx', description: 'Organization id' })
   @IsNotEmpty({ message: 'Organization id cannot be empty' })
   @IsString({ message: 'Organization id must be a string' })
-  organizationId: string;
+  organization_id: string;
 }
 
 export class PatchUnverifyDto {
   @ApiProperty({ example: 'xxxxxx', description: 'Organization id' })
   @IsNotEmpty({ message: 'Organization id cannot be empty' })
   @IsString({ message: 'Organization id must be a string' })
-  organizationId: string;
+  organization_id: string;
 }
 
 export class PatchOrganizationProfileDto {
@@ -35,9 +35,16 @@ export class PatchOrganizationProfileDto {
   description: string;
 }
 
-export class PostAddMemberDto {
+export class PostMemberInvitationDto {
   @ApiProperty({ example: 'xxxxxx', description: 'User id' })
   @IsNotEmpty({ message: 'User id cannot be empty' })
   @IsString({ message: 'User id must be a string' })
   user_id: string;
+}
+
+export class PatchInvitationResponseDto {
+  @ApiProperty({ example: 'true', description: 'Invitation response' })
+  @IsNotEmpty({ message: 'Invitation response cannot be empty' })
+  @IsBoolean({ message: 'Invitation response must be a boolean' })
+  is_accepted: boolean;
 }

@@ -409,7 +409,7 @@ export class AuthApiService {
 
       // Update the user password
       const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(postPasswordResetDto.newPassword, salt);
+      const hashedPassword = await bcrypt.hash(postPasswordResetDto.new_password, salt);
       await this.userRepository.update(user.id, { password: hashedPassword });
 
       // Delete the password reset token
@@ -538,21 +538,21 @@ export class AuthApiService {
       }
 
       // Check if the new email is not duplicate in user table
-      const existingEmail = await this.userRepository.findOne({ where: { email: changeEmailDto.newEmail } });
+      const existingEmail = await this.userRepository.findOne({ where: { email: changeEmailDto.new_email } });
       if (existingEmail) {
-        this.logger.warn(`Email already exists: ${changeEmailDto.newEmail}`);
+        this.logger.warn(`Email already exists: ${changeEmailDto.new_email}`);
         throw new BadRequestException('Email already exists');
       }
 
       // Check if verify email token already exists in verify email token table
       const existingVerifyEmailToken = await this.verifyEmailTokenRepository.findOne({
         where: [
-          { email: changeEmailDto.newEmail },
+          { email: changeEmailDto.new_email },
           { user_id: user.id },
         ],
       });
-      if (existingVerifyEmailToken?.email === changeEmailDto.newEmail) {
-        this.logger.warn(`Email already exists: ${changeEmailDto.newEmail}`);
+      if (existingVerifyEmailToken?.email === changeEmailDto.new_email) {
+        this.logger.warn(`Email already exists: ${changeEmailDto.new_email}`);
         throw new BadRequestException('Email already exists');
       }
       if (existingVerifyEmailToken?.user_id === user.id) {
@@ -564,7 +564,7 @@ export class AuthApiService {
       const verifyEmailToken = this.verifyEmailTokenRepository.create({
         id: uuidv4(),
         user_id: user.id,
-        email: changeEmailDto.newEmail,
+        email: changeEmailDto.new_email,
         token,
         created_at: new Date(),
       });
@@ -573,7 +573,7 @@ export class AuthApiService {
       // Send verify email link
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       await this.emailService.sendEmail(
-        changeEmailDto.newEmail,
+        changeEmailDto.new_email,
         '🔄 Verifikasi Email Baru Anda - IoT Bridge',
         `Halo ${user.username}`,
         `
@@ -581,7 +581,7 @@ export class AuthApiService {
           <h2 style="color: #007bff;">🔄 Verifikasi Alamat Email Baru Anda</h2>
           <p>Halo <strong>${user.username}</strong>,</p>
           <p>Anda telah mengajukan permintaan untuk mengganti alamat email akun <strong>IoT Bridge</strong> Anda ke:</p>
-          <p style="font-size: 16px; font-weight: bold;">📧 ${changeEmailDto.newEmail}</p>
+          <p style="font-size: 16px; font-weight: bold;">📧 ${changeEmailDto.new_email}</p>
           <p>Untuk menyelesaikan perubahan ini, silakan klik tombol di bawah ini untuk memverifikasi alamat email baru:</p>
           <div style="margin: 20px 0;">
             <a href="${baseUrl}/auth/verify-email?token=${token}" style="
@@ -625,10 +625,10 @@ export class AuthApiService {
         throw new UnauthorizedException('User not found');
       }
 
-      const { oldPassword, newPassword } = changePasswordDto;
+      const { old_password, new_password } = changePasswordDto;
 
       // Check if the old password is valid
-      const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+      const isPasswordValid = await bcrypt.compare(old_password, user.password);
       if (!isPasswordValid) {
         this.logger.warn(`Incorrect old password by id: ${id}`);
         throw new BadRequestException('Incorrect old password');
@@ -636,7 +636,7 @@ export class AuthApiService {
 
       // Update the password
       const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(newPassword, salt);
+      const hashedPassword = await bcrypt.hash(new_password, salt);
       await this.userRepository.update(id, { password: hashedPassword });
 
       this.logger.log(`Password changed by id: ${id}`);

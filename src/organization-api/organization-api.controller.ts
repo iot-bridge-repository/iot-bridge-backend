@@ -60,14 +60,6 @@ export class OrganizationApiController {
             "created_by": "da50de59-1f67-4007-ab33-3de8d08825b9",
             "creator_username": "Kanaya"
           },
-          {
-            "id": "bf32647d-a747-44ff-8693-8b73ac4cbbfb",
-            "name": "POKDAKAN BINTANG ROSELA JAYA 3",
-            "description": null,
-            "is_verified": false,
-            "created_by": "2914071d-36aa-45f3-a7f3-cf106b126f69",
-            "creator_username": "pak Eko"
-          },
         ]
       }
     }
@@ -131,8 +123,8 @@ export class OrganizationApiController {
     }
   })
   @Get(':organizationId/profile')
-  @UseGuards(UserRolesGuard)
-  @UserRoles(UserRole.LOKAL_MEMBER)
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async getOrganizationProfile(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get organization profile`);
     return this.organizationApiService.getOrganizationProfile(request.user.id, request.params.organizationId);
@@ -189,12 +181,6 @@ export class OrganizationApiController {
             email: "valentinovbill0@gmail.com",
             phone_number: "085691496242"
           },
-          {
-            id: "25d35595-fd8c-4f3f-ad93-023a7c799bd4",
-            username: "valentinov",
-            email: "bill.valentinov21@students.unila.ac.id",
-            phone_number: "+62812412432"
-          }
         ]
       }
     }
@@ -207,12 +193,12 @@ export class OrganizationApiController {
     return this.organizationApiService.getSearchMembers(query);
   }
 
-  @ApiOperation({ summary: 'Add member' })
+  @ApiOperation({ summary: 'Member invitation' })
   @ApiOkResponse({
-    description: 'Add member',
+    description: 'Member invitation',
     schema: {
       example: {
-        message: "Member added successfully.",
+        message: "Member invitation successfully.",
         data: {
           organization_member: {
             id: "921df4c5-6c5c-46aa-8f60-44f0810a65c2",
@@ -225,11 +211,31 @@ export class OrganizationApiController {
       }
     }
   })
-  @Post(':organizationId/add-member')
+  @Post(':organizationId/member-invitation')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
-  async postAddMember(@Req() request: AuthenticatedRequest, @Body() postAddMemberDto: dto.PostAddMemberDto) {
-    this.logger.log(`There is a request to add member`);
-    return this.organizationApiService.postAddMember(request.params.organizationId, postAddMemberDto);
+  async postAddMember(@Req() request: AuthenticatedRequest, @Body() postMemberInvitationDto: dto.PostMemberInvitationDto) {
+    this.logger.log(`There is a request to invite member`);
+    return this.organizationApiService.postMemberInvitation(request.params.organizationId, postMemberInvitationDto);
+  }
+
+  @ApiOperation({ summary: 'Invitation response' })
+  @ApiOkResponse({
+    description: 'Invitation response',
+    schema: {
+      example: {
+        message: "Invitation response successfully.",
+        data: {
+          is_accepted: true,
+        },
+      }
+    }
+  })
+  @Patch(':organizationId/invitation-response')
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.REGULAR_USER)
+  async patchInvitationResponse(@Req() request: AuthenticatedRequest, @Body() patchInvitationResponseDto: dto.PatchInvitationResponseDto) {
+    this.logger.log(`There is a request to accept or reject invitation to join organization`);
+    return this.organizationApiService.patchInvitationResponse(request.user.id, request.params.organizationId, patchInvitationResponseDto);
   }
 }

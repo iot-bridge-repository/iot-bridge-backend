@@ -57,7 +57,7 @@ export class PostPasswordResetDto{
   @IsNotEmpty({ message: 'New password cannot be empty' })
   @Length(6, 20, { message: 'New password must be between 6 and 20 characters' })
   @IsString({ message: 'New password must be a string' })
-  newPassword: string;
+  new_password: string;
 }
 
 export class PatchUpdateProfileDto {
@@ -78,18 +78,18 @@ export class PatchChangeEmailDto {
   @ApiProperty({ example: 'user@example.com', description: 'User email' })
   @IsNotEmpty({ message: 'newEmail cannot be empty' })
   @IsEmail({}, { message: 'newEmail is not valid' })
-  newEmail: string;
+  new_email: string;
 }
 
 export class PatchChangePasswordDto {
   @ApiProperty({ example: 'oldPassword123', description: 'Current password' })
   @IsNotEmpty({ message: 'Old password cannot be empty' })
   @IsString({ message: 'Old password must be a string' })
-  oldPassword: string;
+  old_password: string;
 
   @ApiProperty({ example: 'NewPassword123!', description: 'New password' })
   @IsNotEmpty({ message: 'New password cannot be empty' })
   @Length(6, 20, { message: 'New password must be between 6 and 20 characters' })
   @IsString({ message: 'New password must be a string' })
-  newPassword: string;
+  new_password: string;
 }

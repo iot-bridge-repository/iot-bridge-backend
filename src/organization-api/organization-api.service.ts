@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Injectable, Logger, HttpException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, Logger, HttpException, BadRequestException, InternalServerErrorException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from 'express';
@@ -26,7 +26,7 @@ export class OrganizationApiService {
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
         this.logger.warn(`User with id ${id} does not exist`);
-        throw new BadRequestException('User does not exist');
+        throw new NotFoundException('User does not exist');
       }
       // Check if organization already exists
       const existingOrganization = await this.organizationRepository.findOne({ where: { name: postProposeDto.name } });
@@ -138,14 +138,14 @@ export class OrganizationApiService {
   async patchVerify(patchVerifyDto: dto.PatchVerifyDto) {
     try {
       // Check if organization exists
-      const organization = await this.organizationRepository.findOne({ select: { created_by: true, name: true }, where: { id: patchVerifyDto.organizationId } });
+      const organization = await this.organizationRepository.findOne({ select: { created_by: true, name: true }, where: { id: patchVerifyDto.organization_id } });
       if (!organization) {
-        this.logger.warn(`Organization with id ${patchVerifyDto.organizationId} does not exist`);
+        this.logger.warn(`Organization with id ${patchVerifyDto.organization_id} does not exist`);
         throw new BadRequestException('Organization does not exist');
       }
 
       // Verify organization
-      await this.organizationRepository.update({ id: patchVerifyDto.organizationId }, { is_verified: true });
+      await this.organizationRepository.update({ id: patchVerifyDto.organization_id }, { is_verified: true });
 
       // Create notification for user
       const userNotification = this.userNotificationRepository.create({
@@ -157,7 +157,7 @@ export class OrganizationApiService {
       });
       await this.userNotificationRepository.save(userNotification);
 
-      this.logger.log(`Organization with id ${patchVerifyDto.organizationId} verified`);
+      this.logger.log(`Organization with id ${patchVerifyDto.organization_id} verified`);
       return {
         message: 'Organization verified successfully.',
       };
@@ -173,14 +173,14 @@ export class OrganizationApiService {
   async patchUnverify(patchUnverifyDto: dto.PatchUnverifyDto) {
     try {
       // Check if organization exists
-      const organization = await this.organizationRepository.findOne({ select: { created_by: true, name: true }, where: { id: patchUnverifyDto.organizationId } });
+      const organization = await this.organizationRepository.findOne({ select: { created_by: true, name: true }, where: { id: patchUnverifyDto.organization_id } });
       if (!organization) {
-        this.logger.warn(`Organization with id ${patchUnverifyDto.organizationId} does not exist`);
+        this.logger.warn(`Organization with id ${patchUnverifyDto.organization_id} does not exist`);
         throw new BadRequestException('Organization does not exist');
       }
 
       // Unverify organization
-      await this.organizationRepository.update({ id: patchUnverifyDto.organizationId }, { is_verified: false });
+      await this.organizationRepository.update({ id: patchUnverifyDto.organization_id }, { is_verified: false });
 
       // Create notification for user
       const userNotification = this.userNotificationRepository.create({
@@ -192,7 +192,7 @@ export class OrganizationApiService {
       });
       await this.userNotificationRepository.save(userNotification);
 
-      this.logger.log(`Organization with id ${patchUnverifyDto.organizationId} unverified`);
+      this.logger.log(`Organization with id ${patchUnverifyDto.organization_id} unverified`);
       return {
         message: 'Organization unverified successfully.',
       };
@@ -284,7 +284,6 @@ export class OrganizationApiService {
         },
       };
     } catch (error) {
-      this.logger.error(`Failed to update organization profile by organization id: ${organizationId}, Error: ${error.message}`);
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
@@ -310,7 +309,6 @@ export class OrganizationApiService {
         data: users,
       }
     } catch (error) {
-      this.logger.error(`Failed to search members, Error: ${error.message}`);
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
@@ -319,12 +317,21 @@ export class OrganizationApiService {
     }
   }
 
-  async postAddMember(organizationId: string, postAddMemberDto: dto.PostAddMemberDto) {
+  async postMemberInvitation(organizationId: string, postMemberInvitationDto: dto.PostMemberInvitationDto) {
     try {
+      const existingOrganizationMember = await this.organizationMemberRepository.findOne({ 
+        select: { id: true },
+        where: { user_id: postMemberInvitationDto.user_id, organization_id: organizationId } 
+      });
+      if (existingOrganizationMember) {
+        this.logger.warn(`Member with id ${postMemberInvitationDto.user_id} already exists in organization with id ${organizationId}`);
+        throw new BadRequestException(`Member already exists in this organization`);
+      }
+
       // Create new organization member
       const newOrganizationMember = this.organizationMemberRepository.create({
         id: uuidv4(),
-        user_id: postAddMemberDto.user_id,
+        user_id: postMemberInvitationDto.user_id,
         organization_id: organizationId,
         role: OrganizationMemberRole.VIEWER,
         status: OrganizationMemberStatus.PENDING,
@@ -338,14 +345,14 @@ export class OrganizationApiService {
       });
       const userNotification = this.userNotificationRepository.create({
         id: uuidv4(),
-        user_id: postAddMemberDto.user_id,
+        user_id: postMemberInvitationDto.user_id,
         subject: `Undangan untuk bergabung di organisasi`,
         message: `Anda telah diundang untuk bergabung di organisasi ${organization?.name}`,
         type: 'organization_member_invitation',
       });
       await this.userNotificationRepository.save(userNotification);
 
-      this.logger.log(`Member with id ${postAddMemberDto.user_id} added to organization with id ${organizationId}`);
+      this.logger.log(`Member with id ${postMemberInvitationDto.user_id} added to organization with id ${organizationId}`);
       return {
         message: 'Member added successfully.',
         data: {
@@ -359,12 +366,73 @@ export class OrganizationApiService {
         },
       };
     } catch (error) {
-      this.logger.error(`Failed to add member, Error: ${error.message}`);
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
       this.logger.error(`Failed to add member, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to add member, please try another time');
+    }
+  }
+
+  async patchInvitationResponse(id: string, organizationId: string, patchInvitationResponseDto: dto.PatchInvitationResponseDto) {
+    try {
+      const existingUserOrganizationMember = await this.organizationMemberRepository.findOne({
+        select: { id: true },
+        where: { user_id: id, organization_id: organizationId, status: OrganizationMemberStatus.PENDING },
+      })
+      if (!existingUserOrganizationMember) {
+        this.logger.warn(`Member with id ${id} does not exist in organization with id ${organizationId} or has been accepted`);
+        throw new BadRequestException(`Members are not invited into the organization or have already accepted`);
+      }
+
+      if (patchInvitationResponseDto.is_accepted) {
+        await this.organizationMemberRepository.update({ user_id: id, organization_id: organizationId }, { status: OrganizationMemberStatus.ACCEPTED });
+      } else if (!patchInvitationResponseDto.is_accepted) {
+        await this.organizationMemberRepository.delete({ user_id: id, organization_id: organizationId });
+      }
+
+      // Create notification
+      const [user, admin, organization] = await Promise.all([
+        this.userRepository.findOne({ select: { username: true }, where: { id } }),
+        this.organizationMemberRepository.findOne({ select: { user_id: true }, where: { organization_id: organizationId, role: OrganizationMemberRole.ADMIN } }),
+        this.organizationRepository.findOne({ select: { name: true }, where: { id: organizationId } }),
+      ]);
+      if (!user) {
+        this.logger.warn(`No user found with id ${id} in organization with id ${organizationId}`);
+        throw new NotFoundException('User not found');
+      }
+      if (!admin) {
+        this.logger.warn(`No admin found in organization with id ${organizationId}`);
+        throw new ForbiddenException('No admin in organization');
+      }
+      if (!organization) {
+        this.logger.warn(`No organization found with id ${organizationId}`);
+        throw new NotFoundException('Organization not found');
+      }
+      const subject = `Undangan anda ${patchInvitationResponseDto.is_accepted ? 'diterima' : 'ditolak'} oleh ${user.username}`;
+      const message = `${user.username} ${patchInvitationResponseDto.is_accepted ? 'telah menjadi anggota' : 'menolak menjadi anggota'} organisasi ${organization.name}`;
+      const notification = this.userNotificationRepository.create({
+        id: uuidv4(),
+        user_id: admin.user_id,
+        subject,
+        message,
+        type: 'organization_member_invitation_response',
+      });
+      await this.userNotificationRepository.save(notification);
+
+      this.logger.log(`Invitation response from user with id ${id} updated`);
+      return {
+        message: 'Invitation response successfully.',
+        data: {
+          is_accepted: patchInvitationResponseDto.is_accepted,
+        },
+      }
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed invitation response, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed invitation response, please try another time');
     }
   }
 }
