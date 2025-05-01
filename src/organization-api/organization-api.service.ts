@@ -4,7 +4,7 @@ import { Injectable, Logger, HttpException, BadRequestException, InternalServerE
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from 'express';
-import { Repository } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { v4 as uuidv4 } from "uuid";
 import { User, UserRole, UserNotification, Organization, OrganizationMember, OrganizationMemberRole, OrganizationMemberStatus } from '../common/entities';
 import * as dto from './dto';
@@ -96,6 +96,7 @@ export class OrganizationApiService {
         ])
         .getRawMany();
 
+        this.logger.log(`Admin system get list of organizations with number of organizations: ${organizations.length}`);
         return {
           message: 'List of all organizations.',
           data: organizations,
@@ -289,6 +290,32 @@ export class OrganizationApiService {
       }
       this.logger.error(`Failed to update organization profile, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to update organization profile, please try another time');
+    }
+  }
+
+  async getSearchMembers(identity: string) {
+    try {
+      const users = await this.userRepository.find({
+        select: { id: true, username: true, email: true, phone_number: true },
+        where: [
+          { username: ILike(`%${identity}%`) },
+          { email: ILike(`%${identity}%`) },
+          { phone_number: ILike(`%${identity}%`) },
+        ],
+      });
+
+      this.logger.log(`User searched for organization members with identity: ${identity}, found ${users.length} users`);
+      return {
+        message: 'Users list.',
+        data: users,
+      }
+    } catch (error) {
+      this.logger.error(`Failed to search members, Error: ${error.message}`);
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to search members, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to search members, please try another time');
     }
   }
 }

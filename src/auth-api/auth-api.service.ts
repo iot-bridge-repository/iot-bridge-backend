@@ -212,7 +212,7 @@ export class AuthApiService {
         where: [
           { username: postLoginDto.identity },
           { email: postLoginDto.identity },
-          { phone_number: postLoginDto.identity },  
+          { phone_number: postLoginDto.identity },
         ],
       });
       if (!user) {

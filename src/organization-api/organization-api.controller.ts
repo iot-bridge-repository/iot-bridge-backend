@@ -1,4 +1,4 @@
-import { Controller, Logger, UseGuards, UseInterceptors, Req, Body, Post, Get, Patch } from '@nestjs/common';
+import { Controller, Logger, UseGuards, UseInterceptors, Req, Body, Post, Get, Patch, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody, ApiParam } from '@nestjs/swagger';
 import { OrganizationApiService } from './organization-api.service';
 import * as dto from './dto';
@@ -17,7 +17,7 @@ export class OrganizationApiController {
   private readonly logger = new Logger(OrganizationApiController.name);
   constructor(
     private readonly organizationApiService: OrganizationApiService
-  ) {}
+  ) { }
 
   @ApiOperation({ summary: 'Propose an organization' })
   @ApiOkResponse({
@@ -39,7 +39,7 @@ export class OrganizationApiController {
   })
   @Post('propose')
   @UseGuards(UserRolesGuard)
-  @UserRoles(UserRole.REGULAR_USER)  
+  @UserRoles(UserRole.REGULAR_USER)
   async postPropose(@Req() request: AuthenticatedRequest, @Body() postProposeDto: dto.PostProposeDto) {
     this.logger.log(`There is a request to propose an organization`);
     return this.organizationApiService.postPropose(request.user.id, postProposeDto);
@@ -126,7 +126,7 @@ export class OrganizationApiController {
         organization_picture: null,
         is_verified: false,
         created_by: "da50de59-1f67-4007-ab33-3de8d08825b9",
-        created_at  : "2025-04-26T07:58:00.278Z"
+        created_at: "2025-04-26T07:58:00.278Z"
       }
     }
   })
@@ -174,5 +174,36 @@ export class OrganizationApiController {
   async patchOrganizationProfile(@Req() request: AuthenticatedRequest, @Body() patchOrganizationProfileDto: dto.PatchOrganizationProfileDto) {
     this.logger.log(`There is a request to update organization profile`);
     return this.organizationApiService.patchOrganizationProfile(request, request.params.organizationId, patchOrganizationProfileDto, request.file?.filename ?? null);
+  }
+
+  @ApiOperation({ summary: 'Get members' })
+  @ApiOkResponse({
+    description: 'Users list',
+    schema: {
+      example: {
+        message: "Users list",
+        data: [
+          {
+            id: "0555f6b5-c724-45a6-87cf-95786eb2a020",
+            username: "Bill Valentinov",
+            email: "valentinovbill0@gmail.com",
+            phone_number: "085691496242"
+          },
+          {
+            id: "25d35595-fd8c-4f3f-ad93-023a7c799bd4",
+            username: "valentinov",
+            email: "bill.valentinov21@students.unila.ac.id",
+            phone_number: "+62812412432"
+          }
+        ]
+      }
+    }
+  })
+  @Get('search-members')
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.REGULAR_USER)
+  async getSearchMembers(@Query('identity') query: string) {
+    this.logger.log(`There is a request to search members`);
+    return this.organizationApiService.getSearchMembers(query);
   }
 }
