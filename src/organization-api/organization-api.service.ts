@@ -521,4 +521,96 @@ export class OrganizationApiService {
       throw new InternalServerErrorException('Failed get member list, please try another time');
     }
   }
+
+  async patchChangeMemberRoles(organizationId: string, patchChangeMemberRolesDto: dto.PatchChangeMemberRolesDto) {
+    try {
+      // Check if member is lokal member
+      const user = await this.userRepository.findOne({ select: { id: true }, where: { id: patchChangeMemberRolesDto.user_id, role: UserRole.LOKAL_MEMBER } });
+      if (user) {
+        this.logger.warn(`User with id ${patchChangeMemberRolesDto.user_id} is a lokal member`);
+        throw new BadRequestException('User is a lokal member, cannot change role');
+      }
+      // Check if member is admin
+      const admin = await this.organizationMemberRepository.findOne({ select: { id: true }, where: { user_id: patchChangeMemberRolesDto.user_id, role: OrganizationMemberRole.ADMIN } });
+      if (admin) {
+        this.logger.warn(`User with id ${patchChangeMemberRolesDto.user_id} is an admin and cannot change role`);
+        throw new BadRequestException('User is an admin and cannot change role');
+      }
+
+      // Check if a member of the organization
+      const organizationMember = await this.organizationMemberRepository.findOne({
+        select: { id: true },
+        where: { user_id: patchChangeMemberRolesDto.user_id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
+      });
+      if (!organizationMember) {
+        this.logger.warn(`User with id ${patchChangeMemberRolesDto.user_id} is not a member of organization with id ${organizationId}`);
+        throw new BadRequestException('You are not a member of this organization');
+      }
+
+      await this.organizationMemberRepository.update(
+        { user_id: patchChangeMemberRolesDto.user_id, organization_id: organizationId },
+        { role: patchChangeMemberRolesDto.new_role },
+      );
+
+      this.logger.log(`Member roles changed successfully`);
+      return {
+        message: 'Member roles changed successfully.',
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to change member roles, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to change member roles, please try another time');
+    }
+  }
+
+  async deleteLeave(id: string, organizationId: string) {
+    try {
+      // Check if member is lokal member
+      const user = await this.userRepository.findOne({ select: { id: true }, where: { id, role: UserRole.LOKAL_MEMBER } });
+      if (user) {
+        this.logger.warn(`User with id ${id} is a lokal member`);
+        throw new BadRequestException('User is a lokal member, cannot leave organization');
+      }
+      // Check if user is a member of the organization
+      const organizationMember = await this.organizationMemberRepository.findOne({
+        select: { id: true },
+        where: { user_id: id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
+      });
+      if (!organizationMember) {
+        this.logger.warn(`User with id ${id} is not a member of organization with id ${organizationId}`);
+        throw new BadRequestException('You are not a member of this organization');
+      }
+
+      await this.organizationMemberRepository.delete({ user_id: id, organization_id: organizationId });
+
+      // Create admin notification
+      const admin = await this.organizationMemberRepository.findOne({
+        select: { user_id: true },
+        where: { organization_id: organizationId, role: OrganizationMemberRole.ADMIN }, 
+      });
+      const member = await this.userRepository.findOne({ select: { username: true }, where: { id: id } });
+      const organization = await this.organizationRepository.findOne({ select: { name: true }, where: { id: organizationId } });
+      const adminNotification = this.userNotificationRepository.create({
+        id: uuidv4(),
+        user_id: admin?.user_id,
+        subject: `Anggota telah meninggalkan organisasi`,
+        message: `Anggota dengan username ${member?.username} telah meninggalkan organisasi ${organization?.name}.`,
+        type: 'organization_member_leave',
+      });
+      await this.userNotificationRepository.save(adminNotification);
+
+      this.logger.log(`User with id: ${id} leave organization with id: ${organizationId}`);
+      return {
+        message: 'Leave organization successfully.',
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to leave organization, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to leave organization, please try another time');
+    }
+  }
 }

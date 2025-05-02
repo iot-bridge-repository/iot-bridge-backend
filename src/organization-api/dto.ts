@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsString, Length, Matches } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString, Length, Matches, IsEnum } from 'class-validator';
 
 export class PostProposeDto {
   @ApiProperty({ example: 'POKDAKAN BINTANG ROSELA JAYA', description: 'Organization name' })
@@ -62,4 +62,24 @@ export class PostCreateLokalMemberDto {
   @IsString({ message: 'Password must be a string' })
   @Length(6, 20, { message: 'Password must be between 6 and 20 characters' })
   password: string;
+}
+
+enum OrganizationMemberRole {
+  OPERATOR = 'Operator',
+  VIEWER = 'Viewer',
+}
+export class PatchChangeMemberRolesDto {
+  @ApiProperty({ example: 'xxxxxx', description: 'User id' })
+  @IsNotEmpty({ message: 'User id cannot be empty' })
+  @IsString({ message: 'User id must be a string' })
+  user_id: string;
+
+  @ApiProperty({
+    example: OrganizationMemberRole.OPERATOR,
+    description: 'New role for the member (Operator or Viewer)',
+    enum: OrganizationMemberRole,
+  })
+  @IsNotEmpty({ message: 'New role cannot be empty' })
+  @IsEnum(OrganizationMemberRole, { message: 'New role must be either Operator or Viewer',})
+  new_role: OrganizationMemberRole;
 }

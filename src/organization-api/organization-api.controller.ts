@@ -1,4 +1,4 @@
-import { Controller, Logger, UseGuards, UseInterceptors, Req, Body, Post, Get, Patch, Query } from '@nestjs/common';
+import { Controller, Logger, UseGuards, UseInterceptors, Req, Body, Post, Get, Patch, Query, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody, ApiParam } from '@nestjs/swagger';
 import { OrganizationApiService } from './organization-api.service';
 import * as dto from './dto';
@@ -297,5 +297,41 @@ export class OrganizationApiController {
   async getMemberList(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get lokal member list`);
     return this.organizationApiService.getMemberList(request.params.organizationId);
+  }
+
+  @ApiOperation({ summary: 'Change member roles' })
+  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
+  @ApiOkResponse({
+    description: 'Change member roles',
+    schema: {
+      example: {
+        message: 'Member roles changed successfully.',
+      }
+    }
+  })
+  @Patch(':organizationId/change-member-roles')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
+  async patchChangeMemberRoles(@Req() request: AuthenticatedRequest, @Body() patchChangeMemberRolesDto: dto.PatchChangeMemberRolesDto) {
+    this.logger.log(`There is a request to change member roles`);
+    return this.organizationApiService.patchChangeMemberRoles(request.params.organizationId, patchChangeMemberRolesDto);
+  }
+
+  @ApiOperation({ summary: 'Leave organization' })
+  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
+  @ApiOkResponse({
+    description: 'Leave organization',
+    schema: {
+      example: {
+        message: 'Leave organization successfully.',
+      }
+    }
+  })
+  @Delete(':organizationId/leave')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
+  async deleteLeave(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to leave organization`);
+    return this.organizationApiService.deleteLeave(request.user.id, request.params.organizationId);
   }
 }
