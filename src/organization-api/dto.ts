@@ -83,10 +83,3 @@ export class PatchChangeMemberRolesDto {
   @IsEnum(OrganizationMemberRole, { message: 'New role must be either Operator or Viewer',})
   new_role: OrganizationMemberRole;
 }
-
-export class DeleteMemberDto {
-  @ApiProperty({ example: 'xxxxxx', description: 'User id' })
-  @IsNotEmpty({ message: 'User id cannot be empty' })
-  @IsString({ message: 'User id must be a string' })
-  user_id: string;
-}

@@ -618,28 +618,28 @@ export class OrganizationApiService {
     }
   }
 
-  async deleteMember(organizationId: string, deleteMemberDto: dto.DeleteMemberDto) {
+  async deleteMember(organizationId: string, userId: string) {
     try {
       // Check if is user part of the organization and is not admin
       const organizationMember = await this.organizationMemberRepository.findOne({
         select: { id: true, role: true },
-        where: { user_id: deleteMemberDto.user_id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
+        where: { user_id: userId, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
       });
       if (!organizationMember) {
-        this.logger.warn(`User with id ${deleteMemberDto.user_id} is not a member of organization with id ${organizationId}`);
+        this.logger.warn(`User with id ${userId} is not a member of organization with id ${organizationId}`);
         throw new BadRequestException('User is not a member of this organization');
       }
       if (organizationMember.role === OrganizationMemberRole.ADMIN) {
-        this.logger.warn(`User with id ${deleteMemberDto.user_id} is an admin and cannot be deleted`);
+        this.logger.warn(`User with id ${userId} is an admin and cannot be deleted`);
         throw new BadRequestException('User is an admin and cannot be deleted');
       }
 
-      await this.organizationMemberRepository.delete({ user_id: deleteMemberDto.user_id, organization_id: organizationId });
+      await this.organizationMemberRepository.delete({ user_id: userId, organization_id: organizationId });
 
       // Check if user is lokal member
-      const user = await this.userRepository.findOne({ select: { id: true, role: true }, where: { id: deleteMemberDto.user_id } });
+      const user = await this.userRepository.findOne({ select: { id: true, role: true }, where: { id: userId } });
       if (user?.role === UserRole.LOKAL_MEMBER) {
-        await this.userRepository.delete({ id: deleteMemberDto.user_id });
+        await this.userRepository.delete({ id: userId });
       } else {
         // Create user notification
         const organization = await this.organizationRepository.findOne({ select: { name: true }, where: { id: organizationId } });
@@ -653,7 +653,7 @@ export class OrganizationApiService {
         await this.userNotificationRepository.save(userNotification);
       }
 
-      this.logger.log(`User with id: ${deleteMemberDto.user_id} deleted from organization with id: ${organizationId}`);
+      this.logger.log(`User with id: ${userId} deleted from organization with id: ${organizationId}`);
       return {
         message: 'Delete member successfully.',
       };

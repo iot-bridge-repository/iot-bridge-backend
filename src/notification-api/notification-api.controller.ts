@@ -1,5 +1,5 @@
-import { Controller, Logger, Req, UseGuards, Get } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Logger, Req, UseGuards, Get, Delete } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiOkResponse, ApiTags, ApiParam } from '@nestjs/swagger';
 import { NotificationApiService } from './notification-api.service';
 import AuthenticatedRequest from '../common/interfaces/authenticated-request.interface';
 import { UserRolesGuard } from '../common/guards/user-roles.guard';
@@ -15,7 +15,6 @@ export class NotificationApiController {
     private readonly notificationApiService: NotificationApiService
   ) {}
 
-  @Get('')
   @ApiOperation({ summary: 'List of notifications' })
     @ApiOkResponse({
       description: 'List of notifications',
@@ -24,16 +23,11 @@ export class NotificationApiController {
           message: 'List of notifications.',
           data: [
             {
+              id: "15b292bc-2e5f-4d5d-a808-c5c3dd951073",
               subject: "Pengajuan organisasi baru: POKDAKAN BINTANG ROSELA JAYA 3",
               message: "User pak Eko mengajukan organisasi: POKDAKAN BINTANG ROSELA JAYA 3",
               type: "organization_propose",
               created_at: "2025-04-26T13:21:37.416Z"
-            },
-            {
-              subject: "Pengajuan organisasi baru: POKDAKAN BINTANG ROSELA JAYA 2",
-              message: "User Kanaya Valentinur mengajukan organisasi: POKDAKAN BINTANG ROSELA JAYA 2",
-              type: "organization_propose",
-              created_at: "2025-04-26T07:58:00.363Z"
             },
           ]
         }
@@ -41,8 +35,44 @@ export class NotificationApiController {
     })
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.LOKAL_MEMBER)
+  @Get('')
   async get(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get notifications`);
     return this.notificationApiService.get(request.user.id);
+  }
+
+  @ApiOperation({ summary: 'Delete notification' })
+  @ApiParam({ name: 'notificationId', type: String, description: 'Notification id' })
+  @ApiOkResponse({
+    description: 'Successfully delete notification',
+    schema: {
+      example: {
+        message: 'Successfully delete notification.',
+      }
+    }
+  })
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.LOKAL_MEMBER)
+  @Delete(':notificationId')
+  async delete(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to delete notification`); 
+    return this.notificationApiService.delete(request.params.notificationId);
+  }
+
+  @ApiOperation({ summary: 'Delete all notifications' })
+  @ApiOkResponse({
+    description: 'Successfully delete all notifications',
+    schema: {
+      example: {
+        message: 'Successfully delete all notifications.',
+      }
+    }
+  })
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.LOKAL_MEMBER)
+  @Delete('')
+  async deleteAll(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to delete all notifications`); 
+    return this.notificationApiService.deleteAll(request.user.id);
   }
 }
