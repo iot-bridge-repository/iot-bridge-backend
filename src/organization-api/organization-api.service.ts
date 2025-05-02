@@ -567,13 +567,13 @@ export class OrganizationApiService {
 
   async deleteLeave(id: string, organizationId: string) {
     try {
-      // Check if member is lokal member
+      // Check if user is lokal member
       const user = await this.userRepository.findOne({ select: { id: true }, where: { id, role: UserRole.LOKAL_MEMBER } });
       if (user) {
         this.logger.warn(`User with id ${id} is a lokal member`);
-        throw new BadRequestException('User is a lokal member, cannot leave organization');
+        throw new BadRequestException('You are a lokal member, cannot leave organization');
       }
-      // Check if user is a member of the organization
+      // Check if user is a member of the organization and is not admin
       const organizationMember = await this.organizationMemberRepository.findOne({
         select: { id: true },
         where: { user_id: id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
@@ -581,6 +581,10 @@ export class OrganizationApiService {
       if (!organizationMember) {
         this.logger.warn(`User with id ${id} is not a member of organization with id ${organizationId}`);
         throw new BadRequestException('You are not a member of this organization');
+      }
+      if (organizationMember.role === OrganizationMemberRole.ADMIN) {
+        this.logger.warn(`User with id ${id} is an admin and cannot leave organization`);
+        throw new BadRequestException('User is an admin and cannot leave organization');
       }
 
       await this.organizationMemberRepository.delete({ user_id: id, organization_id: organizationId });
@@ -611,6 +615,54 @@ export class OrganizationApiService {
       }
       this.logger.error(`Failed to leave organization, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to leave organization, please try another time');
+    }
+  }
+
+  async deleteMember(organizationId: string, deleteMemberDto: dto.DeleteMemberDto) {
+    try {
+      // Check if is user part of the organization and is not admin
+      const organizationMember = await this.organizationMemberRepository.findOne({
+        select: { id: true, role: true },
+        where: { user_id: deleteMemberDto.user_id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
+      });
+      if (!organizationMember) {
+        this.logger.warn(`User with id ${deleteMemberDto.user_id} is not a member of organization with id ${organizationId}`);
+        throw new BadRequestException('User is not a member of this organization');
+      }
+      if (organizationMember.role === OrganizationMemberRole.ADMIN) {
+        this.logger.warn(`User with id ${deleteMemberDto.user_id} is an admin and cannot be deleted`);
+        throw new BadRequestException('User is an admin and cannot be deleted');
+      }
+
+      await this.organizationMemberRepository.delete({ user_id: deleteMemberDto.user_id, organization_id: organizationId });
+
+      // Check if user is lokal member
+      const user = await this.userRepository.findOne({ select: { id: true, role: true }, where: { id: deleteMemberDto.user_id } });
+      if (user?.role === UserRole.LOKAL_MEMBER) {
+        await this.userRepository.delete({ id: deleteMemberDto.user_id });
+      } else {
+        // Create user notification
+        const organization = await this.organizationRepository.findOne({ select: { name: true }, where: { id: organizationId } });
+        const userNotification = this.userNotificationRepository.create({
+          id: uuidv4(),
+          user_id: user?.id,
+          subject: `Anda dikeluarkan dari organisasi`,
+          message: `Anda telah dikeluarkan dari organisasi ${organization?.name}.`,
+          type: 'organization_member_deleted',
+        });
+        await this.userNotificationRepository.save(userNotification);
+      }
+
+      this.logger.log(`User with id: ${deleteMemberDto.user_id} deleted from organization with id: ${organizationId}`);
+      return {
+        message: 'Delete member successfully.',
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to delete member, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to delete member, please try another time');
     }
   }
 }

@@ -334,4 +334,22 @@ export class OrganizationApiController {
     this.logger.log(`There is a request to leave organization`);
     return this.organizationApiService.deleteLeave(request.user.id, request.params.organizationId);
   }
+
+  @ApiOperation({ summary: 'Delete member' })
+  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
+  @ApiOkResponse({
+    description: 'Delete member',
+    schema: {
+      example: {
+        message: 'Delete member successfully.',
+      }
+    }
+  })
+  @Delete(':organizationId/member')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
+  async deleteMember(@Req() request: AuthenticatedRequest, @Body() deleteMemberDto: dto.DeleteMemberDto) {
+    this.logger.log(`There is a request to leave organization`);
+    return this.organizationApiService.deleteMember(request.params.organizationId, deleteMemberDto);
+  }
 }
