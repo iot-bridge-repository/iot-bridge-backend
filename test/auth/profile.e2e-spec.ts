@@ -9,7 +9,7 @@ import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
 describe('AuthController (e2e)', () => {
   let app: NestExpressApplication;
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ0YTQ0MzE0LTk5N2UtNDMxYy04NGYwLTJhOTA1NzQwMDk4YSIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY0NzEzNTl9.8oNqFwtZkMqfnVlIALJ8z-NmVODr6ovDiPq9JCvCIYo';
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4NjVkMDhhLTEyNmMtNDQ4Mi05YTU2LTBkY2Q0ODQyMWY2MyIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY1MDEzNTR9.2N8RHoejnxr6JI1c9SQhQm2oEl8mYuu6fuQCjVptTo4';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -41,6 +41,7 @@ describe('AuthController (e2e)', () => {
     await app.close();
   });
 
+  // Get profile
   it('successfully get profile', async () => {
     const res = await request(app.getHttpServer())
       .get('/auth/profile')
@@ -49,5 +50,44 @@ describe('AuthController (e2e)', () => {
     console.log('successfully get profile response:', res.body);
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
+  });
+
+  it('failed get profile', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/auth/profile')
+      .set('Authorization', `Bearer invalid_token`)
+
+    console.log('failed get profile response:', res.body);
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+  });
+
+  // Update profile
+  it('successfully update profile', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/auth/update-profile')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        username: 'user_test 1',
+        phone_number: '081234567890',
+      })
+
+    console.log('successfully update profile response:', res.body);
+    expect(res.status).toBeGreaterThanOrEqual(200);
+    expect(res.status).toBeLessThan(300);
+  });
+
+  it('failed update profile', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/auth/update-profile')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        username: 'Bill Valentinov',
+        phone_number: '081234567890',
+      })
+
+    console.log('failed update profile response:', res.body);
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
   });
 });

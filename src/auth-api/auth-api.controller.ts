@@ -144,9 +144,9 @@ export class AuthApiController {
     },
   })
   @Get('password-reset')
-  async getResetPassword(@Req() request: Request, @Query('token') token: string, @Res() res: Response,) {
+  async getPasswordReset(@Req() request: Request, @Query('token') token: string, @Res() res: Response,) {
     this.logger.log(`There is a get password reset request`);
-    return this.authService.getResetPassword(request, token, res);
+    return this.authService.getPasswordReset(request, token, res);
   }
 
   @ApiOperation({ summary: 'Reset password form' })
@@ -173,9 +173,9 @@ export class AuthApiController {
     }
   })
   @Post('password-reset')
-  async postResetPassword(@Body() passwordRestDto: dto.PostPasswordResetDto, @Res() res: Response) {
+  async postPasswordReset(@Body() passwordRestDto: dto.PostPasswordResetDto, @Res() res: Response) {
     this.logger.log(`There is a post password reset request`);
-    return this.authService.postResetPassword(passwordRestDto, res);
+    return this.authService.postPasswordReset(passwordRestDto, res);
   }
 
   @ApiOperation({ summary: 'Get profile' })

@@ -454,6 +454,7 @@ export class OrganizationApiService {
         username: postCreateLokalMemberDto.username,
         password: hashedPassword,
         role: UserRole.LOKAL_MEMBER,
+        is_email_verified: true,
       });
       await this.userRepository.save(newUser);
 
