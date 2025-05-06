@@ -24,13 +24,19 @@ export class OrganizationApiService {
   async postPropose(id: string, postProposeDto: dto.PostProposeDto) {
     try {
       // Check if user exists
-      const user = await this.userRepository.findOne({ where: { id } });
+      const user = await this.userRepository.findOne({
+        select: { username: true },
+        where: { id }
+      });
       if (!user) {
         this.logger.warn(`User with id ${id} does not exist`);
         throw new NotFoundException('User does not exist');
       }
       // Check if organization already exists
-      const existingOrganization = await this.organizationRepository.findOne({ where: { name: postProposeDto.name } });
+      const existingOrganization = await this.organizationRepository.findOne({
+        select: { id: true },
+        where: { name: postProposeDto.name } 
+      });
       if (existingOrganization) {
         this.logger.warn(`Organization ${postProposeDto.name} already exists`);
         throw new BadRequestException('Organization already exists');
@@ -45,7 +51,7 @@ export class OrganizationApiService {
       });
       await this.organizationRepository.save(newOrganization);
 
-      // Create organization member
+      // Create admin organization
       const newOrganizationMember = this.organizationMemberRepository.create({
         id: uuidv4(),
         user_id: id,
@@ -61,7 +67,7 @@ export class OrganizationApiService {
         adminSystem.map(admin => ({
           id: uuidv4(),
           user_id: admin.id,
-          subject: `Pengajuan organisasi baru: ${newOrganization.name}`,
+          subject: `Pengajuan organisasi baru`,
           message: `User ${user.username} mengajukan organisasi: ${newOrganization.name}`,
           type: 'organization_propose',
         }))
@@ -139,7 +145,10 @@ export class OrganizationApiService {
   async patchVerify(patchVerifyDto: dto.PatchVerifyDto) {
     try {
       // Check if organization exists
-      const organization = await this.organizationRepository.findOne({ select: { created_by: true, name: true }, where: { id: patchVerifyDto.organization_id } });
+      const organization = await this.organizationRepository.findOne({
+        select: { created_by: true, name: true },
+        where: { id: patchVerifyDto.organization_id }
+      });
       if (!organization) {
         this.logger.warn(`Organization with id ${patchVerifyDto.organization_id} does not exist`);
         throw new BadRequestException('Organization does not exist');
@@ -152,8 +161,8 @@ export class OrganizationApiService {
       const userNotification = this.userNotificationRepository.create({
         id: uuidv4(),
         user_id: organization.created_by,
-        subject: `Organisasi anda telah diverifikasi`,
-        message: `Organisasi ${organization.name} telah diverifikasi, silahkan mengelola organisasi anda :)`,
+        subject: `Organisasi telah diverifikasi`,
+        message: `Organisasi ${organization.name} anda telah diverifikasi, silahkan mengelola organisasi anda :)`,
         type: 'organization_verified',
       });
       await this.userNotificationRepository.save(userNotification);
@@ -174,7 +183,10 @@ export class OrganizationApiService {
   async patchUnverify(patchUnverifyDto: dto.PatchUnverifyDto) {
     try {
       // Check if organization exists
-      const organization = await this.organizationRepository.findOne({ select: { created_by: true, name: true }, where: { id: patchUnverifyDto.organization_id } });
+      const organization = await this.organizationRepository.findOne({
+        select: { created_by: true, name: true },
+        where: { id: patchUnverifyDto.organization_id }
+      });
       if (!organization) {
         this.logger.warn(`Organization with id ${patchUnverifyDto.organization_id} does not exist`);
         throw new BadRequestException('Organization does not exist');
@@ -187,8 +199,8 @@ export class OrganizationApiService {
       const userNotification = this.userNotificationRepository.create({
         id: uuidv4(),
         user_id: organization.created_by,
-        subject: `Organisasi anda tidak diverifikasi`,
-        message: `Organisasi ${organization.name} tidak terverifikasi, silahkan menghubungi admin system untuk diverifikasi ulang :)`,
+        subject: `Organisasi tidak diverifikasi`,
+        message: `Organisasi ${organization.name} anda tidak terverifikasi, silahkan menghubungi admin system untuk diverifikasi ulang :)`,
         type: 'organization_unverified',
       });
       await this.userNotificationRepository.save(userNotification);
@@ -293,7 +305,7 @@ export class OrganizationApiService {
     }
   }
 
-  async getSearchMembers(identity: string) {
+  async getSearchUsers(identity: string) {
     try {
       const users = await this.userRepository.find({
         select: { id: true, username: true, email: true, phone_number: true },
@@ -313,8 +325,8 @@ export class OrganizationApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to search members, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to search members, please try another time');
+      this.logger.error(`Failed to search users, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to search users, please try another time');
     }
   }
 
@@ -348,7 +360,7 @@ export class OrganizationApiService {
         id: uuidv4(),
         user_id: postMemberInvitationDto.user_id,
         subject: `Undangan untuk bergabung di organisasi`,
-        message: `Anda telah diundang untuk bergabung di organisasi ${organization?.name}`,
+        message: `Anda telah diundang untuk bergabung di organisasi: ${organization?.name}`,
         type: 'organization_member_invitation',
       });
       await this.userNotificationRepository.save(userNotification);
@@ -375,7 +387,7 @@ export class OrganizationApiService {
     }
   }
 
-  async patchInvitationResponse(id: string, organizationId: string, patchInvitationResponseDto: dto.PatchInvitationResponseDto) {
+  async patchMemberInvitationResponse(id: string, organizationId: string, patchInvitationResponseDto: dto.PatchInvitationResponseDto) {
     try {
       // Check if user in organization_members
       const existingUserOrganizationMember = await this.organizationMemberRepository.findOne({
@@ -412,7 +424,7 @@ export class OrganizationApiService {
         throw new NotFoundException('Organization not found');
       }
       const subject = `Undangan anda ${patchInvitationResponseDto.is_accepted ? 'diterima' : 'ditolak'} oleh ${user.username}`;
-      const message = `${user.username} ${patchInvitationResponseDto.is_accepted ? 'telah menjadi anggota' : 'menolak menjadi anggota'} organisasi ${organization.name}`;
+      const message = `${user.username} ${patchInvitationResponseDto.is_accepted ? 'telah menjadi anggota' : 'menolak menjadi anggota'} organisasi: ${organization.name}`;
       const notification = this.userNotificationRepository.create({
         id: uuidv4(),
         user_id: admin.user_id,
@@ -441,7 +453,10 @@ export class OrganizationApiService {
   async postCreateLokalMember(organizationId: string, postCreateLokalMemberDto: dto.PostCreateLokalMemberDto) {
     try {
       // Check if username already exists
-      const existingUser = await this.userRepository.findOne({ select: { id: true }, where: { username: postCreateLokalMemberDto.username } });
+      const existingUser = await this.userRepository.findOne({
+        select: { id: true },
+        where: { username: postCreateLokalMemberDto.username }
+      });
       if (existingUser) {
         this.logger.warn(`Username ${postCreateLokalMemberDto.username} already exists`);
         throw new BadRequestException('Username already exists');
@@ -526,13 +541,19 @@ export class OrganizationApiService {
   async patchChangeMemberRoles(organizationId: string, patchChangeMemberRolesDto: dto.PatchChangeMemberRolesDto) {
     try {
       // Check if member is lokal member
-      const user = await this.userRepository.findOne({ select: { id: true }, where: { id: patchChangeMemberRolesDto.user_id, role: UserRole.LOKAL_MEMBER } });
+      const user = await this.userRepository.findOne({
+        select: { id: true },
+        where: { id: patchChangeMemberRolesDto.user_id, role: UserRole.LOKAL_MEMBER }
+      });
       if (user) {
         this.logger.warn(`User with id ${patchChangeMemberRolesDto.user_id} is a lokal member`);
         throw new BadRequestException('User is a lokal member, cannot change role');
       }
       // Check if member is admin
-      const admin = await this.organizationMemberRepository.findOne({ select: { id: true }, where: { user_id: patchChangeMemberRolesDto.user_id, role: OrganizationMemberRole.ADMIN } });
+      const admin = await this.organizationMemberRepository.findOne({
+        select: { id: true },
+        where: { user_id: patchChangeMemberRolesDto.user_id, role: OrganizationMemberRole.ADMIN }
+      });
       if (admin) {
         this.logger.warn(`User with id ${patchChangeMemberRolesDto.user_id} is an admin and cannot change role`);
         throw new BadRequestException('User is an admin and cannot change role');
@@ -566,6 +587,54 @@ export class OrganizationApiService {
     }
   }
 
+  async deleteMember(organizationId: string, userId: string) {
+    try {
+      // Check if is user part of the organization and is not admin
+      const organizationMember = await this.organizationMemberRepository.findOne({
+        select: { id: true, role: true },
+        where: { user_id: userId, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
+      });
+      if (!organizationMember) {
+        this.logger.warn(`User with id ${userId} is not a member of organization with id ${organizationId}`);
+        throw new BadRequestException('User is not a member of this organization');
+      }
+      if (organizationMember.role === OrganizationMemberRole.ADMIN) {
+        this.logger.warn(`User with id ${userId} is an admin and cannot be deleted`);
+        throw new BadRequestException('User is an admin and cannot be deleted');
+      }
+
+      await this.organizationMemberRepository.delete({ user_id: userId, organization_id: organizationId });
+
+      // Check if user is lokal member
+      const user = await this.userRepository.findOne({ select: { id: true, role: true }, where: { id: userId } });
+      if (user?.role === UserRole.LOKAL_MEMBER) {
+        await this.userRepository.delete({ id: userId });
+      } else {
+        // Create user notification
+        const organization = await this.organizationRepository.findOne({ select: { name: true }, where: { id: organizationId } });
+        const userNotification = this.userNotificationRepository.create({
+          id: uuidv4(),
+          user_id: user?.id,
+          subject: `Anda dikeluarkan dari organisasi`,
+          message: `Anda telah dikeluarkan dari organisasi: ${organization?.name}.`,
+          type: 'organization_member_deleted',
+        });
+        await this.userNotificationRepository.save(userNotification);
+      }
+
+      this.logger.log(`User with id: ${userId} deleted from organization with id: ${organizationId}`);
+      return {
+        message: 'Delete member successfully.',
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to delete member, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to delete member, please try another time');
+    }
+  }
+
   async deleteLeave(id: string, organizationId: string) {
     try {
       // Check if user is lokal member
@@ -576,12 +645,12 @@ export class OrganizationApiService {
       }
       // Check if user is a member of the organization and is not admin
       const organizationMember = await this.organizationMemberRepository.findOne({
-        select: { id: true },
+        select: { id: true, role: true },
         where: { user_id: id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
       });
       if (!organizationMember) {
         this.logger.warn(`User with id ${id} is not a member of organization with id ${organizationId}`);
-        throw new BadRequestException('You are not a member of this organization');
+        throw new BadRequestException('You are not a member of this organization or not accepted the organization');
       }
       if (organizationMember.role === OrganizationMemberRole.ADMIN) {
         this.logger.warn(`User with id ${id} is an admin and cannot leave organization`);
@@ -616,54 +685,6 @@ export class OrganizationApiService {
       }
       this.logger.error(`Failed to leave organization, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to leave organization, please try another time');
-    }
-  }
-
-  async deleteMember(organizationId: string, userId: string) {
-    try {
-      // Check if is user part of the organization and is not admin
-      const organizationMember = await this.organizationMemberRepository.findOne({
-        select: { id: true, role: true },
-        where: { user_id: userId, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
-      });
-      if (!organizationMember) {
-        this.logger.warn(`User with id ${userId} is not a member of organization with id ${organizationId}`);
-        throw new BadRequestException('User is not a member of this organization');
-      }
-      if (organizationMember.role === OrganizationMemberRole.ADMIN) {
-        this.logger.warn(`User with id ${userId} is an admin and cannot be deleted`);
-        throw new BadRequestException('User is an admin and cannot be deleted');
-      }
-
-      await this.organizationMemberRepository.delete({ user_id: userId, organization_id: organizationId });
-
-      // Check if user is lokal member
-      const user = await this.userRepository.findOne({ select: { id: true, role: true }, where: { id: userId } });
-      if (user?.role === UserRole.LOKAL_MEMBER) {
-        await this.userRepository.delete({ id: userId });
-      } else {
-        // Create user notification
-        const organization = await this.organizationRepository.findOne({ select: { name: true }, where: { id: organizationId } });
-        const userNotification = this.userNotificationRepository.create({
-          id: uuidv4(),
-          user_id: user?.id,
-          subject: `Anda dikeluarkan dari organisasi`,
-          message: `Anda telah dikeluarkan dari organisasi ${organization?.name}.`,
-          type: 'organization_member_deleted',
-        });
-        await this.userNotificationRepository.save(userNotification);
-      }
-
-      this.logger.log(`User with id: ${userId} deleted from organization with id: ${organizationId}`);
-      return {
-        message: 'Delete member successfully.',
-      };
-    } catch (error) {
-      if (error instanceof HttpException || error?.status || error?.response) {
-        throw error;
-      }
-      this.logger.error(`Failed to delete member, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to delete member, please try another time');
     }
   }
 }

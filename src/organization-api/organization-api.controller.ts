@@ -185,12 +185,12 @@ export class OrganizationApiController {
       }
     }
   })
-  @Get('search-members')
+  @Get('search-users')
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.REGULAR_USER)
-  async getSearchMembers(@Query('identity') query: string) {
-    this.logger.log(`There is a request to search members`);
-    return this.organizationApiService.getSearchMembers(query);
+  async getSearchUsers(@Query('identity') query: string) {
+    this.logger.log(`There is a request to search users`);
+    return this.organizationApiService.getSearchUsers(query);
   }
 
   @ApiOperation({ summary: 'Member invitation' })
@@ -233,12 +233,12 @@ export class OrganizationApiController {
       }
     }
   })
-  @Patch(':organizationId/invitation-response')
+  @Patch(':organizationId/member-invitation-response')
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.REGULAR_USER)
-  async patchInvitationResponse(@Req() request: AuthenticatedRequest, @Body() patchInvitationResponseDto: dto.PatchInvitationResponseDto) {
+  async patchMemberInvitationResponse(@Req() request: AuthenticatedRequest, @Body() patchInvitationResponseDto: dto.PatchInvitationResponseDto) {
     this.logger.log(`There is a request to accept or reject invitation to join organization`);
-    return this.organizationApiService.patchInvitationResponse(request.user.id, request.params.organizationId, patchInvitationResponseDto);
+    return this.organizationApiService.patchMemberInvitationResponse(request.user.id, request.params.organizationId, patchInvitationResponseDto);
   }
 
   @ApiOperation({ summary: 'Create lokal member' })
@@ -317,24 +317,6 @@ export class OrganizationApiController {
     return this.organizationApiService.patchChangeMemberRoles(request.params.organizationId, patchChangeMemberRolesDto);
   }
 
-  @ApiOperation({ summary: 'Leave organization' })
-  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
-  @ApiOkResponse({
-    description: 'Leave organization',
-    schema: {
-      example: {
-        message: 'Leave organization successfully.',
-      }
-    }
-  })
-  @Delete(':organizationId/leave')
-  @UseGuards(OrganizationMemberRolesGuard)
-  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
-  async deleteLeave(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to leave organization`);
-    return this.organizationApiService.deleteLeave(request.user.id, request.params.organizationId);
-  }
-
   @ApiOperation({ summary: 'Delete member' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiParam({ name: 'userId', type: String, description: 'ID user' })
@@ -352,5 +334,23 @@ export class OrganizationApiController {
   async deleteMember(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to leave organization`);
     return this.organizationApiService.deleteMember(request.params.organizationId, request.params.userId);
+  }
+
+  @ApiOperation({ summary: 'Leave organization' })
+  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
+  @ApiOkResponse({
+    description: 'Leave organization',
+    schema: {
+      example: {
+        message: 'Leave organization successfully.',
+      }
+    }
+  })
+  @Delete(':organizationId/leave')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
+  async deleteLeave(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to leave organization`);
+    return this.organizationApiService.deleteLeave(request.user.id, request.params.organizationId);
   }
 }
