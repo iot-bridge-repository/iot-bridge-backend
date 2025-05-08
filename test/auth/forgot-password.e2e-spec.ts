@@ -9,7 +9,7 @@ import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { User } from 'src/common/entities';
 
-describe('AuthController (e2e)', () => {
+describe('Auth Controller (e2e)', () => {
   let app: NestExpressApplication;
   const email = 'test2@example.com'; 
 

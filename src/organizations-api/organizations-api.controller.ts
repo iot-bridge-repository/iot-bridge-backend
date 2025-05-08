@@ -1,6 +1,6 @@
 import { Controller, Logger, UseGuards, UseInterceptors, Req, Body, Post, Get, Patch, Query, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody, ApiParam } from '@nestjs/swagger';
-import { OrganizationApiService } from './organization-api.service';
+import { OrganizationsApiService } from './organizations-api.service';
 import * as dto from './dto';
 import AuthenticatedRequest from '../common/interfaces/authenticated-request.interface';
 import { UserRolesGuard } from '../common/guards/user-roles.guard';
@@ -10,13 +10,13 @@ import { OrganizationMemberRoles } from '../common/decorators/organization-membe
 import { UploadPictureInterceptorFactory } from '../common/interceptors/upload-picture.interceptor';
 import { UserRole, OrganizationMemberRole } from '../common/entities';
 
-@ApiTags('Organization')
+@ApiTags('Organizations')
 @ApiBearerAuth()
-@Controller('organization')
-export class OrganizationApiController {
-  private readonly logger = new Logger(OrganizationApiController.name);
+@Controller('organizations')
+export class OrganizationsApiController {
+  private readonly logger = new Logger(OrganizationsApiController.name);
   constructor(
-    private readonly organizationApiService: OrganizationApiService
+    private readonly organizationsApiService: OrganizationsApiService
   ) { }
 
   @ApiOperation({ summary: 'Propose an organization' })
@@ -42,7 +42,7 @@ export class OrganizationApiController {
   @UserRoles(UserRole.REGULAR_USER)
   async postPropose(@Req() request: AuthenticatedRequest, @Body() postProposeDto: dto.PostProposeDto) {
     this.logger.log(`There is a request to propose an organization`);
-    return this.organizationApiService.postPropose(request.user.id, postProposeDto);
+    return this.organizationsApiService.postPropose(request.user.id, postProposeDto);
   }
 
   @ApiOperation({ summary: 'Get list of organizations' })
@@ -69,7 +69,7 @@ export class OrganizationApiController {
   @UserRoles(UserRole.LOKAL_MEMBER)
   async getList(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get organization list`);
-    return this.organizationApiService.getList(request.user.id, request.user.role);
+    return this.organizationsApiService.getList(request.user.id, request.user.role);
   }
 
   @ApiOperation({ summary: 'Verify organization' })
@@ -86,7 +86,7 @@ export class OrganizationApiController {
   @UserRoles(UserRole.ADMIN_SYSTEM)
   async patchVerify(@Body() patchVerifyDto: dto.PatchVerifyDto) {
     this.logger.log(`There is a request to verify an organization`);
-    return this.organizationApiService.patchVerify(patchVerifyDto);
+    return this.organizationsApiService.patchVerify(patchVerifyDto);
   }
 
   @ApiOperation({ summary: 'Unverify organization' })
@@ -103,7 +103,7 @@ export class OrganizationApiController {
   @UserRoles(UserRole.ADMIN_SYSTEM)
   async patchUnverify(@Body() patchUnverifyDto: dto.PatchUnverifyDto) {
     this.logger.log(`There is a request to unverify an organization`);
-    return this.organizationApiService.patchUnverify(patchUnverifyDto);
+    return this.organizationsApiService.patchUnverify(patchUnverifyDto);
   }
 
   @ApiOperation({ summary: 'Get organization profile' })
@@ -127,7 +127,7 @@ export class OrganizationApiController {
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async getOrganizationProfile(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get organization profile`);
-    return this.organizationApiService.getOrganizationProfile(request.user.id, request.params.organizationId);
+    return this.organizationsApiService.getOrganizationProfile(request.user.id, request.params.organizationId);
   }
 
   @ApiOperation({ summary: 'Update organization profile' })
@@ -165,10 +165,10 @@ export class OrganizationApiController {
   @UseInterceptors(UploadPictureInterceptorFactory('organization_picture'))
   async patchOrganizationProfile(@Req() request: AuthenticatedRequest, @Body() patchOrganizationProfileDto: dto.PatchOrganizationProfileDto) {
     this.logger.log(`There is a request to update organization profile`);
-    return this.organizationApiService.patchOrganizationProfile(request, request.params.organizationId, patchOrganizationProfileDto, request.file?.filename ?? null);
+    return this.organizationsApiService.patchOrganizationProfile(request, request.params.organizationId, patchOrganizationProfileDto, request.file?.filename ?? null);
   }
 
-  @ApiOperation({ summary: 'Get members' })
+  @ApiOperation({ summary: 'Get users' })
   @ApiOkResponse({
     description: 'Users list',
     schema: {
@@ -185,12 +185,12 @@ export class OrganizationApiController {
       }
     }
   })
-  @Get('search-users')
+  @Get('users')
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.REGULAR_USER)
-  async getSearchUsers(@Query('identity') query: string) {
+  async getUsers(@Query('identity') query: string) {
     this.logger.log(`There is a request to search users`);
-    return this.organizationApiService.getSearchUsers(query);
+    return this.organizationsApiService.getUsers(query);
   }
 
   @ApiOperation({ summary: 'Member invitation' })
@@ -217,7 +217,7 @@ export class OrganizationApiController {
   @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
   async postAddMember(@Req() request: AuthenticatedRequest, @Body() postMemberInvitationDto: dto.PostMemberInvitationDto) {
     this.logger.log(`There is a request to invite member`);
-    return this.organizationApiService.postMemberInvitation(request.params.organizationId, postMemberInvitationDto);
+    return this.organizationsApiService.postMemberInvitation(request.params.organizationId, postMemberInvitationDto);
   }
 
   @ApiOperation({ summary: 'Invitation response' })
@@ -238,7 +238,7 @@ export class OrganizationApiController {
   @UserRoles(UserRole.REGULAR_USER)
   async patchMemberInvitationResponse(@Req() request: AuthenticatedRequest, @Body() patchInvitationResponseDto: dto.PatchInvitationResponseDto) {
     this.logger.log(`There is a request to accept or reject invitation to join organization`);
-    return this.organizationApiService.patchMemberInvitationResponse(request.user.id, request.params.organizationId, patchInvitationResponseDto);
+    return this.organizationsApiService.patchMemberInvitationResponse(request.user.id, request.params.organizationId, patchInvitationResponseDto);
   }
 
   @ApiOperation({ summary: 'Create lokal member' })
@@ -265,12 +265,12 @@ export class OrganizationApiController {
       }
     }
   })
-  @Post(':organizationId/create-lokal-member')
+  @Post(':organizationId/lokal-member')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
-  async postCreateLokalMember(@Req() request: AuthenticatedRequest, @Body() createLokalMemberDto: dto.PostCreateLokalMemberDto) {
+  async postLokalMember(@Req() request: AuthenticatedRequest, @Body() lokalMemberDto: dto.PostLokalMemberDto) {
     this.logger.log(`There is a request to create lokal member`);
-    return this.organizationApiService.postCreateLokalMember(request.params.organizationId, createLokalMemberDto);
+    return this.organizationsApiService.postLokalMember(request.params.organizationId, lokalMemberDto);
   }
 
   @ApiOperation({ summary: 'Get member list' })
@@ -296,7 +296,7 @@ export class OrganizationApiController {
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async getMemberList(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get lokal member list`);
-    return this.organizationApiService.getMemberList(request.params.organizationId);
+    return this.organizationsApiService.getMemberList(request.params.organizationId);
   }
 
   @ApiOperation({ summary: 'Change member roles' })
@@ -309,12 +309,12 @@ export class OrganizationApiController {
       }
     }
   })
-  @Patch(':organizationId/change-member-roles')
+  @Patch(':organizationId/member-roles')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
-  async patchChangeMemberRoles(@Req() request: AuthenticatedRequest, @Body() patchChangeMemberRolesDto: dto.PatchChangeMemberRolesDto) {
+  async patchMemberRoles(@Req() request: AuthenticatedRequest, @Body() patchMemberRolesDto: dto.PatchMemberRolesDto) {
     this.logger.log(`There is a request to change member roles`);
-    return this.organizationApiService.patchChangeMemberRoles(request.params.organizationId, patchChangeMemberRolesDto);
+    return this.organizationsApiService.patchMemberRoles(request.params.organizationId, patchMemberRolesDto);
   }
 
   @ApiOperation({ summary: 'Delete member' })
@@ -333,7 +333,7 @@ export class OrganizationApiController {
   @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
   async deleteMember(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to leave organization`);
-    return this.organizationApiService.deleteMember(request.params.organizationId, request.params.userId);
+    return this.organizationsApiService.deleteMember(request.params.organizationId, request.params.userId);
   }
 
   @ApiOperation({ summary: 'Leave organization' })
@@ -351,6 +351,6 @@ export class OrganizationApiController {
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async deleteLeave(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to leave organization`);
-    return this.organizationApiService.deleteLeave(request.user.id, request.params.organizationId);
+    return this.organizationsApiService.deleteLeave(request.user.id, request.params.organizationId);
   }
 }

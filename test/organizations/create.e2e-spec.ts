@@ -9,9 +9,9 @@ import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { Organization } from 'src/common/entities';
 
-describe('OrganizationController (e2e)', () => {
+describe('Organization Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const organizationName = "organization_test";
+  const organizationName = "organization_test 2";
   const regularUserToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4NjVkMDhhLTEyNmMtNDQ4Mi05YTU2LTBkY2Q0ODQyMWY2MyIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY1MDEzNTR9.2N8RHoejnxr6JI1c9SQhQm2oEl8mYuu6fuQCjVptTo4';
   const adminSystemToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1NTVmNmI1LWM3MjQtNDVhNi04N2NmLTk1Nzg2ZWIyYTAyMCIsInJvbGUiOiJBZG1pbiBTeXN0ZW0iLCJpYXQiOjE3NDY1MTQ3MTl9.NdUZTygW-nirskKvKgd_OloX7I9BAFYh3o2sWGxNVGE'
 
@@ -48,7 +48,7 @@ describe('OrganizationController (e2e)', () => {
   // Post propose
   it('successfully post propose', async () => {
     const res = await request(app.getHttpServer())
-      .post('/organization/propose')
+      .post('/organizations/propose')
       .set('Authorization', `Bearer ${regularUserToken}`)
       .send({
         name: organizationName
@@ -61,7 +61,7 @@ describe('OrganizationController (e2e)', () => {
 
   it('failed post propose', async () => {
     const res = await request(app.getHttpServer())
-      .post('/organization/propose')
+      .post('/organizations/propose')
       .set('Authorization', `Bearer ${regularUserToken}`)
       .send({
         name: organizationName
@@ -75,7 +75,7 @@ describe('OrganizationController (e2e)', () => {
   // Get list 
   it('successfully get list', async () => {
     const res = await request(app.getHttpServer())
-      .get('/organization/list')
+      .get('/organizations/list')
       .set('Authorization', `Bearer ${adminSystemToken}`)
 
     console.log('successfully get list response:', res.body);
@@ -92,7 +92,7 @@ describe('OrganizationController (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .patch('/organization/verify')
+      .patch('/organizations/verify')
       .set('Authorization', `Bearer ${adminSystemToken}`)
       .send({
         organization_id: organization?.id
@@ -105,7 +105,7 @@ describe('OrganizationController (e2e)', () => {
 
   it('failed patch verify', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/organization/verify')
+      .patch('/organizations/verify')
       .set('Authorization', `Bearer ${regularUserToken}`)
       .send({
         organization_id: '123'
@@ -125,7 +125,7 @@ describe('OrganizationController (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .patch('/organization/unverify')
+      .patch('/organizations/unverify')
       .set('Authorization', `Bearer ${adminSystemToken}`)
       .send({
         organization_id: organization?.id
@@ -136,9 +136,9 @@ describe('OrganizationController (e2e)', () => {
     expect(res.status).toBeLessThan(300);
   });
 
-  it.only('failed patch unverify', async () => {
+  it('failed patch unverify', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/organization/unverify')
+      .patch('/organizations/unverify')
       .set('Authorization', `Bearer ${adminSystemToken}`)
       .send({
         organization_id: 'invalid_id'

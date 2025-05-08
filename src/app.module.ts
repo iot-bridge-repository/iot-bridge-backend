@@ -7,8 +7,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthApiModule } from './auth-api/auth-api.module';
 import { LoggingMiddleware } from './common/middleware/logging.middleware';
-import { OrganizationApiModule } from './organization-api/organization-api.module';
-import { NotificationApiModule } from './notification-api/notification-api.module';
+import { OrganizationsApiModule } from './organizations-api/organizations-api.module';
+import { NotificationsApiModule } from './notifications-api/notifications-api.module';
 
 @Module({
   imports: [
@@ -44,8 +44,8 @@ import { NotificationApiModule } from './notification-api/notification-api.modul
       ],
     }),
     AuthApiModule,
-    OrganizationApiModule,
-    NotificationApiModule
+    OrganizationsApiModule,
+    NotificationsApiModule
   ],
   controllers: [AppController],
   providers: [AppService],

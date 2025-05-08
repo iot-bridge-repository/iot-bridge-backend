@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { NotificationApiService } from './notification-api.service';
-import { NotificationApiController } from './notification-api.controller';
+import { NotificationsApiService } from './notifications-api.service';
+import { NotificationsApiController } from './notifications-api.controller';
 import { AuthApiModule } from 'src/auth-api/auth-api.module';
 import { UserNotification } from '../common/entities';
 
@@ -10,7 +10,7 @@ import { UserNotification } from '../common/entities';
     TypeOrmModule.forFeature([UserNotification]),
     AuthApiModule
   ],
-  controllers: [NotificationApiController],
-  providers: [NotificationApiService],
+  controllers: [NotificationsApiController],
+  providers: [NotificationsApiService],
 })
-export class NotificationApiModule {}
+export class NotificationsApiModule {}

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { OrganizationApiService } from './organization-api.service';
-import { OrganizationApiController } from './organization-api.controller';
+import { OrganizationsApiService } from './organizations-api.service';
+import { OrganizationsApiController } from './organizations-api.controller';
 import { AuthApiModule } from 'src/auth-api/auth-api.module';
 import { User, UserNotification, Organization, OrganizationMember } from '../common/entities';
 
@@ -10,7 +10,7 @@ import { User, UserNotification, Organization, OrganizationMember } from '../com
     TypeOrmModule.forFeature([User, UserNotification, Organization, OrganizationMember]),
     AuthApiModule,
   ],
-  providers: [OrganizationApiService],
-  controllers: [OrganizationApiController],
+  providers: [OrganizationsApiService],
+  controllers: [OrganizationsApiController],
 })
-export class OrganizationApiModule {}
+export class OrganizationsApiModule {}

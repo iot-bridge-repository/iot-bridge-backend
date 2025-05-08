@@ -9,9 +9,9 @@ import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { Organization } from 'src/common/entities';
 
-describe('OrganizationController (e2e)', () => {
+describe('Organization Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const organizationName = "organization_test";
+  const organizationName = "organization_test 2";
   const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4NjVkMDhhLTEyNmMtNDQ4Mi05YTU2LTBkY2Q0ODQyMWY2MyIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY1MDEzNTR9.2N8RHoejnxr6JI1c9SQhQm2oEl8mYuu6fuQCjVptTo4';
   const nonMemberOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1NTVmNmI1LWM3MjQtNDVhNi04N2NmLTk1Nzg2ZWIyYTAyMCIsInJvbGUiOiJBZG1pbiBTeXN0ZW0iLCJpYXQiOjE3NDY1MTQ3MTl9.NdUZTygW-nirskKvKgd_OloX7I9BAFYh3o2sWGxNVGE'
 
@@ -54,7 +54,7 @@ describe('OrganizationController (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .get(`/organization/${organization?.id}/profile`)
+      .get(`/organizations/${organization?.id}/profile`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
 
     console.log('successfully patch unverify response:', res.body);
@@ -64,7 +64,7 @@ describe('OrganizationController (e2e)', () => {
 
   it('failed get profile', async () => {
     const res = await request(app.getHttpServer())
-      .get(`/organization/invalid_id/profile`)
+      .get(`/organizations/invalid_id/profile`)
       .set('Authorization', `Bearer ${nonMemberOrganizationToken}`)
 
     console.log('failed patch unverify response:', res.body);
@@ -81,7 +81,7 @@ describe('OrganizationController (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .patch(`/organization/${organization?.id}/profile`)
+      .patch(`/organizations/${organization?.id}/profile`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
       .send({
         name: organizationName,
@@ -93,7 +93,7 @@ describe('OrganizationController (e2e)', () => {
     expect(res.status).toBeLessThan(300);
   });
 
-  it.only('failed patch profile', async () => {
+  it('failed patch profile', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -101,7 +101,7 @@ describe('OrganizationController (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .patch(`/organization/${organization?.id}/profile`)
+      .patch(`/organizations/${organization?.id}/profile`)
       .set('Authorization', `Bearer ${nonMemberOrganizationToken}`)
       .send({
         name: organizationName,

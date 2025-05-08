@@ -1,18 +1,18 @@
 import { Controller, Logger, Req, UseGuards, Get, Delete } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiOkResponse, ApiTags, ApiParam } from '@nestjs/swagger';
-import { NotificationApiService } from './notification-api.service';
+import { NotificationsApiService } from './notifications-api.service';
 import AuthenticatedRequest from '../common/interfaces/authenticated-request.interface';
 import { UserRolesGuard } from '../common/guards/user-roles.guard';
 import { UserRoles } from '../common/decorators/user-roles.decorator';
 import { UserRole } from '../common/entities';
 
-@ApiTags('Notification')
+@ApiTags('Notifications')
 @ApiBearerAuth()
-@Controller('notification')
-export class NotificationApiController {
-  private readonly logger = new Logger(NotificationApiController.name);
+@Controller('notifications')
+export class NotificationsApiController {
+  private readonly logger = new Logger(NotificationsApiController.name);
   constructor(
-    private readonly notificationApiService: NotificationApiService
+    private readonly notificationsApiService: NotificationsApiService
   ) {}
 
   @ApiOperation({ summary: 'List of notifications' })
@@ -38,10 +38,10 @@ export class NotificationApiController {
   @Get('')
   async get(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get notifications`);
-    return this.notificationApiService.get(request.user.id);
+    return this.notificationsApiService.get(request.user.id);
   }
 
-  @ApiOperation({ summary: 'Delete notification' })
+  @ApiOperation({ summary: 'Delete specific notification' })
   @ApiParam({ name: 'notificationId', type: String, description: 'Notification id' })
   @ApiOkResponse({
     description: 'Successfully delete notification',
@@ -56,7 +56,7 @@ export class NotificationApiController {
   @Delete(':notificationId')
   async delete(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to delete notification`); 
-    return this.notificationApiService.delete(request.params.notificationId);
+    return this.notificationsApiService.delete(request.params.notificationId);
   }
 
   @ApiOperation({ summary: 'Delete all notifications' })
@@ -73,6 +73,6 @@ export class NotificationApiController {
   @Delete('')
   async deleteAll(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to delete all notifications`); 
-    return this.notificationApiService.deleteAll(request.user.id);
+    return this.notificationsApiService.deleteAll(request.user.id);
   }
 }

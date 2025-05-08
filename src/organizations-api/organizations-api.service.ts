@@ -11,8 +11,8 @@ import { User, UserRole, UserNotification, Organization, OrganizationMember, Org
 import * as dto from './dto';
 
 @Injectable()
-export class OrganizationApiService {
-  private readonly logger = new Logger(OrganizationApiService.name);
+export class OrganizationsApiService {
+  private readonly logger = new Logger(OrganizationsApiService.name);
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(UserNotification) private readonly userNotificationRepository: Repository<UserNotification>,
@@ -305,7 +305,7 @@ export class OrganizationApiService {
     }
   }
 
-  async getSearchUsers(identity: string) {
+  async getUsers(identity: string) {
     try {
       const users = await this.userRepository.find({
         select: { id: true, username: true, email: true, phone_number: true },
@@ -450,23 +450,23 @@ export class OrganizationApiService {
     }
   }
 
-  async postCreateLokalMember(organizationId: string, postCreateLokalMemberDto: dto.PostCreateLokalMemberDto) {
+  async postLokalMember(organizationId: string, postLokalMemberDto: dto.PostLokalMemberDto) {
     try {
       // Check if username already exists
       const existingUser = await this.userRepository.findOne({
         select: { id: true },
-        where: { username: postCreateLokalMemberDto.username }
+        where: { username: postLokalMemberDto.username }
       });
       if (existingUser) {
-        this.logger.warn(`Username ${postCreateLokalMemberDto.username} already exists`);
+        this.logger.warn(`Username ${postLokalMemberDto.username} already exists`);
         throw new BadRequestException('Username already exists');
       }
       // Create user
       const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(postCreateLokalMemberDto.password, salt);
+      const hashedPassword = await bcrypt.hash(postLokalMemberDto.password, salt);
       const newUser = this.userRepository.create({
         id: uuidv4(),
-        username: postCreateLokalMemberDto.username,
+        username: postLokalMemberDto.username,
         password: hashedPassword,
         role: UserRole.LOKAL_MEMBER,
         is_email_verified: true,
@@ -538,40 +538,40 @@ export class OrganizationApiService {
     }
   }
 
-  async patchChangeMemberRoles(organizationId: string, patchChangeMemberRolesDto: dto.PatchChangeMemberRolesDto) {
+  async patchMemberRoles(organizationId: string, patchMemberRolesDto: dto.PatchMemberRolesDto) {
     try {
       // Check if member is lokal member
       const user = await this.userRepository.findOne({
         select: { id: true },
-        where: { id: patchChangeMemberRolesDto.user_id, role: UserRole.LOKAL_MEMBER }
+        where: { id: patchMemberRolesDto.user_id, role: UserRole.LOKAL_MEMBER }
       });
       if (user) {
-        this.logger.warn(`User with id ${patchChangeMemberRolesDto.user_id} is a lokal member`);
+        this.logger.warn(`User with id ${patchMemberRolesDto.user_id} is a lokal member`);
         throw new BadRequestException('User is a lokal member, cannot change role');
       }
       // Check if member is admin
       const admin = await this.organizationMemberRepository.findOne({
         select: { id: true },
-        where: { user_id: patchChangeMemberRolesDto.user_id, role: OrganizationMemberRole.ADMIN }
+        where: { user_id: patchMemberRolesDto.user_id, role: OrganizationMemberRole.ADMIN }
       });
       if (admin) {
-        this.logger.warn(`User with id ${patchChangeMemberRolesDto.user_id} is an admin and cannot change role`);
+        this.logger.warn(`User with id ${patchMemberRolesDto.user_id} is an admin and cannot change role`);
         throw new BadRequestException('User is an admin and cannot change role');
       }
 
       // Check if a member of the organization
       const organizationMember = await this.organizationMemberRepository.findOne({
         select: { id: true },
-        where: { user_id: patchChangeMemberRolesDto.user_id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
+        where: { user_id: patchMemberRolesDto.user_id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
       });
       if (!organizationMember) {
-        this.logger.warn(`User with id ${patchChangeMemberRolesDto.user_id} is not a member of organization with id ${organizationId}`);
-        throw new BadRequestException('You are not a member of this organization');
+        this.logger.warn(`User with id ${patchMemberRolesDto.user_id} is not a member of organization with id ${organizationId}`);
+        throw new BadRequestException('User is not a member of this organization');
       }
 
       await this.organizationMemberRepository.update(
-        { user_id: patchChangeMemberRolesDto.user_id, organization_id: organizationId },
-        { role: patchChangeMemberRolesDto.new_role },
+        { user_id: patchMemberRolesDto.user_id, organization_id: organizationId },
+        { role: patchMemberRolesDto.new_role },
       );
 
       this.logger.log(`Member roles changed successfully`);

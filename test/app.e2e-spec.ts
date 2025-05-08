@@ -7,7 +7,7 @@ import helmet from 'helmet';
 import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
-describe('AuthController (e2e)', () => {
+describe('Auth Controller (e2e)', () => {
   let app: NestExpressApplication;
   const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQ0YTQ0MzE0LTk5N2UtNDMxYy04NGYwLTJhOTA1NzQwMDk4YSIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY0NzEzNTl9.8oNqFwtZkMqfnVlIALJ8z-NmVODr6ovDiPq9JCvCIYo';
 

@@ -7,7 +7,7 @@ import helmet from 'helmet';
 import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
-describe('NotificationController (e2e)', () => {
+describe('Notification Controller (e2e)', () => {
   let app: NestExpressApplication;
   const userToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4NjVkMDhhLTEyNmMtNDQ4Mi05YTU2LTBkY2Q0ODQyMWY2MyIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY1MDEzNTR9.2N8RHoejnxr6JI1c9SQhQm2oEl8mYuu6fuQCjVptTo4';
 
@@ -45,7 +45,7 @@ describe('NotificationController (e2e)', () => {
   // Get notification
   it('successfully notification', async () => {
     const res = await request(app.getHttpServer())
-      .get(`/notification`)
+      .get(`/notifications`)
       .set('Authorization', `Bearer ${userToken}`)
 
     console.log('successfully notification response:', res.body);
@@ -56,7 +56,7 @@ describe('NotificationController (e2e)', () => {
   // Delete specific notification
   it('successfully delete specific notification', async () => {
     const res = await request(app.getHttpServer())
-      .delete(`/notification/a392c71a-5275-42c4-bcde-dacfa9940864`)
+      .delete(`/notifications/a392c71a-5275-42c4-bcde-dacfa9940864`)
       .set('Authorization', `Bearer ${userToken}`)
 
     console.log('successfully delete specific notification response:', res.body);
@@ -67,7 +67,7 @@ describe('NotificationController (e2e)', () => {
   // Delete all notification
   it('successfully delete all notification', async () => {
     const res = await request(app.getHttpServer())
-      .delete(`/notification`)
+      .delete(`/notifications`)
       .set('Authorization', `Bearer ${userToken}`)
 
     console.log('successfully delete all notification response:', res.body);

@@ -49,7 +49,7 @@ export class PatchInvitationResponseDto {
   is_accepted: boolean;
 }
 
-export class PostCreateLokalMemberDto {
+export class PostLokalMemberDto {
   @ApiProperty({ example: 'username', description: 'User username' })
   @IsNotEmpty({ message: 'Username cannot be empty' })
   @IsString({ message: 'Username must be a string' })
@@ -68,7 +68,7 @@ enum OrganizationMemberRole {
   OPERATOR = 'Operator',
   VIEWER = 'Viewer',
 }
-export class PatchChangeMemberRolesDto {
+export class PatchMemberRolesDto {
   @ApiProperty({ example: 'xxxxxx', description: 'User id' })
   @IsNotEmpty({ message: 'User id cannot be empty' })
   @IsString({ message: 'User id must be a string' })
