@@ -47,7 +47,7 @@ describe('AuthController (e2e)', () => {
   // Change email 
   it('successfully change email', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/auth/change-email')
+      .patch('/auth/email')
       .set('Authorization', `Bearer ${token}`)
       .send({
         new_email: email,
@@ -60,7 +60,7 @@ describe('AuthController (e2e)', () => {
 
   it('failed change email', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/auth/change-email')
+      .patch('/auth/email')
       .set('Authorization', `Bearer ${token}`)
       .send({
         new_email: email,
@@ -91,7 +91,7 @@ describe('AuthController (e2e)', () => {
   // Change password
   it('successfully change password', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/auth/change-password')
+      .patch('/auth/password')
       .set('Authorization', `Bearer ${token}`)
       .send({
         old_password: "12345678",
@@ -105,7 +105,7 @@ describe('AuthController (e2e)', () => {
 
   it('failed change password', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/auth/change-password')
+      .patch('/auth/password')
       .set('Authorization', `Bearer ${token}`)
       .send({
         old_password: "123456789",

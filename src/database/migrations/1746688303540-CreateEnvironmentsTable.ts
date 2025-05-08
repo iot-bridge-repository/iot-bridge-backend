@@ -1,12 +1,12 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm";
 
-export class CreatePasswordResetTokensTable1745210932627 implements MigrationInterface {
-  name = 'CreatePasswordResetTokensTable1745210932627'
+export class CreateEnvironmentsTable1746688303540 implements MigrationInterface {
+  name = 'CreateEnvironmentsTable1746688303540'
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'password_reset_tokens',
+        name: 'environments',
         columns: [
           {
             name: 'id',
@@ -15,14 +15,23 @@ export class CreatePasswordResetTokensTable1745210932627 implements MigrationInt
             isPrimary: true,
           },
           {
-            name: 'user_id',
+            name: 'organization_id',
             type: 'varchar',
-            isUnique: true,
+            isUnique: false,
             isNullable: false,
           },
           {
-            name: 'token',
+            name: 'name',
             type: 'varchar',
+            length: '100',
+            isUnique: false,
+            isNullable: false,
+          },
+          {
+            name: 'topic_code',
+            type: 'varchar',
+            length: '36',
+            isUnique: true,
             isNullable: false,
           },
           {
@@ -36,18 +45,18 @@ export class CreatePasswordResetTokensTable1745210932627 implements MigrationInt
     );
 
     await queryRunner.createForeignKey(
-      'password_reset_tokens',
+      'environments',
       new TableForeignKey({
-        columnNames: ['user_id'],
-        referencedTableName: 'users',
+        columnNames: ['organization_id'],
+        referencedTableName: 'organizations',
         referencedColumnNames: ['id'],
-        onDelete: 'CASCADE', // Optional: hapus token kalau user dihapus
+        onDelete: 'CASCADE', // Optional: hapus semua environment kalau organisasi dihapus
         onUpdate: 'CASCADE',
       }),
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('password_reset_tokens');
+    await queryRunner.dropTable('environments');
   }
 }

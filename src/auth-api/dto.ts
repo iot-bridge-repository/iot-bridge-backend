@@ -47,7 +47,7 @@ export class PostForgotPasswordDto {
   email: string;
 }
 
-export class PostPasswordResetDto{
+export class PostResetPasswordDto{
   @ApiProperty({ example: 'xxxxxx', description: 'Token reset password' })
   @IsNotEmpty({ message: 'Token cannot be empty' })
   @IsString({ message: 'Token must be a string' })
@@ -60,7 +60,7 @@ export class PostPasswordResetDto{
   new_password: string;
 }
 
-export class PatchUpdateProfileDto {
+export class PatchProfileDto {
   @ApiProperty({ example: 'username', description: 'User username' })
   @IsNotEmpty({ message: 'Username cannot be empty' })
   @Length(3, 20, { message: 'Username must be between 3 and 20 characters' })
@@ -74,14 +74,14 @@ export class PatchUpdateProfileDto {
   phone_number: string;
 }
 
-export class PatchChangeEmailDto {
+export class PatchEmailDto {
   @ApiProperty({ example: 'user@example.com', description: 'User email' })
   @IsNotEmpty({ message: 'newEmail cannot be empty' })
   @IsEmail({}, { message: 'newEmail is not valid' })
   new_email: string;
 }
 
-export class PatchChangePasswordDto {
+export class PatchPasswordDto {
   @ApiProperty({ example: 'oldPassword123', description: 'Current password' })
   @IsNotEmpty({ message: 'Old password cannot be empty' })
   @IsString({ message: 'Old password must be a string' })

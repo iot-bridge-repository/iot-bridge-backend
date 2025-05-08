@@ -1,5 +1,5 @@
 import { Controller, Logger, UseGuards, Req, Res, Body, Query, Post, Get, Patch, UseInterceptors } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody, ApiParam } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { AuthApiService } from './auth-api.service';
 import * as dto from './dto';
@@ -105,6 +105,7 @@ export class AuthApiController {
   }
 
   @ApiOperation({ summary: 'Reset password page' })
+  @ApiParam({ name: 'token', type: String, description: 'The reset password token' })
   @ApiOkResponse({
     description: 'Returns an HTML page for resetting the password',
     content: {
@@ -121,7 +122,7 @@ export class AuthApiController {
                 <div class='card p-4'>
                   <div class='card-body'>
                     <h3 class='card-title text-center mb-4'>🔐 Reset Kata Sandi <span class='text-primary'>IoT Bridge</span></h3>
-                    <form method='POST' action='{{baseUrl}}/auth/password-reset'>
+                    <form method='POST' action='{{baseUrl}}/auth/reset-password'>
                       <input type='hidden' name='token' value='{{queryToken}}' />
                       <div class='mb-3'>
                         <label for='newPassword' class='form-label'>Kata Sandi Baru</label>
@@ -143,15 +144,15 @@ export class AuthApiController {
       },
     },
   })
-  @Get('password-reset')
-  async getPasswordReset(@Req() request: Request, @Query('token') token: string, @Res() res: Response,) {
-    this.logger.log(`There is a get password reset request`);
-    return this.authService.getPasswordReset(request, token, res);
+  @Get('reset-password/:token')
+  async getResetPassword(@Req() request: Request, @Res() res: Response,) {
+    this.logger.log(`There is a get reset password request`);
+    return this.authService.getResetPassword(request, request.params.token, res);
   }
 
   @ApiOperation({ summary: 'Reset password form' })
   @ApiOkResponse({
-    description: 'Returns an HTML page confirming successful password reset',
+    description: 'Returns an HTML page confirming successful reset of the password',
     content: {
       'text/html': {
         example:`
@@ -172,10 +173,10 @@ export class AuthApiController {
       }
     }
   })
-  @Post('password-reset')
-  async postPasswordReset(@Body() passwordRestDto: dto.PostPasswordResetDto, @Res() res: Response) {
-    this.logger.log(`There is a post password reset request`);
-    return this.authService.postPasswordReset(passwordRestDto, res);
+  @Post('reset-password')
+  async postResetPassword(@Body() resetPasswordDto: dto.PostResetPasswordDto, @Res() res: Response) {
+    this.logger.log(`There is a post reset password request`);
+    return this.authService.postResetPassword(resetPasswordDto, res);
   }
 
   @ApiOperation({ summary: 'Get profile' })
@@ -237,13 +238,13 @@ export class AuthApiController {
       }
     }
   })
-  @Patch('update-profile')
+  @Patch('profile')
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.REGULAR_USER)  
   @UseInterceptors(UploadPictureInterceptorFactory('profile_picture'))
-  async patchUpdateProfile(@Req() request: AuthenticatedRequest, @Body() patchUpdateProfileDto: dto.PatchUpdateProfileDto) {
+  async patchProfile(@Req() request: AuthenticatedRequest, @Body() patchProfileDto: dto.PatchProfileDto) {
     this.logger.log(`There is an update profile request`);
-    return this.authService.patchUpdateUserProfile(request, request.user.id, patchUpdateProfileDto, request.file?.filename ?? null);
+    return this.authService.patchProfile(request, request.user.id, patchProfileDto, request.file?.filename ?? null);
   }
 
   @ApiOperation({ summary: 'Change email' })
@@ -256,12 +257,12 @@ export class AuthApiController {
       }
     }
   })
-  @Patch('change-email')
+  @Patch('email')
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.REGULAR_USER)  
-  async patchChangeEmail(@Req() request: AuthenticatedRequest, @Body() patchChangeEmailDto: dto.PatchChangeEmailDto) {
+  async patchEmail(@Req() request: AuthenticatedRequest, @Body() patchEmailDto: dto.PatchEmailDto) {
     this.logger.log(`There is a change email request`);
-    return this.authService.patchChangeEmail(request, request.user.id, patchChangeEmailDto);
+    return this.authService.patchEmail(request, request.user.id, patchEmailDto);
   }
 
   @ApiOperation({ summary: 'Change password' })
@@ -274,11 +275,11 @@ export class AuthApiController {
       }
     }
   })
-  @Patch('change-password')
+  @Patch('password')
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.LOKAL_MEMBER)
-  async patchChangePassword(@Req() request: AuthenticatedRequest, @Body() patchChangePasswordDto: dto.PatchChangePasswordDto) {
+  async patchPassword(@Req() request: AuthenticatedRequest, @Body() patchPasswordDto: dto.PatchPasswordDto) {
     this.logger.log(`There is a change password request`);
-    return this.authService.patchChangePassword(request.user.id, patchChangePasswordDto);
+    return this.authService.patchPassword(request.user.id, patchPasswordDto);
   }
 }

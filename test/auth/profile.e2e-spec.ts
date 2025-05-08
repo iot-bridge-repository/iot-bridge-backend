@@ -65,7 +65,7 @@ describe('AuthController (e2e)', () => {
   // Update profile
   it('successfully update profile', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/auth/update-profile')
+      .patch('/auth/profile')
       .set('Authorization', `Bearer ${token}`)
       .send({
         username: 'user_test 1',
@@ -79,7 +79,7 @@ describe('AuthController (e2e)', () => {
 
   it('failed update profile', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/auth/update-profile')
+      .patch('/auth/profile')
       .set('Authorization', `Bearer ${token}`)
       .send({
         username: 'Bill Valentinov',

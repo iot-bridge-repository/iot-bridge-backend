@@ -70,11 +70,11 @@ describe('AuthController (e2e)', () => {
   });
 
   // Get password reset
-  it('successfully get password reset', async () => {
+  it('successfully get reset password', async () => {
     const dataSource = app.get(DataSource);
-    const passwordResetToken = await dataSource.getRepository(User)
+    const resetPasswordToken = await dataSource.getRepository(User)
       .createQueryBuilder('u')
-      .leftJoin('password_reset_tokens', 'prt', 'u.id = prt.user_id')
+      .leftJoin('reset_password_tokens', 'prt', 'u.id = prt.user_id')
       .select([
         'prt.token AS token',
       ])
@@ -82,58 +82,55 @@ describe('AuthController (e2e)', () => {
       .getRawOne();
 
     const res = await request(app.getHttpServer())
-      .get('/auth/password-reset')
-      .query({ token: passwordResetToken?.token });
+      .get(`/auth/reset-password/${resetPasswordToken.token}`);
 
-    console.log('successfully get password reset response:', res.text);
+    console.log('successfully get reset password response:', res.text);
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed get password reset', async () => {
+  it('failed get reset password', async () => {
     const res = await request(app.getHttpServer())
-      .get('/auth/password-reset')
-      .query({ token: 'invalid_token' });
+      .get('/auth/reset-password/invalid_token');
 
-    console.log('failed get password reset response:', res.body);
+    console.log('failed get reset password response:', res.body);
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
 
   // Post password reset
-  it('successfully post password reset', async () => {
+  it('successfully post reset password', async () => {
     const dataSource = app.get(DataSource);
-    const passwordResetToken = await dataSource.getRepository(User)
+    const resetPasswordToken = await dataSource.getRepository(User)
       .createQueryBuilder('u')
-      .leftJoin('password_reset_tokens', 'prt', 'u.id = prt.user_id')
+      .leftJoin('reset_password_tokens', 'prt', 'u.id = prt.user_id')
       .select([
         'prt.token AS token',
       ])
       .where('u.email = :email', { email })
       .getRawOne();
-      console.log('ASW:', passwordResetToken);
 
     const res = await request(app.getHttpServer())
-      .post('/auth/password-reset')
+      .post('/auth/reset-password')
       .send({ 
-        token: passwordResetToken?.token,
+        token: resetPasswordToken?.token,
         new_password: '12345678',
       });
 
-    console.log('successfully post password reset response:', res.text);
+    console.log('successfully post reset password response:', res.text);
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed post password reset', async () => {
+  it('failed post reset password', async () => {
     const res = await request(app.getHttpServer())
-      .post('/auth/password-reset')
+      .post('/auth/reset-password')
       .send({ 
         token: 'invalid_token',
-        password: '12345678',
+        new_password: '12345678',
       });
 
-    console.log('failed post password reset response:', res.body);
+    console.log('failed post reset password response:', res.body);
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });

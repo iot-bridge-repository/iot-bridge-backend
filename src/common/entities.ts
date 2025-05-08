@@ -65,8 +65,8 @@ export class VerifyEmailToken {
   created_at: Date;
 }
 
-@Entity({ name: 'password_reset_tokens' })
-export class PasswordResetToken {
+@Entity({ name: 'reset_password_tokens' })
+export class ResetPasswordToken {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -172,6 +172,25 @@ export class UserNotification {
   @Column({ type: 'varchar', length: 100, nullable: false })
   @Length(5, 100, { message: 'Type must be between 5 and 100 characters' })
   type: string;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
+}
+
+@Entity({ name: 'environments' })
+export class Environment {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'varchar', unique: false, nullable: false })
+  organization_id: string;
+
+  @Column({ type: 'varchar', length: 100, unique: false, nullable: false })
+  @Length(5, 100, { message: 'Name must be between 5 and 100 characters' })
+  name: string;
+
+  @Column({ type: 'varchar', length: 36, unique: true, nullable: false })
+  topic_code: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { v4 as uuidv4 } from "uuid";
-import { User, VerifyEmailToken, PasswordResetToken } from '../common/entities';
+import { User, VerifyEmailToken, ResetPasswordToken } from '../common/entities';
 import * as dto from './dto';
 import { EmailService } from '../common/services/email.service';
 
@@ -20,7 +20,7 @@ export class AuthApiService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(VerifyEmailToken) private readonly verifyEmailTokenRepository: Repository<VerifyEmailToken>,
-    @InjectRepository(PasswordResetToken) private readonly passwordResetTokenRepository: Repository<PasswordResetToken>,
+    @InjectRepository(ResetPasswordToken) private readonly resetPasswordTokenRepository: Repository<ResetPasswordToken>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService
   ) {
@@ -306,23 +306,23 @@ export class AuthApiService {
       }
 
       // Check existing password reset token
-      const existingPasswordResetToken = await this.passwordResetTokenRepository.findOne({
+      const existingResetPasswordToken = await this.resetPasswordTokenRepository.findOne({
         select: { id: true },
         where: { user_id: user.id } 
       });
-      if (existingPasswordResetToken) {
-        await this.passwordResetTokenRepository.delete(existingPasswordResetToken.id);
+      if (existingResetPasswordToken) {
+        await this.resetPasswordTokenRepository.delete(existingResetPasswordToken.id);
       }
 
       // Create a new password reset token
       const token = crypto.randomBytes(32).toString('hex');
-      const passwordResetToken = this.passwordResetTokenRepository.create({
+      const resetPasswordToken = this.resetPasswordTokenRepository.create({
         id: uuidv4(),
         user_id: user.id,
         token,
         created_at: new Date(),
       });
-      await this.passwordResetTokenRepository.save(passwordResetToken);
+      await this.resetPasswordTokenRepository.save(resetPasswordToken);
 
       // Send password reset link via email
       const baseUrl = `${req.protocol}://${req.get('host')}`;
@@ -336,7 +336,7 @@ export class AuthApiService {
             <p>Halo <strong>${user.username}</strong>,</p>
             <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun Anda di <strong>IoT Bridge</strong>. Klik tombol di bawah ini untuk melanjutkan proses reset password:</p>
             <div style="margin: 20px 0;">
-              <a href="${baseUrl}/auth/password-reset/?token=${token}" 
+              <a href="${baseUrl}/auth/reset-password/${token}" 
                 style="
                   display: inline-block;
                   padding: 12px 24px;
@@ -368,84 +368,84 @@ export class AuthApiService {
     }
   }
 
-  async getPasswordReset(req: Request, queryToken: string, res: Response) {
+  async getResetPassword(req: Request, token: string, res: Response) {
     try {
       // Check if the token is exist and valid
-      const passwordResetToken = await this.passwordResetTokenRepository.findOne({
+      const resetPasswordToken = await this.resetPasswordTokenRepository.findOne({
         select: { created_at: true, user_id: true, id: true },
-        where: { token: queryToken }
+        where: { token: token }
       });
-      if (!passwordResetToken) {
-        this.logger.warn(`Password reset failed. Token not found: ${queryToken}`);
+      if (!resetPasswordToken) {
+        this.logger.warn(`Reset password failed. Token not found: ${token}`);
         throw new BadRequestException('Token is invalid');
       }
       const now = new Date();
-      const expiredAt = new Date(passwordResetToken.created_at);
+      const expiredAt = new Date(resetPasswordToken.created_at);
       expiredAt.setHours(expiredAt.getHours() + 1);
       if (now >= expiredAt) {
-        await this.passwordResetTokenRepository.delete(passwordResetToken.id);
-        this.logger.warn(`Password reset link expired for token: ${queryToken}`);
-        throw new BadRequestException('Password reset link expired, please try again');
+        await this.resetPasswordTokenRepository.delete(resetPasswordToken.id);
+        this.logger.warn(`Reset password link expired for token: ${token}`);
+        throw new BadRequestException('Reset password link expired, please try again');
       }
 
-      this.logger.log(`Password reset page for user ID: ${passwordResetToken.user_id}`);
+      this.logger.log(`Reset password page for user ID: ${resetPasswordToken.user_id}`);
       const baseUrl = `${req.protocol}://${req.get('host')}`;
-      return res.render('get-reset-password', {baseUrl, queryToken})
+      return res.render('get-reset-password', {baseUrl, token})
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to reset password by token: ${queryToken}, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to reset password, please try another time');
+      this.logger.error(`Failed to get reset password by token: ${token}, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get reset password, please try another time');
     }
   }
 
-  async postPasswordReset(postPasswordResetDto: dto.PostPasswordResetDto, res: Response) {
+  async postResetPassword(postResetPasswordDto: dto.PostResetPasswordDto, res: Response) {
     try {
       // Check if the token is exist and valid
-      const passwordResetToken = await this.passwordResetTokenRepository.findOne({
+      const resetPasswordToken = await this.resetPasswordTokenRepository.findOne({
         select: {created_at: true, id: true, user_id: true},
-        where: { token: postPasswordResetDto.token } 
+        where: { token: postResetPasswordDto.token } 
       });
-      if (!passwordResetToken) {
-        this.logger.warn(`Password reset failed. Token not found: ${postPasswordResetDto.token}`);
+      if (!resetPasswordToken) {
+        this.logger.warn(`Reset password failed. Token not found: ${postResetPasswordDto.token}`);
         throw new NotFoundException('Token not found');
       }
       const now = new Date();
-      const expiredAt = new Date(passwordResetToken.created_at);
+      const expiredAt = new Date(resetPasswordToken.created_at);
       expiredAt.setHours(expiredAt.getHours() + 1);
       if (now >= expiredAt) {
-        await this.passwordResetTokenRepository.delete(passwordResetToken.id);
-        this.logger.warn(`Password reset link expired for token: ${postPasswordResetDto.token}`);
-        throw new BadRequestException('Password reset link expired, please try again');
+        await this.resetPasswordTokenRepository.delete(resetPasswordToken.id);
+        this.logger.warn(`Reset password link expired for token: ${postResetPasswordDto.token}`);
+        throw new BadRequestException('Reset password link expired, please try again');
       }
 
       // Check if the user exists
       const user = await this.userRepository.findOne({
         select: { id: true },
-        where: { id: passwordResetToken.user_id } 
+        where: { id: resetPasswordToken.user_id } 
       });
       if (!user) {
-        await this.passwordResetTokenRepository.delete(passwordResetToken.id);
-        this.logger.error(`User not found for password reset token: ${postPasswordResetDto.token}`);
+        await this.resetPasswordTokenRepository.delete(resetPasswordToken.id);
+        this.logger.error(`User not found for reset password token: ${postResetPasswordDto.token}`);
         throw new NotFoundException('User not found');
       }
 
       // Update the user password
       const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(postPasswordResetDto.new_password, salt);
+      const hashedPassword = await bcrypt.hash(postResetPasswordDto.new_password, salt);
       await this.userRepository.update(user.id, { password: hashedPassword });
 
-      // Delete the password reset token
-      await this.passwordResetTokenRepository.delete(passwordResetToken.id);
+      // Delete the reset password token
+      await this.resetPasswordTokenRepository.delete(resetPasswordToken.id);
 
-      this.logger.log(`Successfully reset password, by ID: ${passwordResetToken.user_id}`);
+      this.logger.log(`Successfully reset password, by ID: ${resetPasswordToken.user_id}`);
       return res.render('post-reset-password')
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to reset password by token: ${postPasswordResetDto.token}, Error: ${error}`);
+      this.logger.error(`Failed to reset password by token: ${postResetPasswordDto.token}, Error: ${error}`);
       throw new InternalServerErrorException('Failed to reset password, please try another time');
     }
   }
@@ -485,7 +485,7 @@ export class AuthApiService {
     }
   }
 
-  async patchUpdateUserProfile(req: Request, id: string, updateProfileDto: dto.PatchUpdateProfileDto, profile_picture: string | null) {
+  async patchProfile(req: Request, id: string, patchProfileDto: dto.PatchProfileDto, profile_picture: string | null) {
     try {
       // Check if the user exists
       const user = await this.userRepository.findOne({
@@ -505,13 +505,13 @@ export class AuthApiService {
           throw new BadRequestException(`${fieldName} already exists`);
         }
       };
-      await checkDuplicate('username', updateProfileDto.username, 'Username');
-      await checkDuplicate('phone_number', updateProfileDto.phone_number, 'Phone number');
+      await checkDuplicate('username', patchProfileDto.username, 'Username');
+      await checkDuplicate('phone_number', patchProfileDto.phone_number, 'Phone number');
 
       // User profile update data
       const updateDataProfile: Partial<User> = {
-        username: updateProfileDto.username,
-        phone_number: updateProfileDto.phone_number,
+        username: patchProfileDto.username,
+        phone_number: patchProfileDto.phone_number,
       };
       // Check if the profile picture is provided
       if (profile_picture) {
@@ -558,7 +558,7 @@ export class AuthApiService {
     }
   }
 
-  async patchChangeEmail(req: Request, id: string, changeEmailDto: dto.PatchChangeEmailDto) {
+  async patchEmail(req: Request, id: string, patchChangeEmailDto: dto.PatchEmailDto) {
     try {
       // Check if the user exists
       const user = await this.userRepository.findOne({
@@ -573,10 +573,10 @@ export class AuthApiService {
       // Check if the new email is not duplicate in user table
       const existingEmail = await this.userRepository.findOne({
         select: { id: true },
-        where: { email: changeEmailDto.new_email }
+        where: { email: patchChangeEmailDto.new_email }
       });
       if (existingEmail) {
-        this.logger.warn(`Email already exists: ${changeEmailDto.new_email}`);
+        this.logger.warn(`Email already exists: ${patchChangeEmailDto.new_email}`);
         throw new BadRequestException('Email already exists');
       }
 
@@ -584,12 +584,12 @@ export class AuthApiService {
       const existingVerifyEmailToken = await this.verifyEmailTokenRepository.findOne({
         select: { email: true, user_id: true },
         where: [
-          { email: changeEmailDto.new_email },
+          { email: patchChangeEmailDto.new_email },
           { user_id: user.id },
         ],
       });
-      if (existingVerifyEmailToken?.email === changeEmailDto.new_email) {
-        this.logger.warn(`Email already exists: ${changeEmailDto.new_email}`);
+      if (existingVerifyEmailToken?.email === patchChangeEmailDto.new_email) {
+        this.logger.warn(`Email already exists: ${patchChangeEmailDto.new_email}`);
         throw new BadRequestException('Email already exists, but not verified');
       }
       if (existingVerifyEmailToken?.user_id === user.id) {
@@ -601,7 +601,7 @@ export class AuthApiService {
       const verifyEmailToken = this.verifyEmailTokenRepository.create({
         id: uuidv4(),
         user_id: user.id,
-        email: changeEmailDto.new_email,
+        email: patchChangeEmailDto.new_email,
         token,
         created_at: new Date(),
       });
@@ -610,7 +610,7 @@ export class AuthApiService {
       // Send verify email link
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       await this.emailService.sendEmail(
-        changeEmailDto.new_email,
+        patchChangeEmailDto.new_email,
         '🔄 Verifikasi Email Baru Anda - IoT Bridge',
         `Halo ${user.username}`,
         `
@@ -618,7 +618,7 @@ export class AuthApiService {
           <h2 style="color: #007bff;">🔄 Verifikasi Alamat Email Baru Anda</h2>
           <p>Halo <strong>${user.username}</strong>,</p>
           <p>Anda telah mengajukan permintaan untuk mengganti alamat email akun <strong>IoT Bridge</strong> Anda ke:</p>
-          <p style="font-size: 16px; font-weight: bold;">📧 ${changeEmailDto.new_email}</p>
+          <p style="font-size: 16px; font-weight: bold;">📧 ${patchChangeEmailDto.new_email}</p>
           <p>Untuk menyelesaikan perubahan ini, silakan klik tombol di bawah ini untuk memverifikasi alamat email baru:</p>
           <div style="margin: 20px 0;">
             <a href="${baseUrl}/auth/verify-email?token=${token}" style="
@@ -653,7 +653,7 @@ export class AuthApiService {
     }
   }
 
-  async patchChangePassword(id: string, changePasswordDto: dto.PatchChangePasswordDto) {
+  async patchPassword(id: string, patchPasswordDto: dto.PatchPasswordDto) {
     try {
       // Check if the user exists
       const user = await this.userRepository.findOne({
@@ -665,7 +665,7 @@ export class AuthApiService {
         throw new UnauthorizedException('User not found');
       }
 
-      const { old_password, new_password } = changePasswordDto;
+      const { old_password, new_password } = patchPasswordDto;
 
       // Check if the old password is valid
       const isPasswordValid = await bcrypt.compare(old_password, user.password);
