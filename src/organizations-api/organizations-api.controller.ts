@@ -69,7 +69,7 @@ export class OrganizationsApiController {
   @UserRoles(UserRole.LOKAL_MEMBER)
   async getList(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get organization list`);
-    return this.organizationsApiService.getList(request.user.id, request.user.role);
+    return this.organizationsApiService.getList(request.user.id);
   }
 
   @ApiOperation({ summary: 'Verify organization' })

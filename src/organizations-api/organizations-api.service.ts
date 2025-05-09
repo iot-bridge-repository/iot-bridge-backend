@@ -19,7 +19,7 @@ export class OrganizationsApiService {
     @InjectRepository(Organization) private readonly organizationRepository: Repository<Organization>,
     @InjectRepository(OrganizationMember) private readonly organizationMemberRepository: Repository<OrganizationMember>,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   async postPropose(id: string, postProposeDto: dto.PostProposeDto) {
     try {
@@ -35,7 +35,7 @@ export class OrganizationsApiService {
       // Check if organization already exists
       const existingOrganization = await this.organizationRepository.findOne({
         select: { id: true },
-        where: { name: postProposeDto.name } 
+        where: { name: postProposeDto.name }
       });
       if (existingOrganization) {
         this.logger.warn(`Organization ${postProposeDto.name} already exists`);
@@ -87,52 +87,30 @@ export class OrganizationsApiService {
     }
   }
 
-  async getList(id: string, role: UserRole) {
+  async getList(id: string) {
     try {
-      if (role == UserRole.ADMIN_SYSTEM) {
-        const organizations = await this.organizationRepository
-        .createQueryBuilder('o')
-        .leftJoin('users', 'u', 'o.created_by = u.id')
+      const memberOrganizations = await this.userRepository
+        .createQueryBuilder('u')
+        .leftJoin('organization_members', 'om', 'u.id = om.user_id')
+        .leftJoin('organizations', 'o', 'om.organization_id = o.id')
+        .leftJoin('users', 'creator', 'o.created_by = creator.id')
         .select([
-          'o.id AS id',
+          'om.organization_id AS id',
           'o.name AS name',
           'o.description AS description',
           'o.is_verified AS is_verified',
           'o.created_by AS created_by',
-          'u.username AS creator_username',
+          'creator.username AS creator_username',
         ])
+        .where('u.id = :id', { id })
+        .andWhere('om.status = :status', { status: 'Accepted' })
         .getRawMany();
 
-        this.logger.log(`Admin system get list of organizations with number of organizations: ${organizations.length}`);
-        return {
-          message: 'List of all organizations.',
-          data: organizations,
-        };
-      } else if (role == UserRole.REGULAR_USER || role == UserRole.LOKAL_MEMBER) {
-        // Get organizations id where user is a member
-        const memberOrganizations = await this.userRepository
-          .createQueryBuilder('u')
-          .leftJoin('organization_members', 'om', 'u.id = om.user_id')
-          .leftJoin('organizations', 'o', 'om.organization_id = o.id')
-          .leftJoin('users', 'creator', 'o.created_by = creator.id')
-          .select([
-            'om.organization_id AS id',
-            'o.name AS name',
-            'o.description AS description',
-            'o.is_verified AS is_verified',
-            'o.created_by AS created_by',
-            'creator.username AS creator_username',
-          ])
-          .where('u.id = :id', { id })
-          .andWhere('om.status = :status', { status: 'Accepted' })
-          .getRawMany();
-
-        this.logger.log(`User with id: ${id} get list of organizations with number of organizations: ${memberOrganizations.length}`);
-        return {
-          message: 'List of your organizations.',
-          data: memberOrganizations,
-        };
-      }
+      this.logger.log(`User with id: ${id} get list of organizations with number of organizations: ${memberOrganizations.length}`);
+      return {
+        message: 'List of your organizations.',
+        data: memberOrganizations,
+      };
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
@@ -247,7 +225,7 @@ export class OrganizationsApiService {
       // Check if organization name duplicate
       const existingUsername = await this.organizationRepository.findOne({
         select: { id: true },
-        where: { name: patchOrganizationProfileDto.name } 
+        where: { name: patchOrganizationProfileDto.name }
       });
       if (existingUsername && existingUsername.id !== organizationId) {
         this.logger.warn(`Organization name already exists: ${patchOrganizationProfileDto.name}`);
@@ -262,7 +240,7 @@ export class OrganizationsApiService {
       // Check if the old profile picture exists and delete it
       const organization = await this.organizationRepository.findOne({
         select: { organization_picture: true },
-        where: { id: organizationId } 
+        where: { id: organizationId }
       });
       // Check if the organization picture is provided
       if (organization_picture) {
@@ -332,9 +310,9 @@ export class OrganizationsApiService {
 
   async postMemberInvitation(organizationId: string, postMemberInvitationDto: dto.PostMemberInvitationDto) {
     try {
-      const existingOrganizationMember = await this.organizationMemberRepository.findOne({ 
+      const existingOrganizationMember = await this.organizationMemberRepository.findOne({
         select: { id: true },
-        where: { user_id: postMemberInvitationDto.user_id, organization_id: organizationId } 
+        where: { user_id: postMemberInvitationDto.user_id, organization_id: organizationId }
       });
       if (existingOrganizationMember) {
         this.logger.warn(`Member with id ${postMemberInvitationDto.user_id} already exists in organization with id ${organizationId}`);
@@ -354,7 +332,7 @@ export class OrganizationsApiService {
       // Create notification for user
       const organization = await this.organizationRepository.findOne({
         select: { name: true },
-        where: { id: organizationId } 
+        where: { id: organizationId }
       });
       const userNotification = this.userNotificationRepository.create({
         id: uuidv4(),
@@ -662,7 +640,7 @@ export class OrganizationsApiService {
       // Create admin notification
       const admin = await this.organizationMemberRepository.findOne({
         select: { user_id: true },
-        where: { organization_id: organizationId, role: OrganizationMemberRole.ADMIN }, 
+        where: { organization_id: organizationId, role: OrganizationMemberRole.ADMIN },
       });
       const member = await this.userRepository.findOne({ select: { username: true }, where: { id: id } });
       const organization = await this.organizationRepository.findOne({ select: { name: true }, where: { id: organizationId } });

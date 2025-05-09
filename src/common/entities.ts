@@ -177,8 +177,8 @@ export class UserNotification {
   created_at: Date;
 }
 
-@Entity({ name: 'environments' })
-export class Environment {
+@Entity({ name: 'devices' })
+export class Device {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -190,7 +190,7 @@ export class Environment {
   name: string;
 
   @Column({ type: 'varchar', length: 36, unique: true, nullable: false })
-  topic_code: string;
+  auth_code: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

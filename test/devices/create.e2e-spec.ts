@@ -9,7 +9,7 @@ import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { Organization } from 'src/common/entities';
 
-describe('Environment Controller (e2e)', () => {
+describe('Device Controller (e2e)', () => {
   let app: NestExpressApplication;
   const organizationName = "organization_test";
   const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4NjVkMDhhLTEyNmMtNDQ4Mi05YTU2LTBkY2Q0ODQyMWY2MyIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY1MDEzNTR9.2N8RHoejnxr6JI1c9SQhQm2oEl8mYuu6fuQCjVptTo4';
@@ -45,8 +45,8 @@ describe('Environment Controller (e2e)', () => {
     await app.close();
   });
 
-  // POST /organizations/:id/environments
-  it('successfully create environment', async () => {
+  // POST /organizations/:id/devices
+  it('successfully create device', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -54,18 +54,18 @@ describe('Environment Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .post(`/organizations/${organization?.id}/environments`)
+      .post(`/organizations/${organization?.id}/devices`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
       .send({
-        name: 'Environment test',
+        name: 'Device test',
       })
 
-    console.log('successfully create environment response:', res.body);
+    console.log('successfully create device response:', res.body);
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it.only('failed create environment', async () => {
+  it('failed create device', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -73,13 +73,13 @@ describe('Environment Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .post(`/organizations/${organization?.id}/environments`)
-      .set('Authorization', `Bearer ${nonMemberOrganizationToken}`)
+      .post(`/organizations/${organization?.id}/devices`)
+      .set('Authorization', `Bearer ${adminOrganizationToken}}`)
       .send({
-        name: 'Environment test',
+        name: 'Device test',
       })
 
-    console.log('failed create environment response:', res.body);
+    console.log('failed create device response:', res.body);
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });

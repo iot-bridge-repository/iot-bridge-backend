@@ -1,12 +1,12 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm";
 
-export class CreateEnvironmentsTable1746688303540 implements MigrationInterface {
-  name = 'CreateEnvironmentsTable1746688303540'
+export class CreateDevicesTable1746688303540 implements MigrationInterface {
+  name = 'CreateDevicesTable1746688303540'
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'environments',
+        name: 'devices',
         columns: [
           {
             name: 'id',
@@ -28,7 +28,7 @@ export class CreateEnvironmentsTable1746688303540 implements MigrationInterface 
             isNullable: false,
           },
           {
-            name: 'topic_code',
+            name: 'auth_code',
             type: 'varchar',
             length: '36',
             isUnique: true,
@@ -45,7 +45,7 @@ export class CreateEnvironmentsTable1746688303540 implements MigrationInterface 
     );
 
     await queryRunner.createForeignKey(
-      'environments',
+      'devices',
       new TableForeignKey({
         columnNames: ['organization_id'],
         referencedTableName: 'organizations',
@@ -57,6 +57,6 @@ export class CreateEnvironmentsTable1746688303540 implements MigrationInterface 
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('environments');
+    await queryRunner.dropTable('devices');
   }
 }

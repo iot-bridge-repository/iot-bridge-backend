@@ -1,32 +1,33 @@
 import { Controller, Logger, UseGuards, Req, Body, Post } from '@nestjs/common';
 import { ApiOperation, ApiOkResponse, ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { EnvironmentsApiService } from './environments-api.service';
+import { DevicesApiService } from './devices-api.service';
 import * as dto from './dto';
 import AuthenticatedRequest from '../common/interfaces/authenticated-request.interface';
 import { OrganizationMemberRolesGuard } from '../common/guards/organization-member-roles.guard';
 import { OrganizationMemberRoles } from '../common/decorators/organization-member-roles.decorator';
 import { OrganizationMemberRole } from '../common/entities';
 
-@ApiTags('Organizations')
+@ApiTags('Devices')
 @ApiBearerAuth()
-@Controller('organizations/:organizationId/environments')
-export class EnvironmentsApiController {
-  private readonly logger = new Logger(EnvironmentsApiController.name);
+@Controller('organizations/:organizationId/devices')
+export class DevicesApiController {
+  private readonly logger = new Logger(DevicesApiController.name);
   constructor(
-    private readonly environmentsApiService: EnvironmentsApiService
+    private readonly devicesApiService: DevicesApiService
   ) { }
 
-  @ApiOperation({ summary: 'Create a new environment' })
+  @ApiOperation({ summary: 'Create a new device' })
   @ApiOkResponse({
-    description: 'The environment has been successfully created',
+    description: 'The device has been successfully created',
     schema: {
       example: {
-        message: 'Environment created successfully.',
+        message: 'Device created successfully.',
         data: {
-          id: '05b80cd8-deab-4aa2-a119-c56cf195b44c',
+          id: '560d8eda-8eae-4e9f-bf6e-50ab884c72ef',
           organization_id: 'e8311a6f-bbd4-4924-931d-8b601a09a517',        
-          name: 'Environment test 2',
-          topic_code: '118c6b16-8d43-4d79-9ed2-dd298e4570b0'
+          name: 'Device test',
+          auth_code: '206e0e05-c67b-4e3d-be45-524120a6af4d',
+          created_at: '2025-05-09T14:50:43.945Z'
         }
       }
     }
@@ -35,7 +36,7 @@ export class EnvironmentsApiController {
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
   async post(@Req() request: AuthenticatedRequest, @Body() postDto: dto.PostDto) {
-    this.logger.log(`There is a request to create an environment`);
-    return this.environmentsApiService.post(request.params.organizationId, postDto);
+    this.logger.log(`There is a request to create an device`);
+    return this.devicesApiService.post(request.params.organizationId, postDto);
   }
 }
