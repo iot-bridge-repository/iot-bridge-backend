@@ -9,6 +9,7 @@ import { AuthApiModule } from './auth-api/auth-api.module';
 import { LoggingMiddleware } from './common/middleware/logging.middleware';
 import { OrganizationsApiModule } from './organizations-api/organizations-api.module';
 import { NotificationsApiModule } from './notifications-api/notifications-api.module';
+import { EnvironmentsApiModule } from './environments-api/environments-api.module';
 
 @Module({
   imports: [
@@ -45,7 +46,8 @@ import { NotificationsApiModule } from './notifications-api/notifications-api.mo
     }),
     AuthApiModule,
     OrganizationsApiModule,
-    NotificationsApiModule
+    NotificationsApiModule,
+    EnvironmentsApiModule
   ],
   controllers: [AppController],
   providers: [AppService],

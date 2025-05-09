@@ -16,26 +16,26 @@ export class NotificationsApiController {
   ) {}
 
   @ApiOperation({ summary: 'List of notifications' })
-    @ApiOkResponse({
-      description: 'List of notifications',
-      schema: {
-        example: {
-          message: 'List of notifications.',
-          data: [
-            {
-              id: "15b292bc-2e5f-4d5d-a808-c5c3dd951073",
-              subject: "Pengajuan organisasi baru: POKDAKAN BINTANG ROSELA JAYA 3",
-              message: "User pak Eko mengajukan organisasi: POKDAKAN BINTANG ROSELA JAYA 3",
-              type: "organization_propose",
-              created_at: "2025-04-26T13:21:37.416Z"
-            },
-          ]
-        }
+  @ApiOkResponse({
+    description: 'List of notifications',
+    schema: {
+      example: {
+        message: 'List of notifications.',
+        data: [
+          {
+            id: "15b292bc-2e5f-4d5d-a808-c5c3dd951073",
+            subject: "Pengajuan organisasi baru: POKDAKAN BINTANG ROSELA JAYA 3",
+            message: "User pak Eko mengajukan organisasi: POKDAKAN BINTANG ROSELA JAYA 3",
+            type: "organization_propose",
+            created_at: "2025-04-26T13:21:37.416Z"
+          },
+        ]
       }
-    })
+    }
+  })
+  @Get('')
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.LOKAL_MEMBER)
-  @Get('')
   async get(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get notifications`);
     return this.notificationsApiService.get(request.user.id);
@@ -51,11 +51,11 @@ export class NotificationsApiController {
       }
     }
   })
+  @Delete(':notificationId')
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.LOKAL_MEMBER)
-  @Delete(':notificationId')
   async delete(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to delete notification`); 
+    this.logger.log(`There is a request to delete notification`);
     return this.notificationsApiService.delete(request.params.notificationId);
   }
 
@@ -68,11 +68,11 @@ export class NotificationsApiController {
       }
     }
   })
+  @Delete('')
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.LOKAL_MEMBER)
-  @Delete('')
   async deleteAll(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to delete all notifications`); 
+    this.logger.log(`There is a request to delete all notifications`);
     return this.notificationsApiService.deleteAll(request.user.id);
   }
 }
