@@ -1,4 +1,4 @@
-import { Controller, Logger, UseGuards, Req, Body, Post, Get, Patch, Delete, Query } from '@nestjs/common';
+import { Controller, Logger, UseGuards, Req, Body, Post, Get, Patch, Delete, Query, Put } from '@nestjs/common';
 import { ApiOperation, ApiOkResponse, ApiBearerAuth, ApiTags, ApiParam } from '@nestjs/swagger';
 import { DevicesApiService } from './devices-api.service';
 import * as dto from './dto';
@@ -68,7 +68,7 @@ export class DevicesApiController {
   @ApiOkResponse({
     schema: {
       example: {
-        message: 'Device details.',
+        message: 'Sepecific device details.',
         data: {
           id: '560d8eda-8eae-4e9f-bf6e-50ab884c72ef',
           name: 'Device test',
@@ -117,7 +117,104 @@ export class DevicesApiController {
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
   async delete(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to patch device by id`);
+    this.logger.log(`There is a request to delete device by id`);
     return this.devicesApiService.delete(request.params.deviceId);
+  }
+
+  @ApiOperation({ summary: 'Create or update widget box' })
+  @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Widget box created or updated successfully.',
+        data: {
+          id: '372176ec-f2cf-4c95-8bab-3c9315293736',
+          name: 'test',
+          pin: 'A1'
+        }
+      }
+    }
+  })
+  @Put(':deviceId/widget-boxes')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
+  async putWidgetBoxes(@Req() request: AuthenticatedRequest, @Body() putWidgetBoxesDto: dto.PutWidgetBoxesDto) {
+    this.logger.log(`There is a request to create or update widget box`);
+    return this.devicesApiService.putWidgetBoxes(request.params.organizationId, request.params.deviceId, putWidgetBoxesDto);
+  }
+
+  @ApiOperation({ summary: 'Get widget box list' })
+  @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Widget boxes list retrieved successfully.',
+        data: [
+          {
+            id: '35ecb3f6-8441-4aad-9861-46233f382e0c',
+            device_id: '560d8eda-8eae-4e9f-bf6e-50ab884c72ef',
+            name: 'suhu',
+            pin: 'A1',
+            unit: null,
+            min_value: null,
+            max_value: null,
+            default_value: null,
+            created_at: '2025-05-10T06:27:02.740Z'
+          },
+        ]
+      }
+    }
+  })
+  @Get(':deviceId/widget-boxes/list')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
+  async getWidgetBoxesList(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to get widget boxes list`);
+    return this.devicesApiService.getWidgetBoxesList(request.params.organizationId, request.params.deviceId);
+  }
+
+  @ApiOperation({ summary: 'Get widget box' })
+  @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Widget boxes details retrieved successfully.',
+        data: {
+          id: '35ecb3f6-8441-4aad-9861-46233f382e0c',
+          device_id: '560d8eda-8eae-4e9f-bf6e-50ab884c72ef',
+          name: 'suhu',
+          pin: 'A1',
+          unit: null,
+          min_value: null,
+          max_value: null,
+          default_value: null,
+          created_at: '2025-05-10T06:27:02.740Z'
+        }
+      }
+    }
+  })
+  @Get(':deviceId/widget-boxes/:widgetBoxId')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
+  async getWidgetBoxes(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to get widget boxes by id`);
+    return this.devicesApiService.getWidgetBoxes(request.params.organizationId, request.params.deviceId, request.params.widgetBoxId);
+  }
+
+  @ApiOperation({ summary: 'Delete widget box' })
+  @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Widget boxes deleted successfully.',
+      }
+    }
+  })
+  @Delete(':deviceId/widget-boxes/:widgetBoxId')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
+  async deleteWidgetBoxes(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to delete widget boxes by id`);
+    return this.devicesApiService.deleteWidgetBoxesDetails(request.params.organizationId, request.params.deviceId, request.params.widgetBoxId);
   }
 }

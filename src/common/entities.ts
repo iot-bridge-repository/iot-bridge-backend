@@ -195,3 +195,34 @@ export class Device {
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 }
+
+@Entity({ name: 'widget_boxes' })
+export class WidgetBoxes {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'varchar', unique: false, nullable: false })
+  device_id: string;
+
+  @Column({ type: 'varchar', length: 100, unique: false, nullable: true })
+  @Length(2, 100, { message: 'Name must be between 2 and 100 characters' })
+  name: string;
+
+  @Column({ type: 'varchar', length: 20, unique: false, nullable: true })
+  pin: string;
+
+  @Column({ type: 'varchar', length: 20, unique: false, nullable: true })
+  unit: string;
+
+  @Column({ type: 'double precision', unique: false, nullable: true })
+  min_value: string;
+
+  @Column({ type: 'double precision', unique: false, nullable: true })
+  max_value: string;
+
+  @Column({ type: 'double precision', unique: false, nullable: true })
+  default_value: string;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
+}

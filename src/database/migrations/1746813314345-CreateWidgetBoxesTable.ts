@@ -21,15 +21,16 @@ export class CreateWidgetBoxesTable1746813314345 implements MigrationInterface {
             isNullable: false,
           },
           {
-            name: 'device_data_id',
-            type: 'bigserial',
+            name: 'name',
+            type: 'varchar',
+            length: '100',
             isUnique: false,
             isNullable: true,
           },
           {
-            name: 'name',
+            name: 'pin',
             type: 'varchar',
-            length: '100',
+            length: '20',
             isUnique: false,
             isNullable: true,
           },
@@ -75,17 +76,6 @@ export class CreateWidgetBoxesTable1746813314345 implements MigrationInterface {
         referencedTableName: 'devices',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE', // Optional: hapus semua widget_box kalau device dihapus
-        onUpdate: 'CASCADE',
-      }),
-    );
-
-    await queryRunner.createForeignKey(
-      'widget_boxes',
-      new TableForeignKey({
-        columnNames: ['device_data_id'],
-        referencedTableName: 'device_data',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL', // Optional: hapus semua widget_box kalau device dihapus
         onUpdate: 'CASCADE',
       }),
     );

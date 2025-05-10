@@ -75,6 +75,4 @@ export class NotificationsApiController {
     this.logger.log(`There is a request to delete all notifications`);
     return this.notificationsApiService.deleteAll(request.user.id);
   }
-
-
 }
