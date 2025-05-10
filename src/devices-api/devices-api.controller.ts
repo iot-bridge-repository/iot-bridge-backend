@@ -1,4 +1,4 @@
-import { Controller, Logger, UseGuards, Req, Body, Post, Get, Patch, Delete } from '@nestjs/common';
+import { Controller, Logger, UseGuards, Req, Body, Post, Get, Patch, Delete, Query } from '@nestjs/common';
 import { ApiOperation, ApiOkResponse, ApiBearerAuth, ApiTags, ApiParam } from '@nestjs/swagger';
 import { DevicesApiService } from './devices-api.service';
 import * as dto from './dto';
@@ -58,9 +58,9 @@ export class DevicesApiController {
   @Get('list')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
-  async getList(@Req() request: AuthenticatedRequest) {
+  async getList(@Req() request: AuthenticatedRequest, @Query('name') query: string) {
     this.logger.log(`There is a request to get device list`);
-    return this.devicesApiService.getList(request.params.organizationId);
+    return this.devicesApiService.getList(request.params.organizationId, query);
   }
 
   @ApiOperation({ summary: 'Get device' })

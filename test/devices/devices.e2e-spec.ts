@@ -94,7 +94,7 @@ describe('Device Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .get(`/organizations/${organization?.id}/devices/list`)
+      .get(`/organizations/${organization?.id}/devices/list?name=update`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
 
     console.log('successfully get devices list response:', res.body);

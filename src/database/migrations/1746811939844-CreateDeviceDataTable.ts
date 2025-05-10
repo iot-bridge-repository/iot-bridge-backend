@@ -1,41 +1,39 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm";
 
-export class CreateDevicesTable1746688303540 implements MigrationInterface {
-  name = 'CreateDevicesTable1746688303540'
+export class CreateDeviceDataTable1746811939844 implements MigrationInterface {
+  name = 'CreateDeviceDataTable1746811939844'
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'devices',
+        name: 'device_data',
         columns: [
           {
             name: 'id',
-            type: 'varchar',
-            length: '36',
+            type: 'bigserial',
             isPrimary: true,
           },
           {
-            name: 'organization_id',
+            name: 'device_id',
             type: 'varchar',
             isUnique: false,
             isNullable: false,
           },
           {
-            name: 'name',
+            name: 'pin',
             type: 'varchar',
-            length: '100',
+            length: '20',
             isUnique: false,
             isNullable: false,
           },
           {
-            name: 'auth_code',
-            type: 'varchar',
-            length: '36',
-            isUnique: true,
+            name: 'value',
+            type: 'double precision',
+            isUnique: false,
             isNullable: false,
           },
           {
-            name: 'created_at',
+            name: 'time',
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',
           },
@@ -45,18 +43,18 @@ export class CreateDevicesTable1746688303540 implements MigrationInterface {
     );
 
     await queryRunner.createForeignKey(
-      'devices',
+      'device_data',
       new TableForeignKey({
-        columnNames: ['organization_id'],
-        referencedTableName: 'organizations',
+        columnNames: ['device_id'],
+        referencedTableName: 'devices',
         referencedColumnNames: ['id'],
-        onDelete: 'CASCADE', // Optional: hapus semua device kalau organisasi dihapus
+        onDelete: 'CASCADE', // Optional: hapus semua data kalau device dihapus
         onUpdate: 'CASCADE',
       }),
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('devices');
+    await queryRunner.dropTable('device_data');
   }
 }
