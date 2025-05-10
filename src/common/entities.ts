@@ -226,3 +226,21 @@ export class WidgetBoxes {
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 }
+
+@Entity({ name: 'device_data' })
+export class DeviceData {
+  @PrimaryGeneratedColumn('increment')
+  id: number;
+
+  @Column({ type: 'varchar', unique: false, nullable: false })
+  device_id: string;
+
+  @Column({ type: 'varchar', length: 20, unique: false, nullable: true })
+  pin: string;
+
+  @Column({ type: 'double precision', unique: false, nullable: true })
+  value: string;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  time: Date;
+}

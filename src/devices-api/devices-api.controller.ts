@@ -63,7 +63,7 @@ export class DevicesApiController {
     return this.devicesApiService.getList(request.params.organizationId, query);
   }
 
-  @ApiOperation({ summary: 'Get device' })
+  @ApiOperation({ summary: 'Get specific device' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
@@ -81,7 +81,7 @@ export class DevicesApiController {
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async get(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to get device by id`);
+    this.logger.log(`There is a request to get specific device`);
     return this.devicesApiService.get(request.params.organizationId, request.params.deviceId);
   }
 
@@ -102,7 +102,7 @@ export class DevicesApiController {
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
   async patch(@Req() request: AuthenticatedRequest, @Body() patchDto: dto.PatchDto) {
-    this.logger.log(`There is a request to patch device by id`);
+    this.logger.log(`There is a request to update device`);
     return this.devicesApiService.patch(request.params.organizationId, request.params.deviceId, patchDto);
   }
 
@@ -117,7 +117,7 @@ export class DevicesApiController {
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
   async delete(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to delete device by id`);
+    this.logger.log(`There is a request to delete device`);
     return this.devicesApiService.delete(request.params.deviceId);
   }
 
@@ -152,7 +152,6 @@ export class DevicesApiController {
         data: [
           {
             id: '35ecb3f6-8441-4aad-9861-46233f382e0c',
-            device_id: '560d8eda-8eae-4e9f-bf6e-50ab884c72ef',
             name: 'suhu',
             pin: 'A1',
             unit: null,
@@ -173,7 +172,7 @@ export class DevicesApiController {
     return this.devicesApiService.getWidgetBoxesList(request.params.organizationId, request.params.deviceId);
   }
 
-  @ApiOperation({ summary: 'Get widget box' })
+  @ApiOperation({ summary: 'Get specific widget box' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
@@ -181,7 +180,6 @@ export class DevicesApiController {
         message: 'Widget boxes details retrieved successfully.',
         data: {
           id: '35ecb3f6-8441-4aad-9861-46233f382e0c',
-          device_id: '560d8eda-8eae-4e9f-bf6e-50ab884c72ef',
           name: 'suhu',
           pin: 'A1',
           unit: null,
@@ -197,7 +195,7 @@ export class DevicesApiController {
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async getWidgetBoxes(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to get widget boxes by id`);
+    this.logger.log(`There is a request to get specific widget box`);
     return this.devicesApiService.getWidgetBoxes(request.params.organizationId, request.params.deviceId, request.params.widgetBoxId);
   }
 
@@ -205,16 +203,35 @@ export class DevicesApiController {
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
-      example: {
-        message: 'Widget boxes deleted successfully.',
-      }
+      example: { message: 'Widget boxes deleted successfully.' }
     }
   })
   @Delete(':deviceId/widget-boxes/:widgetBoxId')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async deleteWidgetBoxes(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to delete widget boxes by id`);
+    this.logger.log(`There is a request to delete widget boxes`);
     return this.devicesApiService.deleteWidgetBoxesDetails(request.params.organizationId, request.params.deviceId, request.params.widgetBoxId);
+  }
+
+  @ApiOperation({ summary: 'Get device report' })
+  @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Report retrieved successfully.',
+        data: [
+          { pin: 'V2', value: 31.45, time: '2025-05-10T10:12:50.625Z' },
+          { pin: 'V2', value: 47.6, time: '2025-05-10T10:12:50.625Z' },
+        ]
+      }
+    }
+  })
+  @Get(':deviceId/report')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
+  async getReport(@Req() request: AuthenticatedRequest, @Query('start') start: string, @Query('end') end: string, @Query('pin') pin: string) {
+    this.logger.log(`There is a request to get device report`);
+    return this.devicesApiService.getReport(request.params.organizationId, request.params.deviceId, pin, start, end, );
   }
 }

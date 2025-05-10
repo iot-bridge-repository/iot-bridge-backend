@@ -46,7 +46,7 @@ describe('Device Controller (e2e)', () => {
   });
 
   // Create or update widget boxes
-  it('successfully create widget boxes', async () => {
+  it('successfully create or update widget boxes', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -66,7 +66,7 @@ describe('Device Controller (e2e)', () => {
         pin: 'A1',
       })
 
-    console.log('successfully create widget boxes response:', res.body);
+    console.log('successfully create or update widget boxes response:', res.body);
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });

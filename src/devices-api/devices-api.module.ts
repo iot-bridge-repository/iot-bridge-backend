@@ -3,11 +3,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DevicesApiService } from './devices-api.service';
 import { DevicesApiController } from './devices-api.controller';
 import { AuthApiModule } from 'src/auth-api/auth-api.module';
-import { Organization, OrganizationMember, Device, WidgetBoxes } from '../common/entities';
+import { Organization, OrganizationMember, Device, WidgetBoxes, DeviceData } from '../common/entities';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Organization, OrganizationMember, Device, WidgetBoxes]),
+    TypeOrmModule.forFeature([Organization, OrganizationMember, Device, WidgetBoxes, DeviceData]),
     AuthApiModule
   ],
   controllers: [DevicesApiController],

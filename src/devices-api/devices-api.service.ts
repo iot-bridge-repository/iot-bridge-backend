@@ -1,9 +1,9 @@
 import { Injectable, Logger, HttpException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike, FindOptionsWhere } from 'typeorm';
+import { Repository, ILike, FindOptionsWhere, Between } from 'typeorm';
 import { v4 as uuidv4 } from "uuid";
 import * as dto from './dto';
-import { Device, WidgetBoxes } from '../common/entities';
+import { Device, WidgetBoxes, DeviceData } from '../common/entities';
 
 @Injectable()
 export class DevicesApiService {
@@ -11,6 +11,7 @@ export class DevicesApiService {
   constructor(
     @InjectRepository(Device) private readonly deviceRepository: Repository<Device>,
     @InjectRepository(WidgetBoxes) private readonly widgetBoxesRepository: Repository<WidgetBoxes>,
+    @InjectRepository(DeviceData) private readonly deviceDataRepository: Repository<DeviceData>,
   ) { }
 
   async post(organizationId: string, postDto: dto.PostDto) {
@@ -35,7 +36,7 @@ export class DevicesApiService {
       })
       await this.deviceRepository.save(newDevice);
 
-      this.logger.log(`Device created in organization with id: ${organizationId}`);
+      this.logger.log(`Device with name: ${postDto.name} created in organization with id: ${organizationId}`);
       return {
         message: "Device created successfully.",
         data: newDevice
@@ -44,7 +45,7 @@ export class DevicesApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to create device in organization with id: ${organizationId}, Error: ${error.message}`);
+      this.logger.error(`Failed to create device with name: ${postDto.name} in organization with id: ${organizationId}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to create device, please try again later');
     }
   }
@@ -62,7 +63,7 @@ export class DevicesApiService {
         where,
       });
 
-      this.logger.log(`Organization with id: ${organizationId} get device list with number of devices: ${devices.length}`);
+      this.logger.log(`Successfully retrieved organization device list`);
       return {
         message: 'List of your organization devices.',
         data: devices,
@@ -85,15 +86,15 @@ export class DevicesApiService {
 
       this.logger.log(`Get device with id: ${deviceId} in organization with id: ${organizationId}`);
       return {
-        message: 'Device details.',
+        message: 'Specific device details.',
         data: devices,
       };
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to get device details, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to get device details, please try again later');
+      this.logger.error(`Failed to get specific device details, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get specific device details, please try again later');
     }
   }
 
@@ -130,6 +131,7 @@ export class DevicesApiService {
   async delete(deviceId: string) {
     try {
       await this.deviceRepository.delete(deviceId);
+
       this.logger.log(`Successfully deleted device with id: ${deviceId}`);
       return {
         message: "Device deleted successfully.",
@@ -190,7 +192,7 @@ export class DevicesApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to create or update widget boxes with id: ${deviceId}, Error: ${error.message}`);
+      this.logger.error(`Failed to create or update widget boxes with device id: ${deviceId}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to create or update widget boxes, please try again later');
     }
   }
@@ -221,7 +223,7 @@ export class DevicesApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to get widget boxes with id: ${deviceId}, Error: ${error.message}`);
+      this.logger.error(`Failed to get widget boxes with device id: ${deviceId}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to get widget boxes, please try again later');
     }
   }
@@ -251,12 +253,12 @@ export class DevicesApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to get widget boxes details with id: ${deviceId}, Error: ${error.message}`);
+      this.logger.error(`Failed to get widget boxes details with device id: ${deviceId}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to get widget boxes details, please try again later');
     }
   }
 
-  async deleteWidgetBoxesDetails (organizationId: string, deviceId: string, widgetBoxId: string) {
+  async deleteWidgetBoxesDetails(organizationId: string, deviceId: string, widgetBoxId: string) {
     try {
       // Check device and organization id
       const device = await this.deviceRepository.findOne({
@@ -278,8 +280,47 @@ export class DevicesApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to delete widget boxes with id: ${deviceId}, Error: ${error.message}`);
+      this.logger.error(`Failed to delete widget boxes with device id: ${deviceId}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to delete widget boxes, please try again later');
+    }
+  }
+
+  async getReport(organizationId: string, deviceId: string, pin: string, start: string, end: string) {
+    try {
+      // Check device and organization id
+      const device = await this.deviceRepository.findOne({
+        select: { id: true },
+        where: { id: deviceId, organization_id: organizationId, },
+      });
+      if (!device) {
+        this.logger.warn(`Device with id: ${deviceId} does not exist in organization with id: ${organizationId}`);
+        throw new BadRequestException(`Device with id: ${deviceId} does not exist in this organization`);
+      }
+
+      const where: any = { device_id: deviceId };
+      if (pin !== null && pin !== undefined) {
+        where.pin = pin;
+      }
+      if (start && end) {
+        where.time = Between(new Date(start), new Date(end));
+      }
+      const reports = await this.deviceDataRepository.find({
+        select: { pin: true, value: true, time: true },
+        where,
+        order: { time: 'ASC' },
+      });
+
+      this.logger.log(`Successfully retrieved report with device id: ${deviceId}`);
+      return {
+        message: 'Report retrieved successfully.',
+        data: reports,
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to get report with device id: ${deviceId}, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get report, please try again later');
     }
   }
 }
