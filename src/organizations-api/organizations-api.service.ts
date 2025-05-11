@@ -4,7 +4,7 @@ import { Injectable, Logger, HttpException, BadRequestException, InternalServerE
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from 'express';
-import { Repository, ILike } from 'typeorm';
+import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from "uuid";
 import * as bcrypt from 'bcrypt';
 import { User, UserRole, UserNotification, Organization, OrganizationMember, OrganizationMemberRole, OrganizationMemberStatus } from '../common/entities';
@@ -273,31 +273,6 @@ export class OrganizationsApiService {
       }
       this.logger.error(`Failed to update organization profile, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to update organization profile, please try another time');
-    }
-  }
-
-  async getUsers(identity: string) {
-    try {
-      const users = await this.userRepository.find({
-        select: { id: true, username: true, email: true, phone_number: true },
-        where: [
-          { username: ILike(`%${identity}%`) },
-          { email: ILike(`%${identity}%`) },
-          { phone_number: ILike(`%${identity}%`) },
-        ],
-      });
-
-      this.logger.log(`User searched for organization members with identity: ${identity}, found ${users.length} users`);
-      return {
-        message: 'Users list.',
-        data: users,
-      }
-    } catch (error) {
-      if (error instanceof HttpException || error?.status || error?.response) {
-        throw error;
-      }
-      this.logger.error(`Failed to search users, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to search users, please try another time');
     }
   }
 

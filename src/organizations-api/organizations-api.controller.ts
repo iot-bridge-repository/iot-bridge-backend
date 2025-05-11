@@ -1,4 +1,4 @@
-import { Controller, Logger, UseGuards, UseInterceptors, Req, Body, Post, Get, Patch, Query, Delete } from '@nestjs/common';
+import { Controller, Logger, UseGuards, UseInterceptors, Req, Body, Post, Get, Patch, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody, ApiParam } from '@nestjs/swagger';
 import { OrganizationsApiService } from './organizations-api.service';
 import * as dto from './dto';
@@ -169,31 +169,6 @@ export class OrganizationsApiController {
   async patchOrganizationProfile(@Req() request: AuthenticatedRequest, @Body() patchOrganizationProfileDto: dto.PatchOrganizationProfileDto) {
     this.logger.log(`There is a request to update organization profile`);
     return this.organizationsApiService.patchOrganizationProfile(request, request.params.organizationId, patchOrganizationProfileDto, request.file?.filename ?? null);
-  }
-
-  @ApiOperation({ summary: 'Get users' })
-  @ApiOkResponse({
-    description: 'Users list',
-    schema: {
-      example: {
-        message: "Users list",
-        data: [
-          {
-            id: "0555f6b5-c724-45a6-87cf-95786eb2a020",
-            username: "Bill Valentinov",
-            email: "valentinovbill0@gmail.com",
-            phone_number: "085691496242"
-          },
-        ]
-      }
-    }
-  })
-  @Get('users')
-  @UseGuards(UserRolesGuard)
-  @UserRoles(UserRole.REGULAR_USER)
-  async getUsers(@Query('identity') query: string) {
-    this.logger.log(`There is a request to search users`);
-    return this.organizationsApiService.getUsers(query);
   }
 
   @ApiOperation({ summary: 'Member invitation' })

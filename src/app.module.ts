@@ -10,6 +10,7 @@ import { LoggingMiddleware } from './common/middleware/logging.middleware';
 import { OrganizationsApiModule } from './organizations-api/organizations-api.module';
 import { NotificationsApiModule } from './notifications-api/notifications-api.module';
 import { DevicesApiModule } from './devices-api/devices-api.module';
+import { UsersApiModule } from './users-api/users-api.module';
 
 @Module({
   imports: [
@@ -47,7 +48,8 @@ import { DevicesApiModule } from './devices-api/devices-api.module';
     AuthApiModule,
     OrganizationsApiModule,
     NotificationsApiModule,
-    DevicesApiModule
+    DevicesApiModule,
+    UsersApiModule
   ],
   controllers: [AppController],
   providers: [AppService],
