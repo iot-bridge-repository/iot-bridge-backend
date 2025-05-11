@@ -15,7 +15,7 @@ export class UsersApiController {
     private readonly usersApiService: UsersApiService
   ) { }
 
-  @ApiOperation({ summary: 'Get search users' })
+  @ApiOperation({ summary: 'Search users' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -34,9 +34,9 @@ export class UsersApiController {
   @Get('search')
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.REGULAR_USER)
-  async getSearch(@Query('identity') query: string) {
+  async getSearch(@Query('identity') identity: string) {
     this.logger.log(`There is a request to search users`);
-    return this.usersApiService.getSearch(query);
+    return this.usersApiService.getSearch(identity);
   }
 
   @ApiOperation({ summary: 'Get users by id' })

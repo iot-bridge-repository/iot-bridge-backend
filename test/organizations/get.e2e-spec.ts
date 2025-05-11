@@ -7,7 +7,7 @@ import helmet from 'helmet';
 import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
-describe('Device Controller (e2e)', () => {
+describe('Organization Controller (e2e)', () => {
   let app: NestExpressApplication;
   const adminSystemToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1NTVmNmI1LWM3MjQtNDVhNi04N2NmLTk1Nzg2ZWIyYTAyMCIsInJvbGUiOiJBZG1pbiBTeXN0ZW0iLCJpYXQiOjE3NDY5NDU5NjJ9.Kzb7szg3rNmzX-UtBsxO02_9K1BcrbnLuPQtKP4Aj6I';
 
@@ -41,25 +41,26 @@ describe('Device Controller (e2e)', () => {
     await app.close();
   });
 
-  // Get users by id
-  it('successfully get users by id', async () => {
+  // Get organizations search
+  it('successfully get organizations search', async () => {
     const res = await request(app.getHttpServer())
-      .get(`/users/da50de59-1f67-4007-ab33-3de8d08825b9`)
+      .get(`/organizations/search?keyword=Lampung`)
       .set('Authorization', `Bearer ${adminSystemToken}`)
 
-    console.log('successfully get users by id response:', res.body);
+    console.log('successfully get organizations search response:', res.body);
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  // Get users search
-  it('successfully get users search', async () => {
+  // Get organizations by id
+  it('successfully get organizations by id', async () => {
     const res = await request(app.getHttpServer())
-      .get(`/users/search?identity=`)
+      .get(`/organizations/e8311a6f-bbd4-4924-931d-8b601a09a517`)
       .set('Authorization', `Bearer ${adminSystemToken}`)
 
-    console.log('successfully get users search response:', res.body);
+    console.log('successfully get organizations by id response:', res.body);
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
+
 });

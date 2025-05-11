@@ -85,8 +85,8 @@ describe('Device Controller (e2e)', () => {
     expect(res.status).toBeLessThan(500);
   });
 
-  // Get devices list
-  it('successfully get devices list', async () => {
+  // Get devices search
+  it('successfully get devices search', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -94,10 +94,10 @@ describe('Device Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .get(`/organizations/${organization?.id}/devices/list?name=update`)
+      .get(`/organizations/${organization?.id}/devices/search?name=`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
 
-    console.log('successfully get devices list response:', res.body);
+    console.log('successfully get devices search response:', res.body);
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });

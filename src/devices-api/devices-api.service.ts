@@ -62,7 +62,7 @@ export class DevicesApiService {
     }
   }
 
-  async getList(organizationId: string, name: string) {
+  async getSearch(organizationId: string, name: string) {
     try {
       const where: FindOptionsWhere<Device> = {
         organization_id: organizationId,
@@ -75,9 +75,9 @@ export class DevicesApiService {
         where,
       });
 
-      this.logger.log(`Successfully retrieved organization device list`);
+      this.logger.log(`Successfully retrieved organization device by name: ${name}`);
       return {
-        message: 'List of your organization devices.',
+        message: 'List of organization device.',
         data: devices,
       };
     } catch (error) {
@@ -98,15 +98,15 @@ export class DevicesApiService {
 
       this.logger.log(`Get device with id: ${deviceId} in organization with id: ${organizationId}`);
       return {
-        message: 'Specific device details.',
+        message: 'Device details.',
         data: devices,
       };
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to get specific device details, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to get specific device details, please try again later');
+      this.logger.error(`Failed to get device details, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get device details, please try again later');
     }
   }
 

@@ -40,11 +40,11 @@ export class DevicesApiController {
     return this.devicesApiService.post(request.params.organizationId, postDto);
   }
 
-  @ApiOperation({ summary: 'Get device list' })
+  @ApiOperation({ summary: 'Search devices' })
   @ApiOkResponse({
     schema: {
       example: {
-        message: 'List of your organization devices.',
+        message: 'List of organization device.',
         data: [
           {
             id: '560d8eda-8eae-4e9f-bf6e-50ab884c72ef',
@@ -55,20 +55,20 @@ export class DevicesApiController {
       }
     }
   })
-  @Get('list')
+  @Get('search')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
-  async getList(@Req() request: AuthenticatedRequest, @Query('name') query: string) {
+  async getSearch(@Req() request: AuthenticatedRequest, @Query('name') query: string) {
     this.logger.log(`There is a request to get device list`);
-    return this.devicesApiService.getList(request.params.organizationId, query);
+    return this.devicesApiService.getSearch(request.params.organizationId, query);
   }
 
-  @ApiOperation({ summary: 'Get specific device' })
+  @ApiOperation({ summary: 'Get device by id' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
       example: {
-        message: 'Sepecific device details.',
+        message: 'Device details.',
         data: {
           id: '560d8eda-8eae-4e9f-bf6e-50ab884c72ef',
           name: 'Device test',
@@ -81,7 +81,7 @@ export class DevicesApiController {
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async get(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to get specific device`);
+    this.logger.log(`There is a request to get device by id`);
     return this.devicesApiService.get(request.params.organizationId, request.params.deviceId);
   }
 
@@ -172,7 +172,7 @@ export class DevicesApiController {
     return this.devicesApiService.getWidgetBoxesList(request.params.organizationId, request.params.deviceId);
   }
 
-  @ApiOperation({ summary: 'Get specific widget box' })
+  @ApiOperation({ summary: 'Get widget box by id' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiParam({ name: 'widgetBoxId', type: String, description: 'Widget box id' })
   @ApiOkResponse({
@@ -196,7 +196,7 @@ export class DevicesApiController {
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async getWidgetBoxes(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to get specific widget box`);
+    this.logger.log(`There is a request to get widget box by id`);
     return this.devicesApiService.getWidgetBoxes(request.params.organizationId, request.params.deviceId, request.params.widgetBoxId);
   }
 
@@ -293,7 +293,7 @@ export class DevicesApiController {
     return this.devicesApiService.getNotificationEventsList(request.params.organizationId, request.params.deviceId);
   }
 
-  @ApiOperation({ summary: 'Get specific notification events' })
+  @ApiOperation({ summary: 'Get notification events by id' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiParam({ name: 'notificationEventId', type: String, description: 'Notification event id' })
   @ApiOkResponse({
@@ -317,7 +317,7 @@ export class DevicesApiController {
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async getNotificationEvents(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to get specific notification events`);
+    this.logger.log(`There is a request to get notification events by id`);
     return this.devicesApiService.getNotificationEvents(request.params.organizationId, request.params.deviceId, request.params.notificationEventId);
   }
 

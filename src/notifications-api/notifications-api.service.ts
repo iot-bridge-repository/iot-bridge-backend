@@ -19,7 +19,7 @@ export class NotificationsApiService {
       });
       this.logger.log(`Successfully get notifications for user id: ${id}`);
       return {
-        message: 'List of notifications.',
+        message: 'Notifications list.',
         data: notifications,
       };
     } catch (error) {

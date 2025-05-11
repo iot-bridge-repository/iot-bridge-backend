@@ -1,4 +1,4 @@
-import { Controller, Logger, UseGuards, UseInterceptors, Req, Body, Post, Get, Patch, Delete } from '@nestjs/common';
+import { Controller, Logger, UseGuards, UseInterceptors, Req, Body, Post, Get, Patch, Delete, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody, ApiParam } from '@nestjs/swagger';
 import { OrganizationsApiService } from './organizations-api.service';
 import * as dto from './dto';
@@ -18,6 +18,32 @@ export class OrganizationsApiController {
   constructor(
     private readonly organizationsApiService: OrganizationsApiService
   ) { }
+
+  @ApiOperation({ summary: 'Get organizations list' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: "Your organizations list.",
+        data: [
+          {
+            id: "9acc6316-f8b0-44a7-9b2f-f8f9005c2973",
+            name: "POKDAKAN BINTANG ROSELA JAYA 2",
+            description: null,
+            is_verified: false,
+            created_by: "da50de59-1f67-4007-ab33-3de8d08825b9",
+            creator_username: "Kanaya"
+          },
+        ]
+      }
+    }
+  })
+  @Get('list')
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.LOKAL_MEMBER)
+  async getList(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to get organization list`);
+    return this.organizationsApiService.getList(request.user.id);
+  }
 
   @ApiOperation({ summary: 'Propose an organization' })
   @ApiOkResponse({
@@ -43,33 +69,6 @@ export class OrganizationsApiController {
   async postPropose(@Req() request: AuthenticatedRequest, @Body() postProposeDto: dto.PostProposeDto) {
     this.logger.log(`There is a request to propose an organization`);
     return this.organizationsApiService.postPropose(request.user.id, postProposeDto);
-  }
-
-  @ApiOperation({ summary: 'Get list of organizations' })
-  @ApiOkResponse({
-    description: 'List of organizations',
-    schema: {
-      example: {
-        message: "List of organizations",
-        data: [
-          {
-            id: "9acc6316-f8b0-44a7-9b2f-f8f9005c2973",
-            name: "POKDAKAN BINTANG ROSELA JAYA 2",
-            description: null,
-            is_verified: false,
-            created_by: "da50de59-1f67-4007-ab33-3de8d08825b9",
-            creator_username: "Kanaya"
-          },
-        ]
-      }
-    }
-  })
-  @Get('list')
-  @UseGuards(UserRolesGuard)
-  @UserRoles(UserRole.LOKAL_MEMBER)
-  async getList(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to get organization list`);
-    return this.organizationsApiService.getList(request.user.id);
   }
 
   @ApiOperation({ summary: 'Verify organization' })
@@ -198,7 +197,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.postMemberInvitation(request.params.organizationId, postMemberInvitationDto);
   }
 
-  @ApiOperation({ summary: 'Invitation response' })
+  @ApiOperation({ summary: 'Member invitation response' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     description: 'Invitation response',
@@ -330,5 +329,57 @@ export class OrganizationsApiController {
   async deleteLeave(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to leave organization`);
     return this.organizationsApiService.deleteLeave(request.user.id, request.params.organizationId);
+  }
+
+  @ApiOperation({ summary: 'Search organizations' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'List of organizations.',
+        data: [
+          {
+            name: 'organization_test',
+            location: 'Universitas Lampung',
+            creator_username: 'user_test 1'
+          }
+        ]
+      }
+    }
+  })
+  @Get('search')
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.ADMIN_SYSTEM)
+  async getSearch(@Query('keyword') keyword: string) {
+    this.logger.log(`There is a request to search organizations`);
+    return this.organizationsApiService.getSearch(keyword);
+  }
+
+  @ApiOperation({ summary: 'Get organization by id' })
+  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Get organization successfully.',
+        data: {
+          name: 'organization_test',
+          location: 'Universitas Lampung',
+          creator_username: 'user_test 1',
+          members: [
+            {
+              username: "user_test 1",
+              role: "Admin",
+              status: "Accepted"
+            },
+          ]
+        }
+      }
+    }
+  })
+  @Get(':organizationId')
+  @UseGuards(UserRolesGuard)
+  @UserRoles(UserRole.ADMIN_SYSTEM)
+  async get(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to get organization by id`);
+    return this.organizationsApiService.get(request.params.organizationId);
   }
 }

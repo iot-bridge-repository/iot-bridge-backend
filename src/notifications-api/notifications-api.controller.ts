@@ -15,12 +15,11 @@ export class NotificationsApiController {
     private readonly notificationsApiService: NotificationsApiService
   ) {}
 
-  @ApiOperation({ summary: 'List of notifications' })
+  @ApiOperation({ summary: 'Get notifications list' })
   @ApiOkResponse({
-    description: 'List of notifications',
     schema: {
       example: {
-        message: 'List of notifications.',
+        message: 'Notifications list.',
         data: [
           {
             id: "15b292bc-2e5f-4d5d-a808-c5c3dd951073",
@@ -37,14 +36,13 @@ export class NotificationsApiController {
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.LOKAL_MEMBER)
   async get(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to get notifications`);
+    this.logger.log(`There is a request to get notifications list`);
     return this.notificationsApiService.get(request.user.id);
   }
 
-  @ApiOperation({ summary: 'Delete specific notification' })
+  @ApiOperation({ summary: 'Delete notification by id' })
   @ApiParam({ name: 'notificationId', type: String, description: 'Notification id' })
   @ApiOkResponse({
-    description: 'Successfully delete notification',
     schema: {
       example: {
         message: 'Successfully delete notification.',
@@ -55,13 +53,12 @@ export class NotificationsApiController {
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.LOKAL_MEMBER)
   async delete(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to delete notification`);
+    this.logger.log(`There is a request to delete notification by id`);
     return this.notificationsApiService.delete(request.params.notificationId);
   }
 
   @ApiOperation({ summary: 'Delete all notifications' })
   @ApiOkResponse({
-    description: 'Successfully delete all notifications',
     schema: {
       example: {
         message: 'Successfully delete all notifications.',

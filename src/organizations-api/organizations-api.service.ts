@@ -21,6 +21,39 @@ export class OrganizationsApiService {
     private readonly configService: ConfigService,
   ) { }
 
+  async getList(id: string) {
+    try {
+      const memberOrganizations = await this.userRepository
+        .createQueryBuilder('u')
+        .leftJoin('organization_members', 'om', 'u.id = om.user_id')
+        .leftJoin('organizations', 'o', 'om.organization_id = o.id')
+        .leftJoin('users', 'creator', 'o.created_by = creator.id')
+        .select([
+          'om.organization_id AS id',
+          'o.name AS name',
+          'o.description AS description',
+          'o.is_verified AS is_verified',
+          'o.created_by AS created_by',
+          'creator.username AS creator_username',
+        ])
+        .where('u.id = :id', { id })
+        .andWhere('om.status = :status', { status: 'Accepted' })
+        .getRawMany();
+
+      this.logger.log(`User with id: ${id} get list of organizations with number of organizations: ${memberOrganizations.length}`);
+      return {
+        message: 'Your organizations list.',
+        data: memberOrganizations,
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to get list of organizations by id: ${id}, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get list of organizations, please try again later');
+    }
+  }
+
   async postPropose(id: string, postProposeDto: dto.PostProposeDto) {
     try {
       // Check if user exists
@@ -84,39 +117,6 @@ export class OrganizationsApiService {
       }
       this.logger.error(`Failed to propose organization by id: ${id}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to propose organization, please try again later');
-    }
-  }
-
-  async getList(id: string) {
-    try {
-      const memberOrganizations = await this.userRepository
-        .createQueryBuilder('u')
-        .leftJoin('organization_members', 'om', 'u.id = om.user_id')
-        .leftJoin('organizations', 'o', 'om.organization_id = o.id')
-        .leftJoin('users', 'creator', 'o.created_by = creator.id')
-        .select([
-          'om.organization_id AS id',
-          'o.name AS name',
-          'o.description AS description',
-          'o.is_verified AS is_verified',
-          'o.created_by AS created_by',
-          'creator.username AS creator_username',
-        ])
-        .where('u.id = :id', { id })
-        .andWhere('om.status = :status', { status: 'Accepted' })
-        .getRawMany();
-
-      this.logger.log(`User with id: ${id} get list of organizations with number of organizations: ${memberOrganizations.length}`);
-      return {
-        message: 'List of your organizations.',
-        data: memberOrganizations,
-      };
-    } catch (error) {
-      if (error instanceof HttpException || error?.status || error?.response) {
-        throw error;
-      }
-      this.logger.error(`Failed to get list of organizations by id: ${id}, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to get list of organizations, please try again later');
     }
   }
 
@@ -631,6 +631,77 @@ export class OrganizationsApiService {
       }
       this.logger.error(`Failed to leave organization, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to leave organization, please try another time');
+    }
+  }
+
+  async getSearch(keyword: string) {
+    try {
+      const organizations = await this.organizationRepository
+        .createQueryBuilder('o')
+        .leftJoin('users', 'creator', 'o.created_by = creator.id')
+        .select([
+          'o.name AS name',
+          'o.location AS location',
+          'creator.username AS creator_username',
+        ])
+        .where('o.name ILIKE :keyword', { keyword: `%${keyword}%` })
+        .orWhere('o.location ILIKE :keyword', { keyword: `%${keyword}%` })
+        .orWhere('creator.username ILIKE :keyword', { keyword: `%${keyword}%` })
+        .getRawMany();
+
+      this.logger.log(`Successfully request to search organizations with keyword: ${keyword}`);
+      return {
+        message: 'List of organizations.',
+        data: organizations,
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to search organization, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to search organization, please try another time');
+    }
+  }
+
+  async get(organizationId: string) {
+    try {
+      const organizations = await this.organizationRepository
+        .createQueryBuilder('o')
+        .leftJoin('users', 'creator', 'o.created_by = creator.id')
+        .select([
+          'o.name AS name',
+          'o.location AS location',
+          'creator.username AS creator_username',
+        ])
+        .where('o.id = :organizationId', { organizationId })
+        .getRawOne();
+      const members = await this.organizationMemberRepository
+        .createQueryBuilder('om')
+        .leftJoin('users', 'user', 'om.user_id = user.id')
+        .select([
+          'user.username AS username',
+          'om.role AS role',
+          'om.status AS status',
+        ])
+        .where('om.organization_id = :organizationId', { organizationId })
+        .getRawMany();
+
+      this.logger.log(`Successfully request to get organization with id: ${organizationId}`);
+      return {
+        message: 'Get organization successfully.',
+        data: {
+          name: organizations.name,
+          location: organizations.location,
+          creator_username: organizations.creator_username,
+          members,
+        },
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to get organization by id: ${organizationId}, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get organization, please try another time');
     }
   }
 }
