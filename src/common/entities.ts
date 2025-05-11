@@ -94,6 +94,10 @@ export class Organization {
   description: string | null;
 
   @Column({ type: 'text', nullable: true })
+  @Length(0, 500)
+  location: string | null;
+
+  @Column({ type: 'text', nullable: true })
   organization_picture: string | null;
 
   @Column({ type: 'boolean', default: false, nullable: false })

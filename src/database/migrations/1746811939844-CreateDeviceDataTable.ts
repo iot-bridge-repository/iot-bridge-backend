@@ -23,13 +23,11 @@ export class CreateDeviceDataTable1746811939844 implements MigrationInterface {
             name: 'pin',
             type: 'varchar',
             length: '20',
-            isUnique: false,
             isNullable: false,
           },
           {
             name: 'value',
             type: 'double precision',
-            isUnique: false,
             isNullable: false,
           },
           {

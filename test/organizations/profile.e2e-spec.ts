@@ -11,7 +11,7 @@ import { Organization } from 'src/common/entities';
 
 describe('Organization Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const organizationName = "organization_test 2";
+  const organizationName = "organization_test";
   const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4NjVkMDhhLTEyNmMtNDQ4Mi05YTU2LTBkY2Q0ODQyMWY2MyIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY1MDEzNTR9.2N8RHoejnxr6JI1c9SQhQm2oEl8mYuu6fuQCjVptTo4';
   const nonMemberOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1NTVmNmI1LWM3MjQtNDVhNi04N2NmLTk1Nzg2ZWIyYTAyMCIsInJvbGUiOiJBZG1pbiBTeXN0ZW0iLCJpYXQiOjE3NDY1MTQ3MTl9.NdUZTygW-nirskKvKgd_OloX7I9BAFYh3o2sWGxNVGE'
 
@@ -73,7 +73,7 @@ describe('Organization Controller (e2e)', () => {
   });
 
   // Patch profile
-  it('successfully patch profile', async () => {
+  it.only('successfully patch profile', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -86,6 +86,7 @@ describe('Organization Controller (e2e)', () => {
       .send({
         name: organizationName,
         description: 'This is a description of the organization',
+        location: 'Universitas Lampung',
       })
 
     console.log('successfully patch profile response:', res.body);
@@ -106,6 +107,7 @@ describe('Organization Controller (e2e)', () => {
       .send({
         name: organizationName,
         description: 'This is a description of the organization',
+        location: 'Universitas Lampung',
       })
 
     console.log('failed patch profile response:', res.body);

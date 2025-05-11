@@ -42,6 +42,11 @@ export class CreateOrganizationsTable1743734171305 implements MigrationInterface
             isNullable: false,
           },
           {
+            name: 'location',
+            type: 'text',
+            isNullable: true,
+          },
+          {
             name: 'created_at',
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',

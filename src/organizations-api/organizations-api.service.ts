@@ -198,19 +198,12 @@ export class OrganizationsApiService {
 
   async getOrganizationProfile(id: string, organizationId: string) {
     try {
-      // Check if user is a member of the organization
-      const organizationMember = await this.organizationMemberRepository.findOne({
-        select: { id: true },
-        where: { user_id: id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
-      });
-      if (!organizationMember) {
-        this.logger.warn(`User with id ${id} is not a member of organization with id ${organizationId}`);
-        throw new BadRequestException('You are not a member of this organization');
-      }
-
-      this.logger.log(`User with id: ${id} get organization profile with id: ${organizationId}`);
       const organization = await this.organizationRepository.findOne({ where: { id: organizationId } });
-      return organization;
+      this.logger.log(`User with id: ${id} get organization profile with id: ${organizationId}`);
+      return {
+        message: 'Organization profile.',
+        data: organization,
+      };
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
@@ -236,6 +229,7 @@ export class OrganizationsApiService {
       const updateOrganizationProfile: Partial<Organization> = {
         name: patchOrganizationProfileDto.name,
         description: patchOrganizationProfileDto.description,
+        location: patchOrganizationProfileDto.location
       };
       // Check if the old profile picture exists and delete it
       const organization = await this.organizationRepository.findOne({
@@ -266,12 +260,11 @@ export class OrganizationsApiService {
       return {
         message: 'Organization profile updated successfully.',
         data: {
-          organization: {
-            id: organizationId,
-            name: updateOrganizationProfile.name,
-            description: updateOrganizationProfile.description,
-            organization_picture: organization?.organization_picture,
-          },
+          id: organizationId,
+          name: updateOrganizationProfile.name,
+          description: updateOrganizationProfile.description,
+          organization_picture: organization?.organization_picture,
+          location: updateOrganizationProfile.location
         },
       };
     } catch (error) {

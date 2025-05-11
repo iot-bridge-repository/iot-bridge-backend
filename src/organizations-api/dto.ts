@@ -32,7 +32,14 @@ export class PatchOrganizationProfileDto {
   @ApiProperty({ example: 'This is a description of the organization', description: 'Organization description' })
   @IsNotEmpty({ message: 'Description cannot be empty' })
   @IsString({ message: 'Description must be a string' })
+  @Length(0, 1000, { message: 'Name must be between 0 and 1000 characters' })
   description: string;
+
+  @ApiProperty({ example: 'Bandar Lampung', description: 'Organization location' })
+  @IsNotEmpty({ message: 'Location cannot be empty' })
+  @IsString({ message: 'Location must be a string' })
+  @Length(0, 500, { message: 'Name must be between 0 and 500 characters' })
+  location: string;
 }
 
 export class PostMemberInvitationDto {

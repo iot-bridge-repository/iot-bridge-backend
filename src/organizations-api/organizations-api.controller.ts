@@ -109,16 +109,20 @@ export class OrganizationsApiController {
   @ApiOperation({ summary: 'Get organization profile' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
-    description: 'Organization profile',
+    description: 'Organization profile.',
     schema: {
       example: {
-        id: "9acc6316-f8b0-44a7-9b2f-f8f9005c2973",
-        name: "POKDAKAN BINTANG ROSELA JAYA 2",
-        description: null,
-        organization_picture: null,
-        is_verified: false,
-        created_by: "da50de59-1f67-4007-ab33-3de8d08825b9",
-        created_at: "2025-04-26T07:58:00.278Z"
+        message: "Organization profile.",
+        data: {
+          id: "9acc6316-f8b0-44a7-9b2f-f8f9005c2973",
+          name: "POKDAKAN BINTANG ROSELA JAYA 2",
+          description: null,
+          organization_picture: null,
+          is_verified: false,
+          location: null,
+          created_by: "da50de59-1f67-4007-ab33-3de8d08825b9",
+          created_at: "2025-04-26T07:58:00.278Z"
+        }
       }
     }
   })
@@ -147,14 +151,13 @@ export class OrganizationsApiController {
     description: 'Profile updated successfully',
     schema: {
       example: {
-        message: "Organization profile updated successfully",
+        message: "Organization profile updated successfully.",
         data: {
-          organization: {
-            id: "4cd1eb2f-319f-42aa-8a04-40e1728ecdfc",
-            name: "POKDAKAN BINTANG ROSELA JAYA",
-            description: "kolam ikan lampung",
-            organization_picture: "http://localhost:3000/uploads/organization_picture/1745810588643-360135057.png"
-          }
+          id: "4cd1eb2f-319f-42aa-8a04-40e1728ecdfc",
+          name: "POKDAKAN BINTANG ROSELA JAYA",
+          description: "kolam ikan lampung",
+          organization_picture: "http://localhost:3000/uploads/organization_picture/1745810588643-360135057.png",
+          location: null
         }
       }
     }

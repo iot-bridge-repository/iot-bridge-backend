@@ -17,46 +17,39 @@ export class CreateWidgetBoxesTable1746813314345 implements MigrationInterface {
           {
             name: 'device_id',
             type: 'varchar',
-            isUnique: false,
             isNullable: false,
           },
           {
             name: 'name',
             type: 'varchar',
             length: '100',
-            isUnique: false,
             isNullable: true,
           },
           {
             name: 'pin',
             type: 'varchar',
             length: '20',
-            isUnique: false,
             isNullable: true,
           },
           {
             name: 'unit',
             type: 'varchar',
             length: '20',
-            isUnique: false,
             isNullable: true,
           },
           {
             name: 'min_value',
             type: 'double precision',
-            isUnique: false,
             isNullable: true,
           },
           {
             name: 'max_value',
             type: 'double precision',
-            isUnique: false,
             isNullable: true,
           },
           {
             name: 'default_value',
             type: 'double precision',
-            isUnique: false,
             isNullable: true,
           },
           {

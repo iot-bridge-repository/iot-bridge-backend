@@ -24,7 +24,6 @@ export class CreateDevicesTable1746688303540 implements MigrationInterface {
             name: 'name',
             type: 'varchar',
             length: '100',
-            isUnique: false,
             isNullable: false,
           },
           {
