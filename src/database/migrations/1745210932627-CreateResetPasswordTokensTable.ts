@@ -23,6 +23,7 @@ export class CreateResetPasswordTokensTable1745210932627 implements MigrationInt
           {
             name: 'token',
             type: 'varchar',
+            isUnique: true,
             isNullable: false,
           },
           {

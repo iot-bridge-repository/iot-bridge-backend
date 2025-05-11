@@ -174,6 +174,7 @@ export class DevicesApiController {
 
   @ApiOperation({ summary: 'Get specific widget box' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiParam({ name: 'widgetBoxId', type: String, description: 'Widget box id' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -201,6 +202,7 @@ export class DevicesApiController {
 
   @ApiOperation({ summary: 'Delete widget box' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiParam({ name: 'widgetBoxId', type: String, description: 'Widget box id' })
   @ApiOkResponse({
     schema: {
       example: { message: 'Widget boxes deleted successfully.' }
@@ -232,6 +234,132 @@ export class DevicesApiController {
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async getReport(@Req() request: AuthenticatedRequest, @Query('start') start: string, @Query('end') end: string, @Query('pin') pin: string) {
     this.logger.log(`There is a request to get device report`);
-    return this.devicesApiService.getReport(request.params.organizationId, request.params.deviceId, pin, start, end, );
+    return this.devicesApiService.getReport(request.params.organizationId, request.params.deviceId, pin, start, end);
+  }
+
+  @ApiOperation({ summary: 'Create notification events' })
+  @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Notification events created successfully.',
+        data: {
+          id: '7ff5017f-fca7-46c7-bb7f-359e295ff919',
+          device_id: '560d8eda-8eae-4e9f-bf6e-50ab884c72ef',
+          pin: 'V1',
+          subject: 'suhu telalu dingin',
+          message: 'suhu telalu dingin, nyalakan pompa',
+          comparison_type: '=',
+          threshold_value: '50',
+          is_active: true,
+          created_at: '2025-05-10T23:31:19.967Z'
+        }
+      }
+    }
+  })
+  @Post(':deviceId/notification-events')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
+  async postNotificationEvents(@Req() request: AuthenticatedRequest, @Body() postNotificationEvents: dto.PostNotificationEventsDto) {
+    this.logger.log(`There is a request to create notification events`);
+    return this.devicesApiService.postNotificationEvents(request.params.organizationId, request.params.deviceId, postNotificationEvents);
+  }
+
+  @ApiOperation({ summary: 'Get notification events list' })
+  @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Notification events list retrieved successfully.',
+        data: [
+          {
+            id: '10ce4d51-2631-4e8a-ae83-5b6869fa8eee',
+            pin: 'V1',
+            subject: 'suhu telalu panas',
+            comparison_type: '>',
+            threshold_value: 50,
+            is_active: true,
+            created_at: '2025-05-10T23:33:35.297Z'
+          }
+        ]
+      }
+    }
+  })
+  @Get(':deviceId/notification-events/list')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
+  async getNotificationEventsList(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to get notification events list`);
+    return this.devicesApiService.getNotificationEventsList(request.params.organizationId, request.params.deviceId);
+  }
+
+  @ApiOperation({ summary: 'Get specific notification events' })
+  @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiParam({ name: 'notificationEventId', type: String, description: 'Notification event id' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Notification events retrieved successfully.',
+        data: {
+          id: '10ce4d51-2631-4e8a-ae83-5b6869fa8eee',
+          pin: 'V1',
+          subject: 'suhu telalu panas',
+          message: 'suhu telalu panas, nyalakan penyiraman',
+          comparison_type: '>',
+          threshold_value: 50,
+          is_active: true,
+          created_at: '2025-05-10T23:33:35.297Z'
+        }
+      }
+    }
+  })
+  @Get(':deviceId/notification-events/:notificationEventId')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
+  async getNotificationEvents(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to get specific notification events`);
+    return this.devicesApiService.getNotificationEvents(request.params.organizationId, request.params.deviceId, request.params.notificationEventId);
+  }
+
+  @ApiOperation({ summary: 'Update notification events' })
+  @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiParam({ name: 'notificationEventId', type: String, description: 'Notification event id' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Notification events updated successfully.',
+        data: {
+          pin: 'V1',
+          subject: 'suhu telalu panas',
+          message: 'suhu telalu panas, nyalakan penyiraman',
+          comparison_type: '>',
+          threshold_value: '100',
+          is_active: true
+        }
+      }
+    }
+  })
+  @Patch(':deviceId/notification-events/:notificationEventId')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
+  async patchNotificationEvents(@Req() request: AuthenticatedRequest, @Body() patchNotificationEvents: dto.PatchNotificationEventsDto) {
+    this.logger.log(`There is a request to update notification events`);
+    return this.devicesApiService.patchNotificationEvents(request.params.organizationId, request.params.deviceId, request.params.notificationEventId, patchNotificationEvents);
+  }
+
+  @ApiOperation({ summary: 'Delete notification events' })
+  @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiParam({ name: 'notificationEventId', type: String, description: 'Notification event id' })
+  @ApiOkResponse({
+    schema: {
+      example: { message: 'Notification events deleted successfully.' }
+    }
+  })
+  @Delete(':deviceId/notification-events/:notificationEventId')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
+  async deleteNotificationEvents(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to delete notification events`);
+    return this.devicesApiService.deleteNotificationEvents(request.params.organizationId, request.params.deviceId, request.params.notificationEventId);
   }
 }

@@ -74,11 +74,7 @@ export class PatchMemberRolesDto {
   @IsString({ message: 'User id must be a string' })
   user_id: string;
 
-  @ApiProperty({
-    example: OrganizationMemberRole.OPERATOR,
-    description: 'New role for the member (Operator or Viewer)',
-    enum: OrganizationMemberRole,
-  })
+  @ApiProperty({ example: OrganizationMemberRole.OPERATOR, description: 'New role for the member (Operator or Viewer)', enum: OrganizationMemberRole, })
   @IsNotEmpty({ message: 'New role cannot be empty' })
   @IsEnum(OrganizationMemberRole, { message: 'New role must be either Operator or Viewer',})
   new_role: OrganizationMemberRole;

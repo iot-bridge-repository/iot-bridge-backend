@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Length, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, Length, IsOptional, IsEnum, IsBoolean } from 'class-validator';
 
 export class PostDto {
   @ApiProperty({ example: 'KOLAM A - RAS', description: 'Device name' })
@@ -26,7 +26,7 @@ export class PutWidgetBoxesDto {
   @ApiProperty({ example: 'suhu', description: 'widget box name' })
   @IsOptional()
   @IsString({ message: 'Name must be a string' })
-  @Length(3, 100, { message: 'Name must be between 3 and 100 characters' })
+  @Length(2, 100, { message: 'Name must be between 2 and 100 characters' })
   name: string;
 
   @ApiProperty({ example: 'V1', description: 'widget box pin' })
@@ -58,4 +58,79 @@ export class PutWidgetBoxesDto {
   @IsString({ message: 'Default value must be a string' })
   @Length(1, 20, { message: 'Default value must be between 1 and 20 characters' })
   default_value: string;
+}
+
+enum ComparisonType {
+  EQUAL = '=',
+  GREATER = '>',
+  LESSER = '<',
+  GREATER_OR_EQUAL = '>=',
+  LESSER_OR_EQUAL = '<=',
+  NOT_EQUAL = '!='
+}
+
+export class PostNotificationEventsDto {
+  @ApiProperty({ example: 'V1', description: 'notification event pin' })
+  @IsString({ message: 'Pin must be a string' })
+  @Length(1, 20, { message: 'Pin must be between 1 and 20 characters' })
+  pin: string;
+
+  @ApiProperty({ example: 'suhu telalu dingin', description: 'notification event subject' })
+  @IsString({ message: 'Subject must be a string' })
+  @Length(5, 100, { message: 'Subject must be between 5 and 100 characters' })
+  subject: string;
+
+  @ApiProperty({ example: 'suhu telalu dingin, nyalakan pompa', description: 'notification event message' })
+  @IsNotEmpty({ message: 'Message cannot be empty' })
+  @IsString({ message: 'Message must be a string' })
+  @Length(5, 1000, { message: 'Message must be between 5 and 1000 characters' })
+  message: string;
+
+  @ApiProperty({ example: ComparisonType.EQUAL, description: 'comparison type', enum: ComparisonType })
+  @IsNotEmpty({ message: 'Comparison type cannot be empty' })
+  @IsEnum(ComparisonType, { message: 'Comparison type must be either EQUAL, GREATER, LESSER, GREATER_OR_EQUAL, LESSER_OR_EQUAL, NOT_EQUAL symbol', })
+  comparison_type: ComparisonType;
+
+  @ApiProperty({ example: '50', description: 'threshold value' })
+  @IsString({ message: 'Threshold value must be a string' })
+  @Length(1, 20, { message: 'Threshold value must be between 1 and 20 characters' })
+  threshold_value: string;
+
+  @ApiProperty({ example: 'true', description: 'notification event status' })
+  @IsNotEmpty({ message: 'Is active cannot be empty' })
+  @IsBoolean({ message: 'Is active must be a boolean' })
+  is_active: boolean;
+}
+
+export class PatchNotificationEventsDto {
+  @ApiProperty({ example: 'V1', description: 'notification event pin' })
+  @IsString({ message: 'Pin must be a string' })
+  @Length(1, 20, { message: 'Pin must be between 1 and 20 characters' })
+  pin: string;
+
+  @ApiProperty({ example: 'suhu telalu dingin', description: 'notification event subject' })
+  @IsString({ message: 'Subject must be a string' })
+  @Length(5, 100, { message: 'Subject must be between 5 and 100 characters' })
+  subject: string;
+
+  @ApiProperty({ example: 'suhu telalu dingin, nyalakan pompa', description: 'notification event message' })
+  @IsNotEmpty({ message: 'Message cannot be empty' })
+  @IsString({ message: 'Message must be a string' })
+  @Length(5, 1000, { message: 'Message must be between 5 and 1000 characters' })
+  message: string;
+
+  @ApiProperty({ example: ComparisonType.EQUAL, description: 'comparison type', enum: ComparisonType })
+  @IsNotEmpty({ message: 'Comparison type cannot be empty' })
+  @IsEnum(ComparisonType, { message: 'Comparison type must be either EQUAL, GREATER, LESSER, GREATER_OR_EQUAL, LESSER_OR_EQUAL, NOT_EQUAL symbol', })
+  comparison_type: ComparisonType;
+
+  @ApiProperty({ example: '50', description: 'threshold value' })
+  @IsString({ message: 'Threshold value must be a string' })
+  @Length(1, 20, { message: 'Threshold value must be between 1 and 20 characters' })
+  threshold_value: string;
+
+  @ApiProperty({ example: 'true', description: 'notification event status' })
+  @IsNotEmpty({ message: 'Is active cannot be empty' })
+  @IsBoolean({ message: 'Is active must be a boolean' })
+  is_active: boolean;
 }

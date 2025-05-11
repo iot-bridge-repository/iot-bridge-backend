@@ -235,12 +235,53 @@ export class DeviceData {
   @Column({ type: 'varchar', unique: false, nullable: false })
   device_id: string;
 
-  @Column({ type: 'varchar', length: 20, unique: false, nullable: true })
+  @Column({ type: 'varchar', length: 20, unique: false, nullable: false })
   pin: string;
 
-  @Column({ type: 'double precision', unique: false, nullable: true })
+  @Column({ type: 'double precision', unique: false, nullable: false })
   value: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   time: Date;
+}
+
+export enum ComparisonType {
+  EQUAL = '=',
+  GREATER = '>',
+  LESSER = '<',
+  GREATER_OR_EQUAL = '>=',
+  LESSER_OR_EQUAL = '<=',
+  NOT_EQUAL = '!='
+}
+
+@Entity({ name: 'notification_events' })
+export class NotificationEvents {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'varchar', unique: false, nullable: false })
+  device_id: string;
+
+  @Column({ type: 'varchar', length: 20, unique: false, nullable: false })
+  pin: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: false })
+  @Length(5, 100, { message: 'Subject must be between 5 and 100 characters' })
+  subject: string;
+
+  @Column({ type: 'text', nullable: false })
+  @Length(5, 1000, { message: 'Message must be between 5 and 1000 characters' })
+  message: string;
+
+  @Column({ type: 'enum', enum: ComparisonType, default: ComparisonType.EQUAL, nullable: false })
+  comparison_type: ComparisonType;
+
+  @Column({ type: 'double precision', unique: false, nullable: false })
+  threshold_value: string;
+
+  @Column({ type: 'boolean', default: false, nullable: false })
+  is_active: boolean;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
 }

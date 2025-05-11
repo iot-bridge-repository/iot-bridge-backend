@@ -38,8 +38,8 @@ export class CreateOrganizationsTable1743734171305 implements MigrationInterface
           {
             name: 'created_by',
             type: 'varchar',
-            isNullable: false,
             isUnique: false,
+            isNullable: false,
           },
           {
             name: 'created_at',

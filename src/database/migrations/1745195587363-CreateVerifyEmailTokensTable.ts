@@ -30,6 +30,7 @@ export class CreateVerifyEmailTokensTable1745195587363 implements MigrationInter
           {
             name: 'token',
             type: 'varchar',
+            isUnique: true,
             isNullable: false,
           },
           {

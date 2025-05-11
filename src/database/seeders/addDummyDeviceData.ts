@@ -3,7 +3,7 @@ import 'dotenv/config'
 import { DeviceData } from "../../common/entities";
 import AppDataSource from "../database.config";
 
-const addDeviceData = async (dataSource: DataSource) => {
+const addDummyDeviceData = async (dataSource: DataSource) => {
   const deviceDataRepository = dataSource.getRepository(DeviceData);
 
   const dummyData: DeviceData[] = [];
@@ -24,7 +24,7 @@ const addDeviceData = async (dataSource: DataSource) => {
 AppDataSource.initialize()
   .then(async (dataSource) => {
     console.log('Database connected! Running device data seeder...');
-    await addDeviceData(dataSource);
+    await addDummyDeviceData(dataSource);
     await dataSource.destroy();
   })
   .catch((error) => {
