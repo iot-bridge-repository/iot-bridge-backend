@@ -108,7 +108,7 @@ describe('Organization Controller (e2e)', () => {
   });
 
   // Delete member
-  it.only('successfully delete member', async () => {
+  it('successfully delete member', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -116,7 +116,7 @@ describe('Organization Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .delete(`/organizations/${organization?.id}/member/4ea128a1-c13e-4077-a018-9c186e681670`)
+      .delete(`/organizations/${organization?.id}/member/${memberId}`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
 
     console.log('successfully delete member response:', res.body);
@@ -134,7 +134,7 @@ describe('Organization Controller (e2e)', () => {
 
     const res = await request(app.getHttpServer())
       .delete(`/organizations/${organization?.id}/member/${memberId}`)
-      .set('Authorization', `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAzZDY1OTFmLWI4ZGEtNDMwNC1hNjVjLWRmMzI4NjZmMDg5ZiIsInJvbGUiOiJMb2thbCBNZW1iZXIiLCJpYXQiOjE3NDY1Mzg1NTB9.35EZ8E5Beu6JGE73wHL0t98Lu_5-Yb1LsFl-I-qjK90`)
+      .set('Authorization', `Bearer ${memberOrganizationToken}`)
 
     console.log('failed delete member response:', res.body);
     expect(res.body.message).toBeDefined();

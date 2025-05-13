@@ -189,7 +189,7 @@ export class Device {
 }
 
 @Entity({ name: 'widget_boxes' })
-export class WidgetBoxes {
+export class WidgetBox {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -246,7 +246,7 @@ export enum ComparisonType {
 }
 
 @Entity({ name: 'notification_events' })
-export class NotificationEvents {
+export class NotificationEvent {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

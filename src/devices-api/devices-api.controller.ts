@@ -59,7 +59,7 @@ export class DevicesApiController {
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async getSearch(@Req() request: AuthenticatedRequest, @Query('name') query: string) {
-    this.logger.log(`There is a request to get device list`);
+    this.logger.log(`There is a request to get search device`);
     return this.devicesApiService.getSearch(request.params.organizationId, query);
   }
 
@@ -138,9 +138,9 @@ export class DevicesApiController {
   @Put(':deviceId/widget-boxes')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
-  async putWidgetBoxes(@Req() request: AuthenticatedRequest, @Body() putWidgetBoxesDto: dto.PutWidgetBoxesDto) {
+  async putWidgetBox(@Req() request: AuthenticatedRequest, @Body() putWidgetBoxDto: dto.PutWidgetBoxDto) {
     this.logger.log(`There is a request to create or update widget box`);
-    return this.devicesApiService.putWidgetBoxes(request.params.organizationId, request.params.deviceId, putWidgetBoxesDto);
+    return this.devicesApiService.putWidgetBox(request.params.organizationId, request.params.deviceId, putWidgetBoxDto);
   }
 
   @ApiOperation({ summary: 'Get widget box list' })
@@ -178,7 +178,7 @@ export class DevicesApiController {
   @ApiOkResponse({
     schema: {
       example: {
-        message: 'Widget boxes details retrieved successfully.',
+        message: 'Widget box details retrieved successfully.',
         data: {
           id: '35ecb3f6-8441-4aad-9861-46233f382e0c',
           name: 'suhu',
@@ -195,9 +195,9 @@ export class DevicesApiController {
   @Get(':deviceId/widget-boxes/:widgetBoxId')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
-  async getWidgetBoxes(@Req() request: AuthenticatedRequest) {
+  async getWidgetBox(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get widget box by id`);
-    return this.devicesApiService.getWidgetBoxes(request.params.organizationId, request.params.deviceId, request.params.widgetBoxId);
+    return this.devicesApiService.getWidgetBox(request.params.organizationId, request.params.deviceId, request.params.widgetBoxId);
   }
 
   @ApiOperation({ summary: 'Delete widget box' })
@@ -205,15 +205,15 @@ export class DevicesApiController {
   @ApiParam({ name: 'widgetBoxId', type: String, description: 'Widget box id' })
   @ApiOkResponse({
     schema: {
-      example: { message: 'Widget boxes deleted successfully.' }
+      example: { message: 'Widget box deleted successfully.' }
     }
   })
   @Delete(':deviceId/widget-boxes/:widgetBoxId')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
-  async deleteWidgetBoxes(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to delete widget boxes`);
-    return this.devicesApiService.deleteWidgetBoxesDetails(request.params.organizationId, request.params.deviceId, request.params.widgetBoxId);
+  async deleteWidgetBox(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to delete widget box`);
+    return this.devicesApiService.deleteWidgetBox(request.params.organizationId, request.params.deviceId, request.params.widgetBoxId);
   }
 
   @ApiOperation({ summary: 'Get device report' })
@@ -260,9 +260,9 @@ export class DevicesApiController {
   @Post(':deviceId/notification-events')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
-  async postNotificationEvents(@Req() request: AuthenticatedRequest, @Body() postNotificationEvents: dto.PostNotificationEventsDto) {
+  async postNotificationEvent(@Req() request: AuthenticatedRequest, @Body() postNotificationEvent: dto.PostNotificationEventDto) {
     this.logger.log(`There is a request to create notification events`);
-    return this.devicesApiService.postNotificationEvents(request.params.organizationId, request.params.deviceId, postNotificationEvents);
+    return this.devicesApiService.postNotificationEvent(request.params.organizationId, request.params.deviceId, postNotificationEvent);
   }
 
   @ApiOperation({ summary: 'Get notification events list' })
@@ -316,9 +316,9 @@ export class DevicesApiController {
   @Get(':deviceId/notification-events/:notificationEventId')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
-  async getNotificationEvents(@Req() request: AuthenticatedRequest) {
+  async getNotificationEvent(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get notification events by id`);
-    return this.devicesApiService.getNotificationEvents(request.params.organizationId, request.params.deviceId, request.params.notificationEventId);
+    return this.devicesApiService.getNotificationEvent(request.params.organizationId, request.params.deviceId, request.params.notificationEventId);
   }
 
   @ApiOperation({ summary: 'Update notification events' })
@@ -342,9 +342,9 @@ export class DevicesApiController {
   @Patch(':deviceId/notification-events/:notificationEventId')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
-  async patchNotificationEvents(@Req() request: AuthenticatedRequest, @Body() patchNotificationEvents: dto.PatchNotificationEventsDto) {
+  async patchNotificationEvent(@Req() request: AuthenticatedRequest, @Body() patchNotificationEvent: dto.PatchNotificationEventDto) {
     this.logger.log(`There is a request to update notification events`);
-    return this.devicesApiService.patchNotificationEvents(request.params.organizationId, request.params.deviceId, request.params.notificationEventId, patchNotificationEvents);
+    return this.devicesApiService.patchNotificationEvent(request.params.organizationId, request.params.deviceId, request.params.notificationEventId, patchNotificationEvent);
   }
 
   @ApiOperation({ summary: 'Delete notification events' })
@@ -358,8 +358,8 @@ export class DevicesApiController {
   @Delete(':deviceId/notification-events/:notificationEventId')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
-  async deleteNotificationEvents(@Req() request: AuthenticatedRequest) {
+  async deleteNotificationEvent(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to delete notification events`);
-    return this.devicesApiService.deleteNotificationEvents(request.params.organizationId, request.params.deviceId, request.params.notificationEventId);
+    return this.devicesApiService.deleteNotificationEvent(request.params.organizationId, request.params.deviceId, request.params.notificationEventId);
   }
 }

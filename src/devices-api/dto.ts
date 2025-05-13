@@ -17,7 +17,7 @@ export class PatchDto {
   name: string;
 }
 
-export class PutWidgetBoxesDto {
+export class PutWidgetBoxDto {
   @ApiProperty({ example: 'xxxxxx', description: 'widget box id' })
   @IsOptional()
   @IsString({ message: 'Id must be a string' })
@@ -69,7 +69,7 @@ enum ComparisonType {
   NOT_EQUAL = '!='
 }
 
-export class PostNotificationEventsDto {
+export class PostNotificationEventDto {
   @ApiProperty({ example: 'V1', description: 'notification event pin' })
   @IsString({ message: 'Pin must be a string' })
   @Length(1, 20, { message: 'Pin must be between 1 and 20 characters' })
@@ -88,7 +88,7 @@ export class PostNotificationEventsDto {
 
   @ApiProperty({ example: ComparisonType.EQUAL, description: 'comparison type', enum: ComparisonType })
   @IsNotEmpty({ message: 'Comparison type cannot be empty' })
-  @IsEnum(ComparisonType, { message: 'Comparison type must be either EQUAL, GREATER, LESSER, GREATER_OR_EQUAL, LESSER_OR_EQUAL, NOT_EQUAL symbol', })
+  @IsEnum(ComparisonType, { message: 'Comparison type must be either =, >, <, >=, <=, != symbol', })
   comparison_type: ComparisonType;
 
   @ApiProperty({ example: '50', description: 'threshold value' })
@@ -102,7 +102,7 @@ export class PostNotificationEventsDto {
   is_active: boolean;
 }
 
-export class PatchNotificationEventsDto {
+export class PatchNotificationEventDto {
   @ApiProperty({ example: 'V1', description: 'notification event pin' })
   @IsString({ message: 'Pin must be a string' })
   @Length(1, 20, { message: 'Pin must be between 1 and 20 characters' })

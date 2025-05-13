@@ -7,13 +7,13 @@ import helmet from 'helmet';
 import { DataSource } from 'typeorm';
 import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
-import { Organization, Device } from 'src/common/entities';
+import { Organization, Device, WidgetBox } from 'src/common/entities';
 
 describe('Device Controller (e2e)', () => {
   let app: NestExpressApplication;
   const organizationName = "organization_test";
-  const deviceName = "Device test updated";
-  const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4NjVkMDhhLTEyNmMtNDQ4Mi05YTU2LTBkY2Q0ODQyMWY2MyIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY1MDEzNTR9.2N8RHoejnxr6JI1c9SQhQm2oEl8mYuu6fuQCjVptTo4';
+  const deviceName = "Device test";
+  const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZWEzMzhkLTJkMDYtNGFhYy04MmMwLTE0ZDU1OThhZTgyZiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcwOTQ2NTF9.z1IlqHFIVPh0cfnzfQyHpuVfPZcbWr_ttM9fjZr9YBw';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -46,7 +46,7 @@ describe('Device Controller (e2e)', () => {
   });
 
   // Create or update widget boxes
-  it('successfully create or update widget boxes', async () => {
+  it.only('successfully create or update widget boxes', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -61,12 +61,12 @@ describe('Device Controller (e2e)', () => {
       .put(`/organizations/${organization?.id}/devices/${device?.id}/widget-boxes`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
       .send({
-        id: 'b22c7624-0110-471f-8c5b-516c00243e25',
         name: 'suhu 2',
         pin: 'A1',
       })
 
     console.log('successfully create or update widget boxes response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -87,13 +87,14 @@ describe('Device Controller (e2e)', () => {
       .get(`/organizations/${organization?.id}/devices/${device?.id}/widget-boxes/list`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
 
-    console.log('successfully get widget boxes response:', res.body);
+    console.log('successfully get widget boxes list response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
   // Get widget boxes
-  it('successfully get widget boxes', async () => {
+  it.only('successfully get widget boxes', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -103,18 +104,23 @@ describe('Device Controller (e2e)', () => {
       select: { id: true },
       where: { name: deviceName, organization_id: organization?.id },
     });
+    const widgetBox = await dataSource.getRepository(WidgetBox).findOne({
+      select: { id: true },
+      where: { device_id: device?.id },
+    })
 
     const res = await request(app.getHttpServer())
-      .get(`/organizations/${organization?.id}/devices/${device?.id}/widget-boxes/b22c7624-0110-471f-8c5b-516c00243e25`)
+      .get(`/organizations/${organization?.id}/devices/${device?.id}/widget-boxes/${widgetBox?.id}`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
 
     console.log('successfully get widget boxes response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
   // Delete widget boxes
-  it.only('successfully delete widget boxes', async () => {
+  it('successfully delete widget boxes', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -124,12 +130,17 @@ describe('Device Controller (e2e)', () => {
       select: { id: true },
       where: { name: deviceName, organization_id: organization?.id },
     });
+    const widgetBox = await dataSource.getRepository(WidgetBox).findOne({
+      select: { id: true },
+      where: { device_id: device?.id },
+    })
 
     const res = await request(app.getHttpServer())
-      .delete(`/organizations/${organization?.id}/devices/${device?.id}/widget-boxes/b22c7624-0110-471f-8c5b-516c00243e25`)
+      .delete(`/organizations/${organization?.id}/devices/${device?.id}/widget-boxes/${widgetBox?.id}`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
 
     console.log('successfully delete widget boxes response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });

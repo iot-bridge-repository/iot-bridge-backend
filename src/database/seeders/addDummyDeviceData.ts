@@ -8,9 +8,9 @@ const addDummyDeviceData = async (dataSource: DataSource) => {
 
   const dummyData: DeviceData[] = [];
 
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 1000; i++) {
     const data = new DeviceData();
-    data.device_id = '560d8eda-8eae-4e9f-bf6e-50ab884c72ef'; // gunakan ID acak untuk simulasi device
+    data.device_id = '892e17be-d44c-4766-8e2e-6e71edf4e74d'; // gunakan ID acak untuk simulasi device
     data.pin = `V${Math.floor(Math.random() * 5)}`; // V0 sampai V4
     data.value = (Math.random() * 100).toFixed(2); // value antara 0.00 sampai 100.00
     dummyData.push(data);
@@ -18,7 +18,7 @@ const addDummyDeviceData = async (dataSource: DataSource) => {
 
   // Insert ke database
   await deviceDataRepository.save(dummyData);
-  console.log('✅ 50 dummy device data inserted successfully.');
+  console.log('✅ 1000 dummy device data inserted successfully.');
 };
 
 AppDataSource.initialize()
