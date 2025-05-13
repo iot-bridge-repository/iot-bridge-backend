@@ -9,7 +9,7 @@ import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
 describe('Notification Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const userToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4NjVkMDhhLTEyNmMtNDQ4Mi05YTU2LTBkY2Q0ODQyMWY2MyIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY1MDEzNTR9.2N8RHoejnxr6JI1c9SQhQm2oEl8mYuu6fuQCjVptTo4';
+  const userToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZWEzMzhkLTJkMDYtNGFhYy04MmMwLTE0ZDU1OThhZTgyZiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcwOTQ2NTF9.z1IlqHFIVPh0cfnzfQyHpuVfPZcbWr_ttM9fjZr9YBw';
 
 
   beforeAll(async () => {
@@ -49,6 +49,7 @@ describe('Notification Controller (e2e)', () => {
       .set('Authorization', `Bearer ${userToken}`)
 
     console.log('successfully notification response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -60,6 +61,7 @@ describe('Notification Controller (e2e)', () => {
       .set('Authorization', `Bearer ${userToken}`)
 
     console.log('successfully delete specific notification response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -71,6 +73,7 @@ describe('Notification Controller (e2e)', () => {
       .set('Authorization', `Bearer ${userToken}`)
 
     console.log('successfully delete all notification response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });

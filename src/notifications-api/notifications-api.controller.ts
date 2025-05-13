@@ -15,11 +15,11 @@ export class NotificationsApiController {
     private readonly notificationsApiService: NotificationsApiService
   ) {}
 
-  @ApiOperation({ summary: 'Get notifications list' })
+  @ApiOperation({ summary: 'Get notifications' })
   @ApiOkResponse({
     schema: {
       example: {
-        message: 'Notifications list.',
+        message: 'Notifications.',
         data: [
           {
             id: "15b292bc-2e5f-4d5d-a808-c5c3dd951073",
@@ -36,7 +36,7 @@ export class NotificationsApiController {
   @UseGuards(UserRolesGuard)
   @UserRoles(UserRole.LOKAL_MEMBER)
   async get(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to get notifications list`);
+    this.logger.log(`There is a request to get notifications`);
     return this.notificationsApiService.get(request.user.id);
   }
 

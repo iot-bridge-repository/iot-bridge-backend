@@ -47,6 +47,7 @@ describe('Auth Controller (e2e)', () => {
       .set('Authorization', `Bearer ${token}`)
 
     console.log('successfully get profile response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });

@@ -52,13 +52,13 @@ export class NotificationsApiService {
       await this.userNotificationRepository.delete({ user_id: id });
       this.logger.log(`Successfully delete all notification with user_id: ${id}`);
       return {
-        message: 'Successfully delete all notification.',
+        message: `Successfully delete all notification for user id ${id}.`,
       }
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to delete all notification, Error: ${error.message}`);
+      this.logger.error(`Failed to delete all notification for user id: ${id}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to delete all notification, please try again later');
     }
   }

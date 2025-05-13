@@ -48,6 +48,7 @@ describe('Device Controller (e2e)', () => {
       .set('Authorization', `Bearer ${adminSystemToken}`)
 
     console.log('successfully get users by id response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -59,6 +60,7 @@ describe('Device Controller (e2e)', () => {
       .set('Authorization', `Bearer ${adminSystemToken}`)
 
     console.log('successfully get users search response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });

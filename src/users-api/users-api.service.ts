@@ -22,7 +22,7 @@ export class UsersApiService {
         ],
       });
 
-      this.logger.log(`User searched users with identity: ${identity}, found ${users.length} users`);
+      this.logger.log(`Success to search users. Searched users with identity: ${identity}, found ${users.length} users`);
       return {
         message: 'Users list.',
         data: users,
@@ -43,7 +43,7 @@ export class UsersApiService {
         where: { id: userID },
       });
       if (!user) {
-        this.logger.warn(`User not found by id: ${userID}`);
+        this.logger.warn(`Failed to get user by id. User not found by id: ${userID}`);
         throw new NotFoundException('User not found');
       }
 
@@ -58,7 +58,7 @@ export class UsersApiService {
         .where('u.id = :id', { id: userID })
         .getRawMany();
 
-      this.logger.log(`User get user details by id: ${userID}`);
+      this.logger.log(`Success to get user by id. User get user details by id: ${userID}`);
       return {
         message: 'Users details.',
         data: {
@@ -72,8 +72,8 @@ export class UsersApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to search users, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to search users, please try another time');
+      this.logger.error(`Failed to get user by id, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get user by id, please try another time');
     }
   }
 }
