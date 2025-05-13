@@ -11,8 +11,8 @@ import { Organization } from 'src/common/entities';
 
 describe('Organization Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const organizationName = "organization_test 2";
-  const regularUserToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4NjVkMDhhLTEyNmMtNDQ4Mi05YTU2LTBkY2Q0ODQyMWY2MyIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY1MDEzNTR9.2N8RHoejnxr6JI1c9SQhQm2oEl8mYuu6fuQCjVptTo4';
+  const organizationName = "organization_test";
+  const regularUserToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZWEzMzhkLTJkMDYtNGFhYy04MmMwLTE0ZDU1OThhZTgyZiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcwOTQ2NTF9.z1IlqHFIVPh0cfnzfQyHpuVfPZcbWr_ttM9fjZr9YBw';
   const adminSystemToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1NTVmNmI1LWM3MjQtNDVhNi04N2NmLTk1Nzg2ZWIyYTAyMCIsInJvbGUiOiJBZG1pbiBTeXN0ZW0iLCJpYXQiOjE3NDY1MTQ3MTl9.NdUZTygW-nirskKvKgd_OloX7I9BAFYh3o2sWGxNVGE'
 
   beforeAll(async () => {
@@ -55,6 +55,7 @@ describe('Organization Controller (e2e)', () => {
       })
 
     console.log('successfully post propose response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -68,17 +69,19 @@ describe('Organization Controller (e2e)', () => {
       })
 
     console.log('failed post propose response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
 
-  // Get list 
-  it('successfully get list', async () => {
+  // Get search 
+  it('successfully get search', async () => {
     const res = await request(app.getHttpServer())
-      .get('/organizations/list')
+      .get('/organizations/search?keyword=')
       .set('Authorization', `Bearer ${adminSystemToken}`)
 
-    console.log('successfully get list response:', res.body);
+    console.log('successfully get search response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -99,6 +102,7 @@ describe('Organization Controller (e2e)', () => {
       })
 
     console.log('successfully patch verify response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -112,6 +116,7 @@ describe('Organization Controller (e2e)', () => {
       })
 
     console.log('failed patch verify response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
@@ -132,6 +137,7 @@ describe('Organization Controller (e2e)', () => {
       })
 
     console.log('successfully patch unverify response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -139,12 +145,13 @@ describe('Organization Controller (e2e)', () => {
   it('failed patch unverify', async () => {
     const res = await request(app.getHttpServer())
       .patch('/organizations/unverify')
-      .set('Authorization', `Bearer ${adminSystemToken}`)
+      .set('Authorization', `Bearer ${regularUserToken}`)
       .send({
         organization_id: 'invalid_id'
       })
 
     console.log('failed patch unverify response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });

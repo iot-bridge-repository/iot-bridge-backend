@@ -5,7 +5,7 @@ export class PostProposeDto {
   @ApiProperty({ example: 'POKDAKAN BINTANG ROSELA JAYA', description: 'Organization name' })
   @IsNotEmpty({ message: 'Name cannot be empty' })
   @IsString({ message: 'Name must be a string' })
-  @Length(5, 100, { message: 'Name must be between 5 and 100 characters' })
+  @Length(3, 100, { message: 'Name must be between 3 and 100 characters' })
   name: string;
 }
 
@@ -27,18 +27,19 @@ export class PatchOrganizationProfileDto {
   @ApiProperty({ example: 'POKDAKAN BINTANG ROSELA JAYA', description: 'Organization name' })
   @IsNotEmpty({ message: 'Name cannot be empty' })
   @IsString({ message: 'Name must be a string' })
+  @Length(3, 100, { message: 'Name must be between 3 and 100 characters' })
   name: string;
 
   @ApiProperty({ example: 'This is a description of the organization', description: 'Organization description' })
   @IsNotEmpty({ message: 'Description cannot be empty' })
   @IsString({ message: 'Description must be a string' })
-  @Length(0, 1000, { message: 'Name must be between 0 and 1000 characters' })
+  @Length(0, 1000, { message: 'Description must be between 0 and 1000 characters' })
   description: string;
 
   @ApiProperty({ example: 'Bandar Lampung', description: 'Organization location' })
   @IsNotEmpty({ message: 'Location cannot be empty' })
   @IsString({ message: 'Location must be a string' })
-  @Length(0, 500, { message: 'Name must be between 0 and 500 characters' })
+  @Length(0, 500, { message: 'Location must be between 0 and 500 characters' })
   location: string;
 }
 

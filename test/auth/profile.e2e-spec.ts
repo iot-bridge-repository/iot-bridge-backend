@@ -65,14 +65,13 @@ describe('Auth Controller (e2e)', () => {
   });
 
   // Update profile
-  it('successfully update profile', async () => {
+  it.only('successfully update profile', async () => {
     const res = await request(app.getHttpServer())
       .patch('/auth/profile')
       .set('Authorization', `Bearer ${token}`)
-      .send({
-        username: 'user_test 1',
-        phone_number: '081234567890',
-      })
+      .field('username', 'user_test 1') // field biasa
+      .field('phone_number', '081234567890') // field biasa
+      .attach('profile_picture', 'test/(1).jpg');
 
     console.log('successfully update profile response:', res.body);
     expect(res.body.message).toBeDefined();

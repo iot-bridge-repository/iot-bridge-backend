@@ -19,7 +19,7 @@ export class OrganizationsApiController {
     private readonly organizationsApiService: OrganizationsApiService
   ) { }
 
-  @ApiOperation({ summary: 'Get organizations list' })
+  @ApiOperation({ summary: 'Get user organizations list' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -47,7 +47,6 @@ export class OrganizationsApiController {
 
   @ApiOperation({ summary: 'Propose an organization' })
   @ApiOkResponse({
-    description: 'Organization proposed successfully',
     schema: {
       example: {
         message: "Organization proposed successfully, please contanct admin system for verification.",
@@ -73,7 +72,6 @@ export class OrganizationsApiController {
 
   @ApiOperation({ summary: 'Verify organization' })
   @ApiOkResponse({
-    description: 'Organization verified successfully',
     schema: {
       example: {
         message: "Organization verified successfully",
@@ -90,7 +88,6 @@ export class OrganizationsApiController {
 
   @ApiOperation({ summary: 'Unverify organization' })
   @ApiOkResponse({
-    description: 'Organization unverified successfully',
     schema: {
       example: {
         message: "Organization unverified successfully",
@@ -108,7 +105,6 @@ export class OrganizationsApiController {
   @ApiOperation({ summary: 'Get organization profile' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
-    description: 'Organization profile.',
     schema: {
       example: {
         message: "Organization profile.",
@@ -147,7 +143,6 @@ export class OrganizationsApiController {
     },
   })
   @ApiOkResponse({
-    description: 'Profile updated successfully',
     schema: {
       example: {
         message: "Organization profile updated successfully.",
@@ -173,7 +168,6 @@ export class OrganizationsApiController {
   @ApiOperation({ summary: 'Member invitation' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
-    description: 'Member invitation',
     schema: {
       example: {
         message: "Member invitation successfully.",
@@ -200,7 +194,6 @@ export class OrganizationsApiController {
   @ApiOperation({ summary: 'Member invitation response' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
-    description: 'Invitation response',
     schema: {
       example: {
         message: "Invitation response successfully.",
@@ -221,7 +214,6 @@ export class OrganizationsApiController {
   @ApiOperation({ summary: 'Create lokal member' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
-    description: 'Create lokal member',
     schema: {
       example: {
         message: 'Lokal member created successfully.',
@@ -231,7 +223,7 @@ export class OrganizationsApiController {
             username: "Bill Valentinov",
             role: "LOKAL_MEMBER",
           },
-          organization_member: {
+          organization: {
             id: "921df4c5-6c5c-46aa-8f60-44f0810a65c2",
             user_id: "25d35595-fd8c-4f3f-ad93-023a7c799bd4",
             organization_id: "4cd1eb2f-319f-42aa-8a04-40e1728ecdfc",
@@ -253,10 +245,9 @@ export class OrganizationsApiController {
   @ApiOperation({ summary: 'Get member list' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
-    description: 'Get member list',
     schema: {
       example: {
-        message: 'Get member list successfully.',
+        message: 'List member of organization.',
         data: [
           {
             user_id: "da50de59-1f67-4007-ab33-3de8d08825b9",
@@ -272,14 +263,13 @@ export class OrganizationsApiController {
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async getMemberList(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to get lokal member list`);
+    this.logger.log(`There is a request to get member list`);
     return this.organizationsApiService.getMemberList(request.params.organizationId);
   }
 
   @ApiOperation({ summary: 'Change member roles' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
-    description: 'Change member roles',
     schema: {
       example: {
         message: 'Member roles changed successfully.',
@@ -298,7 +288,6 @@ export class OrganizationsApiController {
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiParam({ name: 'userId', type: String, description: 'ID user' })
   @ApiOkResponse({
-    description: 'Delete member',
     schema: {
       example: {
         message: 'Delete member successfully.',
@@ -309,14 +298,13 @@ export class OrganizationsApiController {
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
   async deleteMember(@Req() request: AuthenticatedRequest) {
-    this.logger.log(`There is a request to leave organization`);
+    this.logger.log(`There is a request to delete member`);
     return this.organizationsApiService.deleteMember(request.params.organizationId, request.params.userId);
   }
 
   @ApiOperation({ summary: 'Leave organization' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
-    description: 'Leave organization',
     schema: {
       example: {
         message: 'Leave organization successfully.',

@@ -9,7 +9,7 @@ import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
 describe('Organization Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const adminSystemToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1NTVmNmI1LWM3MjQtNDVhNi04N2NmLTk1Nzg2ZWIyYTAyMCIsInJvbGUiOiJBZG1pbiBTeXN0ZW0iLCJpYXQiOjE3NDY5NDU5NjJ9.Kzb7szg3rNmzX-UtBsxO02_9K1BcrbnLuPQtKP4Aj6I';
+  const adminSystemToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1NTVmNmI1LWM3MjQtNDVhNi04N2NmLTk1Nzg2ZWIyYTAyMCIsInJvbGUiOiJBZG1pbiBTeXN0ZW0iLCJpYXQiOjE3NDY1MTQ3MTl9.NdUZTygW-nirskKvKgd_OloX7I9BAFYh3o2sWGxNVGE'
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -48,6 +48,7 @@ describe('Organization Controller (e2e)', () => {
       .set('Authorization', `Bearer ${adminSystemToken}`)
 
     console.log('successfully get organizations search response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -55,10 +56,11 @@ describe('Organization Controller (e2e)', () => {
   // Get organizations by id
   it('successfully get organizations by id', async () => {
     const res = await request(app.getHttpServer())
-      .get(`/organizations/e8311a6f-bbd4-4924-931d-8b601a09a517`)
+      .get(`/organizations/c5af6ef6-7494-4e1c-b77a-540b3c5e9fa8`)
       .set('Authorization', `Bearer ${adminSystemToken}`)
 
     console.log('successfully get organizations by id response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });

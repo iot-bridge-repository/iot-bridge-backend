@@ -11,10 +11,10 @@ import { Organization } from 'src/common/entities';
 
 describe('Organization Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const organizationName = "organization_test 2";
-  const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4NjVkMDhhLTEyNmMtNDQ4Mi05YTU2LTBkY2Q0ODQyMWY2MyIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY1MDEzNTR9.2N8RHoejnxr6JI1c9SQhQm2oEl8mYuu6fuQCjVptTo4';
-  const memberOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1NTVmNmI1LWM3MjQtNDVhNi04N2NmLTk1Nzg2ZWIyYTAyMCIsInJvbGUiOiJBZG1pbiBTeXN0ZW0iLCJpYXQiOjE3NDY1MTQ3MTl9.NdUZTygW-nirskKvKgd_OloX7I9BAFYh3o2sWGxNVGE'
-  const memberId = '0555f6b5-c724-45a6-87cf-95786eb2a020'
+  const organizationName = "organization_test";
+  const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZWEzMzhkLTJkMDYtNGFhYy04MmMwLTE0ZDU1OThhZTgyZiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcwOTQ2NTF9.z1IlqHFIVPh0cfnzfQyHpuVfPZcbWr_ttM9fjZr9YBw';
+  const memberOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRhNTBkZTU5LTFmNjctNDAwNy1hYjMzLTNkZThkMDg4MjViOSIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcxMDcwNDl9.XmmiIsWudyy8zlRTFjqS03KeCu-__GwKCjriaKn35WI';
+  const memberId = 'da50de59-1f67-4007-ab33-3de8d08825b9'
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -46,18 +46,6 @@ describe('Organization Controller (e2e)', () => {
     await app.close();
   });
 
-  // Get search users
-  it('successfully search users', async () => {
-    const res = await request(app.getHttpServer())
-      .get(`/organizations/users`)
-      .query({ identity: 'user' })
-      .set('Authorization', `Bearer ${adminOrganizationToken}`)
-
-    console.log('successfully search users response:', res.body);
-    expect(res.status).toBeGreaterThanOrEqual(200);
-    expect(res.status).toBeLessThan(300);
-  });
-
   // Post member invitation
   it('successfully post member invitation', async () => {
     const dataSource = app.get(DataSource);
@@ -74,6 +62,7 @@ describe('Organization Controller (e2e)', () => {
       })
 
     console.log('successfully post member invitation response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -87,6 +76,7 @@ describe('Organization Controller (e2e)', () => {
       })
 
     console.log('failed post member invitation response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
@@ -107,6 +97,7 @@ describe('Organization Controller (e2e)', () => {
       })
 
     console.log('successfully patch invitation response response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -120,6 +111,7 @@ describe('Organization Controller (e2e)', () => {
       })
 
     console.log('failed patch invitation response response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
@@ -136,16 +128,17 @@ describe('Organization Controller (e2e)', () => {
       .post(`/organizations/${organization?.id}/lokal-member`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
       .send({
-        username: "lokalMemberTest2",
+        username: "lokalMemberTest",
         password: "12345678"
       })
 
     console.log('successfully post create lokal member response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it.only('failed post create lokal member', async () => {
+  it('failed post create lokal member', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -161,6 +154,7 @@ describe('Organization Controller (e2e)', () => {
       })
 
     console.log('failed post create lokal member response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });

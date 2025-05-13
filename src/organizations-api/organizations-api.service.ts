@@ -40,7 +40,7 @@ export class OrganizationsApiService {
         .andWhere('om.status = :status', { status: 'Accepted' })
         .getRawMany();
 
-      this.logger.log(`User with id: ${id} get list of organizations with number of organizations: ${memberOrganizations.length}`);
+      this.logger.log(`Success to get organization list. User with id: ${id} get list of organizations with number of organizations: ${memberOrganizations.length}`);
       return {
         message: 'Your organizations list.',
         data: memberOrganizations,
@@ -49,8 +49,8 @@ export class OrganizationsApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to get list of organizations by id: ${id}, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to get list of organizations, please try again later');
+      this.logger.error(`Failed to get organization list by id: ${id}, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get organization list, please try again later');
     }
   }
 
@@ -62,7 +62,7 @@ export class OrganizationsApiService {
         where: { id }
       });
       if (!user) {
-        this.logger.warn(`User with id ${id} does not exist`);
+        this.logger.warn(`Failed to propose organization. User with id ${id} does not exist`);
         throw new NotFoundException('User does not exist');
       }
       // Check if organization already exists
@@ -71,7 +71,7 @@ export class OrganizationsApiService {
         where: { name: postProposeDto.name }
       });
       if (existingOrganization) {
-        this.logger.warn(`Organization ${postProposeDto.name} already exists`);
+        this.logger.warn(`Failed to propose organization. Organization ${postProposeDto.name} already exists`);
         throw new BadRequestException('Organization already exists');
       }
 
@@ -106,7 +106,7 @@ export class OrganizationsApiService {
         }))
       );
 
-      this.logger.log(`Organization ${newOrganization.name} proposed by user with id ${id}`);
+      this.logger.log(`Success to propose organization. Organization ${newOrganization.name} proposed by user with id ${id}`);
       return {
         message: 'Organization proposed successfully, please contanct admin system for verification.',
         data: newOrganization,
@@ -128,7 +128,7 @@ export class OrganizationsApiService {
         where: { id: patchVerifyDto.organization_id }
       });
       if (!organization) {
-        this.logger.warn(`Organization with id ${patchVerifyDto.organization_id} does not exist`);
+        this.logger.warn(`Failed to verify organization. Organization with id ${patchVerifyDto.organization_id} does not exist`);
         throw new BadRequestException('Organization does not exist');
       }
 
@@ -145,7 +145,7 @@ export class OrganizationsApiService {
       });
       await this.userNotificationRepository.save(userNotification);
 
-      this.logger.log(`Organization with id ${patchVerifyDto.organization_id} verified`);
+      this.logger.log(`Success to verify organization. Organization with id ${patchVerifyDto.organization_id} verified`);
       return {
         message: 'Organization verified successfully.',
       };
@@ -166,7 +166,7 @@ export class OrganizationsApiService {
         where: { id: patchUnverifyDto.organization_id }
       });
       if (!organization) {
-        this.logger.warn(`Organization with id ${patchUnverifyDto.organization_id} does not exist`);
+        this.logger.warn(`Failed to unverify organization. Organization with id ${patchUnverifyDto.organization_id} does not exist`);
         throw new BadRequestException('Organization does not exist');
       }
 
@@ -183,7 +183,7 @@ export class OrganizationsApiService {
       });
       await this.userNotificationRepository.save(userNotification);
 
-      this.logger.log(`Organization with id ${patchUnverifyDto.organization_id} unverified`);
+      this.logger.log(`Success to unverify organization. Organization with id ${patchUnverifyDto.organization_id} unverified`);
       return {
         message: 'Organization unverified successfully.',
       };
@@ -221,7 +221,7 @@ export class OrganizationsApiService {
         where: { name: patchOrganizationProfileDto.name }
       });
       if (existingUsername && existingUsername.id !== organizationId) {
-        this.logger.warn(`Organization name already exists: ${patchOrganizationProfileDto.name}`);
+        this.logger.warn(`Failed to update organization profile. Organization name already exists: ${patchOrganizationProfileDto.name}`);
         throw new BadRequestException(`Organization name already exists: ${patchOrganizationProfileDto.name}`);
       }
 
@@ -256,7 +256,7 @@ export class OrganizationsApiService {
       // Update the organization profile
       await this.organizationRepository.update(organizationId, updateOrganizationProfile);
 
-      this.logger.log(`Organization profile with id ${organizationId} updated`);
+      this.logger.log(`Success to update organization profile. Organization profile with id ${organizationId} updated`);
       return {
         message: 'Organization profile updated successfully.',
         data: {
@@ -283,7 +283,7 @@ export class OrganizationsApiService {
         where: { user_id: postMemberInvitationDto.user_id, organization_id: organizationId }
       });
       if (existingOrganizationMember) {
-        this.logger.warn(`Member with id ${postMemberInvitationDto.user_id} already exists in organization with id ${organizationId}`);
+        this.logger.warn(`Failed to invite member. Member with id ${postMemberInvitationDto.user_id} already exists in organization with id ${organizationId}`);
         throw new BadRequestException(`Member already exists in this organization`);
       }
 
@@ -311,7 +311,7 @@ export class OrganizationsApiService {
       });
       await this.userNotificationRepository.save(userNotification);
 
-      this.logger.log(`Member with id ${postMemberInvitationDto.user_id} added to organization with id ${organizationId}`);
+      this.logger.log(`Success to invite member. Member with id ${postMemberInvitationDto.user_id} added to organization with id ${organizationId}`);
       return {
         message: 'Member added successfully.',
         data: {
@@ -328,8 +328,8 @@ export class OrganizationsApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to add member, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to add member, please try another time');
+      this.logger.error(`Failed to invite member, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to invite member, please try another time');
     }
   }
 
@@ -341,7 +341,7 @@ export class OrganizationsApiService {
         where: { user_id: id, organization_id: organizationId, status: OrganizationMemberStatus.PENDING },
       })
       if (!existingUserOrganizationMember) {
-        this.logger.warn(`Member with id ${id} does not exist in organization with id ${organizationId} or has been accepted`);
+        this.logger.warn(`Failed to response invite member. Member with id ${id} does not exist in organization with id ${organizationId} or has been accepted`);
         throw new BadRequestException(`Members are not invited into the organization or have already accepted`);
       }
 
@@ -358,15 +358,15 @@ export class OrganizationsApiService {
         this.organizationRepository.findOne({ select: { name: true }, where: { id: organizationId } }),
       ]);
       if (!user) {
-        this.logger.warn(`No user found with id ${id} in organization with id ${organizationId}`);
+        this.logger.warn(`Failed to response invite member. No user found with id ${id} in organization with id ${organizationId}`);
         throw new NotFoundException('User not found');
       }
       if (!admin) {
-        this.logger.warn(`No admin found in organization with id ${organizationId}`);
+        this.logger.warn(`Failed to response invite member. No admin found in organization with id ${organizationId}`);
         throw new ForbiddenException('No admin in organization');
       }
       if (!organization) {
-        this.logger.warn(`No organization found with id ${organizationId}`);
+        this.logger.warn(`Failed to response invite member. No organization found with id ${organizationId}`);
         throw new NotFoundException('Organization not found');
       }
       const subject = `Undangan anda ${patchInvitationResponseDto.is_accepted ? 'diterima' : 'ditolak'} oleh ${user.username}`;
@@ -380,7 +380,7 @@ export class OrganizationsApiService {
       });
       await this.userNotificationRepository.save(notification);
 
-      this.logger.log(`Invitation response from user with id ${id} updated`);
+      this.logger.log(`Success to response invite member. Invitation response from user with id ${id} updated`);
       return {
         message: 'Invitation response successfully.',
         data: {
@@ -391,8 +391,8 @@ export class OrganizationsApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed invitation response, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed invitation response, please try another time');
+      this.logger.error(`Failed to response invite member, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to response invite member, please try another time');
     }
   }
 
@@ -404,7 +404,7 @@ export class OrganizationsApiService {
         where: { username: postLokalMemberDto.username }
       });
       if (existingUser) {
-        this.logger.warn(`Username ${postLokalMemberDto.username} already exists`);
+        this.logger.warn(`Failed to create lokal member. Username ${postLokalMemberDto.username} already exists`);
         throw new BadRequestException('Username already exists');
       }
       // Create user
@@ -429,7 +429,7 @@ export class OrganizationsApiService {
       });
       await this.organizationMemberRepository.save(newOrganizationMember);
 
-      this.logger.log(`Lokal member created successfully`);
+      this.logger.log(`Success to create lokal member. Lokal member created successfully`);
       return {
         message: 'Lokal member created successfully.',
         data: {
@@ -438,7 +438,7 @@ export class OrganizationsApiService {
             username: newUser.username,
             role: newUser.role,
           },
-          organization_member: {
+          organization: {
             id: newOrganizationMember.id,
             user_id: newOrganizationMember.user_id,
             organization_id: newOrganizationMember.organization_id,
@@ -470,17 +470,17 @@ export class OrganizationsApiService {
         .where('om.organization_id = :organizationId', { organizationId })
         .getRawMany();
 
-      this.logger.log(`Get member list for organization with id ${organizationId}`);
+      this.logger.log(`Success to get member list. Get member list for organization with id ${organizationId}`);
       return {
-        message: 'Get member list successfully.',
+        message: 'List member of organization.',
         data: organizationMemberList,
       };
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed get member list, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed get member list, please try another time');
+      this.logger.error(`Failed to get member list, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get member list, please try another time');
     }
   }
 
@@ -492,16 +492,16 @@ export class OrganizationsApiService {
         where: { id: patchMemberRolesDto.user_id, role: UserRole.LOKAL_MEMBER }
       });
       if (user) {
-        this.logger.warn(`User with id ${patchMemberRolesDto.user_id} is a lokal member`);
+        this.logger.warn(`Failed to change member role. User with id ${patchMemberRolesDto.user_id} is a lokal member`);
         throw new BadRequestException('User is a lokal member, cannot change role');
       }
       // Check if member is admin
       const admin = await this.organizationMemberRepository.findOne({
         select: { id: true },
-        where: { user_id: patchMemberRolesDto.user_id, role: OrganizationMemberRole.ADMIN }
+        where: { user_id: patchMemberRolesDto.user_id, organization_id: organizationId, role: OrganizationMemberRole.ADMIN }
       });
       if (admin) {
-        this.logger.warn(`User with id ${patchMemberRolesDto.user_id} is an admin and cannot change role`);
+        this.logger.warn(`Failed to change member role. User with id ${patchMemberRolesDto.user_id} is an admin and cannot change role`);
         throw new BadRequestException('User is an admin and cannot change role');
       }
 
@@ -511,7 +511,7 @@ export class OrganizationsApiService {
         where: { user_id: patchMemberRolesDto.user_id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
       });
       if (!organizationMember) {
-        this.logger.warn(`User with id ${patchMemberRolesDto.user_id} is not a member of organization with id ${organizationId}`);
+        this.logger.warn(`Failed to change member role. User with id ${patchMemberRolesDto.user_id} is not a member of organization with id ${organizationId}`);
         throw new BadRequestException('User is not a member of this organization');
       }
 
@@ -520,7 +520,7 @@ export class OrganizationsApiService {
         { role: patchMemberRolesDto.new_role },
       );
 
-      this.logger.log(`Member roles changed successfully`);
+      this.logger.log(`Success to change member role`);
       return {
         message: 'Member roles changed successfully.',
       };
@@ -541,11 +541,11 @@ export class OrganizationsApiService {
         where: { user_id: userId, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
       });
       if (!organizationMember) {
-        this.logger.warn(`User with id ${userId} is not a member of organization with id ${organizationId}`);
+        this.logger.warn(`Failed to delete member. User with id ${userId} is not a member of organization with id ${organizationId}`);
         throw new BadRequestException('User is not a member of this organization');
       }
       if (organizationMember.role === OrganizationMemberRole.ADMIN) {
-        this.logger.warn(`User with id ${userId} is an admin and cannot be deleted`);
+        this.logger.warn(`Failed to delete member. User with id ${userId} is an admin and cannot be deleted`);
         throw new BadRequestException('User is an admin and cannot be deleted');
       }
 
@@ -568,7 +568,7 @@ export class OrganizationsApiService {
         await this.userNotificationRepository.save(userNotification);
       }
 
-      this.logger.log(`User with id: ${userId} deleted from organization with id: ${organizationId}`);
+      this.logger.log(`Success to delete member. User with id: ${userId} deleted from organization with id: ${organizationId}`);
       return {
         message: 'Delete member successfully.',
       };
@@ -586,7 +586,7 @@ export class OrganizationsApiService {
       // Check if user is lokal member
       const user = await this.userRepository.findOne({ select: { id: true }, where: { id, role: UserRole.LOKAL_MEMBER } });
       if (user) {
-        this.logger.warn(`User with id ${id} is a lokal member`);
+        this.logger.warn(`Failed to leave organization. User with id ${id} is a lokal member`);
         throw new BadRequestException('You are a lokal member, cannot leave organization');
       }
       // Check if user is a member of the organization and is not admin
@@ -595,11 +595,11 @@ export class OrganizationsApiService {
         where: { user_id: id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
       });
       if (!organizationMember) {
-        this.logger.warn(`User with id ${id} is not a member of organization with id ${organizationId}`);
+        this.logger.warn(`Failed to leave organization. User with id ${id} is not a member of organization with id ${organizationId}`);
         throw new BadRequestException('You are not a member of this organization or not accepted the organization');
       }
       if (organizationMember.role === OrganizationMemberRole.ADMIN) {
-        this.logger.warn(`User with id ${id} is an admin and cannot leave organization`);
+        this.logger.warn(`Failed to leave organization. User with id ${id} is an admin and cannot leave organization`);
         throw new BadRequestException('User is an admin and cannot leave organization');
       }
 
@@ -621,7 +621,7 @@ export class OrganizationsApiService {
       });
       await this.userNotificationRepository.save(adminNotification);
 
-      this.logger.log(`User with id: ${id} leave organization with id: ${organizationId}`);
+      this.logger.log(`Success to leave organization. User with id: ${id} leave organization with id: ${organizationId}`);
       return {
         message: 'Leave organization successfully.',
       };
@@ -649,7 +649,7 @@ export class OrganizationsApiService {
         .orWhere('creator.username ILIKE :keyword', { keyword: `%${keyword}%` })
         .getRawMany();
 
-      this.logger.log(`Successfully request to search organizations with keyword: ${keyword}`);
+      this.logger.log(`Success to search organizations. Successfully request to search organizations with keyword: ${keyword}`);
       return {
         message: 'List of organizations.',
         data: organizations,
@@ -686,7 +686,7 @@ export class OrganizationsApiService {
         .where('om.organization_id = :organizationId', { organizationId })
         .getRawMany();
 
-      this.logger.log(`Successfully request to get organization with id: ${organizationId}`);
+      this.logger.log(`Success to get organization by id. Successfully request to get organization with id: ${organizationId}`);
       return {
         message: 'Get organization successfully.',
         data: {
@@ -701,7 +701,7 @@ export class OrganizationsApiService {
         throw error;
       }
       this.logger.error(`Failed to get organization by id: ${organizationId}, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to get organization, please try another time');
+      throw new InternalServerErrorException('Failed to get organization by id, please try another time');
     }
   }
 }
