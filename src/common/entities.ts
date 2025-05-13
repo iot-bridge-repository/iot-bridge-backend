@@ -1,5 +1,4 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
-import { Length } from 'class-validator';
 
 export enum UserRole {
   ADMIN_SYSTEM = 'Admin System',
@@ -27,11 +26,7 @@ export class User {
   @Column({ type: 'text', nullable: true })
   profile_picture: string | null;
 
-  @Column({
-    type: 'enum',
-    enum: UserRole,
-    default: UserRole.REGULAR_USER,
-  })
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.REGULAR_USER, })
   role: UserRole;
 
   @Column({ type: 'boolean', default: false, nullable: false })
@@ -73,7 +68,7 @@ export class ResetPasswordToken {
   @Column({ type: 'varchar', unique: true, nullable: false })
   user_id: string;
 
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'varchar', unique: true, nullable: false })
   token: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
@@ -86,15 +81,12 @@ export class Organization {
   id: string;
 
   @Column({ type: 'varchar', length: 100, unique: true, nullable: false })
-  @Length(5, 100, { message: 'Name must be between 5 and 100 characters' })
   name: string;
 
   @Column({ type: 'text', nullable: true })
-  @Length(0, 1000)
   description: string | null;
 
   @Column({ type: 'text', nullable: true })
-  @Length(0, 500)
   location: string | null;
 
   @Column({ type: 'text', nullable: true })
@@ -166,15 +158,12 @@ export class UserNotification {
   user_id: string;
 
   @Column({ type: 'varchar', length: 100, nullable: false })
-  @Length(5, 100, { message: 'Subject must be between 5 and 100 characters' })
   subject: string;
 
   @Column({ type: 'text', nullable: false })
-  @Length(5, 1000, { message: 'Message must be between 5 and 1000 characters' })
   message: string;
 
   @Column({ type: 'varchar', length: 100, nullable: false })
-  @Length(5, 100, { message: 'Type must be between 5 and 100 characters' })
   type: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
@@ -189,8 +178,7 @@ export class Device {
   @Column({ type: 'varchar', unique: false, nullable: false })
   organization_id: string;
 
-  @Column({ type: 'varchar', length: 100, unique: false, nullable: false })
-  @Length(5, 100, { message: 'Name must be between 5 and 100 characters' })
+  @Column({ type: 'varchar', length: 100, nullable: false })
   name: string;
 
   @Column({ type: 'varchar', length: 36, unique: true, nullable: false })
@@ -208,23 +196,22 @@ export class WidgetBoxes {
   @Column({ type: 'varchar', unique: false, nullable: false })
   device_id: string;
 
-  @Column({ type: 'varchar', length: 100, unique: false, nullable: true })
-  @Length(2, 100, { message: 'Name must be between 2 and 100 characters' })
+  @Column({ type: 'varchar', length: 100, nullable: true })
   name: string;
 
-  @Column({ type: 'varchar', length: 20, unique: false, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true })
   pin: string;
 
-  @Column({ type: 'varchar', length: 20, unique: false, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true })
   unit: string;
 
-  @Column({ type: 'double precision', unique: false, nullable: true })
+  @Column({ type: 'double precision', nullable: true })
   min_value: string;
 
-  @Column({ type: 'double precision', unique: false, nullable: true })
+  @Column({ type: 'double precision', nullable: true })
   max_value: string;
 
-  @Column({ type: 'double precision', unique: false, nullable: true })
+  @Column({ type: 'double precision', nullable: true })
   default_value: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
@@ -239,10 +226,10 @@ export class DeviceData {
   @Column({ type: 'varchar', unique: false, nullable: false })
   device_id: string;
 
-  @Column({ type: 'varchar', length: 20, unique: false, nullable: false })
+  @Column({ type: 'varchar', length: 20, nullable: false })
   pin: string;
 
-  @Column({ type: 'double precision', unique: false, nullable: false })
+  @Column({ type: 'double precision', nullable: false })
   value: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
@@ -266,21 +253,19 @@ export class NotificationEvents {
   @Column({ type: 'varchar', unique: false, nullable: false })
   device_id: string;
 
-  @Column({ type: 'varchar', length: 20, unique: false, nullable: false })
+  @Column({ type: 'varchar', length: 20, nullable: false })
   pin: string;
 
   @Column({ type: 'varchar', length: 100, nullable: false })
-  @Length(5, 100, { message: 'Subject must be between 5 and 100 characters' })
   subject: string;
 
   @Column({ type: 'text', nullable: false })
-  @Length(5, 1000, { message: 'Message must be between 5 and 1000 characters' })
   message: string;
 
   @Column({ type: 'enum', enum: ComparisonType, default: ComparisonType.EQUAL, nullable: false })
   comparison_type: ComparisonType;
 
-  @Column({ type: 'double precision', unique: false, nullable: false })
+  @Column({ type: 'double precision', nullable: false })
   threshold_value: string;
 
   @Column({ type: 'boolean', default: false, nullable: false })

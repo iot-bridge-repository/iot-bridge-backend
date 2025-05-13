@@ -17,6 +17,7 @@ export class CreateNotificationEventsTable1746893411053 implements MigrationInte
           {
             name: 'device_id',
             type: 'varchar',
+            isUnique: false,
             isNullable: false,
           },
           {

@@ -19,7 +19,6 @@ export class AuthApiController {
 
   @ApiOperation({ summary: 'Register' })
   @ApiOkResponse({
-    description: 'User get email verification link',
     schema: {
       example: {
         message: "Check your email and spam folder for a link to verify your account.",
@@ -34,7 +33,6 @@ export class AuthApiController {
 
   @ApiOperation({ summary: 'Verify email' })
   @ApiOkResponse({
-    description: 'Returns an HTML page confirming successful email verification',
     content: {
       'text/html': {
         example: `
@@ -69,7 +67,6 @@ export class AuthApiController {
 
   @ApiOperation({ summary: 'Login' })
   @ApiOkResponse({ 
-    description: 'User logged in successfully', 
     schema: { 
       example: { 
         message: 'User logged in successfully.', 
@@ -91,7 +88,6 @@ export class AuthApiController {
 
   @ApiOperation({ summary: 'Forgot password email' })
   @ApiOkResponse({
-    description: 'Forgot password request sent successfully',
     schema: {
       example: {
         message: 'Check your email and spam folder for a link to reset your password.',
@@ -107,7 +103,6 @@ export class AuthApiController {
   @ApiOperation({ summary: 'Reset password page' })
   @ApiParam({ name: 'token', type: String, description: 'The reset password token' })
   @ApiOkResponse({
-    description: 'Returns an HTML page for resetting the password',
     content: {
       'text/html': {
         example: `
@@ -152,7 +147,6 @@ export class AuthApiController {
 
   @ApiOperation({ summary: 'Reset password form' })
   @ApiOkResponse({
-    description: 'Returns an HTML page confirming successful reset of the password',
     content: {
       'text/html': {
         example:`
@@ -182,7 +176,6 @@ export class AuthApiController {
   @ApiOperation({ summary: 'Get profile' })
   @ApiBearerAuth()
   @ApiOkResponse({
-    description: 'User profile retrieved successfully',
     schema: {
       example: {
         message: 'User profile retrieved successfully.',
@@ -220,7 +213,6 @@ export class AuthApiController {
     },
   })
   @ApiOkResponse({
-    description: 'Profile updated successfully',
     schema: {
       example: {
         message: 'Profile updated successfully.',
@@ -250,7 +242,6 @@ export class AuthApiController {
   @ApiOperation({ summary: 'Change email' })
   @ApiBearerAuth()
   @ApiOkResponse({
-    description: 'Successfully sent email verification link',
     schema: {
       example: {
         message: 'Check your email and spam folder for a link to verify your account.',
@@ -268,7 +259,6 @@ export class AuthApiController {
   @ApiOperation({ summary: 'Change password' })
   @ApiBearerAuth()
   @ApiOkResponse({
-    description: 'Password changed successfully',
     schema: {
       example: {
         message: 'Password changed successfully.',

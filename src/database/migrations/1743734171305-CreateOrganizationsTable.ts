@@ -25,6 +25,11 @@ export class CreateOrganizationsTable1743734171305 implements MigrationInterface
             isNullable: true,
           },
           {
+            name: 'location',
+            type: 'text',
+            isNullable: true,
+          },
+          {
             name: 'organization_picture',
             type: 'text',
             isNullable: true,
@@ -40,11 +45,6 @@ export class CreateOrganizationsTable1743734171305 implements MigrationInterface
             type: 'varchar',
             isUnique: false,
             isNullable: false,
-          },
-          {
-            name: 'location',
-            type: 'text',
-            isNullable: true,
           },
           {
             name: 'created_at',

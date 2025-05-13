@@ -17,7 +17,7 @@ export class EmailService {
   }
 
   async sendEmail(to: string, subject: string, text: string, html: string) {
-    this.logger.log(`Sending email to ${to} with subject "${subject}"`);
+    this.logger.log(`Email service: Sending email to ${to} with subject "${subject}"`);
     await this.transporter.sendMail({
       from: `IoT Bridge Aplication <${this.configService.get<string>('EMAIL_SERVICE_ADDRESS')}>`,
       to,

@@ -28,7 +28,7 @@ export class PostRegisterDto {
 }
 
 export class PostLoginDto {
-  @ApiProperty({ example: 'username or email or number phone', description: 'Can be email, phone number or username' })
+  @ApiProperty({ example: 'username or user@example.com or 08xxxxxxxx', description: 'Can be email, phone number or username' })
   @IsNotEmpty({ message: 'Identity cannot be empty' })
   @IsString({ message: 'Identity must be a string' })
   identity: string;
@@ -55,22 +55,22 @@ export class PostResetPasswordDto{
 
   @ApiProperty({ example: 'newPassword123!', description: 'New password' })
   @IsNotEmpty({ message: 'New password cannot be empty' })
-  @Length(6, 20, { message: 'New password must be between 6 and 20 characters' })
   @IsString({ message: 'New password must be a string' })
+  @Length(6, 20, { message: 'New password must be between 6 and 20 characters' })
   new_password: string;
 }
 
 export class PatchProfileDto {
   @ApiProperty({ example: 'username', description: 'User username' })
   @IsNotEmpty({ message: 'Username cannot be empty' })
-  @Length(3, 20, { message: 'Username must be between 3 and 20 characters' })
   @IsString({ message: 'Username must be a string' })
+  @Length(3, 20, { message: 'Username must be between 3 and 20 characters' })
   username: string;
 
   @ApiProperty({ example: '08xxxxxxxx', description: 'User phone number' })
   @IsNotEmpty({ message: 'Phone number cannot be empty' })
-  @Length(10, 15, { message: 'Phone number must be between 10 and 15 characters' })
   @IsPhoneNumber('ID', { message: 'Phone number is not valid' })
+  @Length(10, 15, { message: 'Phone number must be between 10 and 15 characters' })
   phone_number: string;
 }
 
@@ -89,7 +89,7 @@ export class PatchPasswordDto {
 
   @ApiProperty({ example: 'NewPassword123!', description: 'New password' })
   @IsNotEmpty({ message: 'New password cannot be empty' })
-  @Length(6, 20, { message: 'New password must be between 6 and 20 characters' })
   @IsString({ message: 'New password must be a string' })
+  @Length(6, 20, { message: 'New password must be between 6 and 20 characters' })
   new_password: string;
 }

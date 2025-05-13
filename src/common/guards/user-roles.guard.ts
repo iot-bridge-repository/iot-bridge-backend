@@ -32,12 +32,12 @@ export class UserRolesGuard implements CanActivate {
       const roleHierarchy = [UserRole.ADMIN_SYSTEM, UserRole.REGULAR_USER, UserRole.LOKAL_MEMBER];
       const hasAccess = [requiredRole].some(requiredRole => roleHierarchy.indexOf(role) <= roleHierarchy.indexOf(requiredRole));
       if (!hasAccess) {
-        this.logger.warn(`User with role ${role} tried to access ${context.getHandler().name} without sufficient permissions`);
+        this.logger.warn(`User roles guard: User with role ${role} tried to access ${context.getHandler().name} without sufficient permissions`);
         throw new UnauthorizedException('Insufficient role permissions');
       }
       return true;
     } catch (error) {
-      this.logger.warn(`Authentication failed: ${error}`);
+      this.logger.warn(`User roles guard: Authentication failed: ${error}`);
 
       if (error instanceof HttpException || error?.status || error?.response) throw error;
       if (error.name === 'TokenExpiredError') throw new UnauthorizedException('Token expired');

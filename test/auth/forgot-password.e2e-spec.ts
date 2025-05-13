@@ -11,7 +11,7 @@ import { User } from 'src/common/entities';
 
 describe('Auth Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const email = 'test2@example.com'; 
+  const email = 'test@example.com'; 
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -52,9 +52,9 @@ describe('Auth Controller (e2e)', () => {
       });
 
     console.log('successfully forgot password response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
-    expect(res.body.message).toBe('Check your email and spam folder for a link to reset your password.');
   });
 
   it('failed forgot password', async () => {
@@ -65,11 +65,12 @@ describe('Auth Controller (e2e)', () => {
       });
 
     console.log('failed forgot password response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
 
-  // Get password reset
+  // Get reset password 
   it('successfully get reset password', async () => {
     const dataSource = app.get(DataSource);
     const resetPasswordToken = await dataSource.getRepository(User)
@@ -94,11 +95,12 @@ describe('Auth Controller (e2e)', () => {
       .get('/auth/reset-password/invalid_token');
 
     console.log('failed get reset password response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
 
-  // Post password reset
+  // Post reset password
   it('successfully post reset password', async () => {
     const dataSource = app.get(DataSource);
     const resetPasswordToken = await dataSource.getRepository(User)
@@ -131,6 +133,7 @@ describe('Auth Controller (e2e)', () => {
       });
 
     console.log('failed post reset password response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });

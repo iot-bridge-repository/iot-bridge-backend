@@ -17,6 +17,7 @@ export class CreateUserNotificationsTable1745631841660 implements MigrationInter
           {
             name: 'user_id',
             type: 'varchar',
+            isUnique: false,
             isNullable: false,
           },
           {

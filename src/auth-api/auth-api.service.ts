@@ -39,23 +39,23 @@ export class AuthApiService {
 
     if (existingUser) {
       if (existingUser.username === postRegisterDto.username) {
-        this.logger.warn(`Username already exists: ${postRegisterDto.username}`);
+        this.logger.warn(`Failed to register. Username already exists: ${postRegisterDto.username}`);
         throw new BadRequestException('Username already exists');
       }
       if (existingUser.phone_number === postRegisterDto.phone_number) {
-        this.logger.warn(`Phone number already exists: ${postRegisterDto.phone_number}`);
+        this.logger.warn(`Failed to register. Phone number already exists: ${postRegisterDto.phone_number}`);
         throw new BadRequestException('Phone number already exists');
       }
       if (existingUser.email === postRegisterDto.email) {
         if (existingUser.is_email_verified) {
-          this.logger.warn(`Email already exists: ${postRegisterDto.email}`);
+          this.logger.warn(`Failed to register. Email already exists: ${postRegisterDto.email}`);
           throw new BadRequestException('Email already exists');
         }
         const now = new Date();
         const expiredAt = new Date(existingUser.created_at);
         expiredAt.setHours(expiredAt.getHours() + 24);
         if (now < expiredAt) {
-          this.logger.warn(`Email has been registered but not verified: ${postRegisterDto.email}`);
+          this.logger.warn(`Failed to register. Email has been registered but not verified: ${postRegisterDto.email}`);
           throw new BadRequestException('Email has been registered but not verified. Please check your email and spam folder for the verification link.');
         }
         await this.verifyEmailTokenRepository.delete({ email: existingUser.email });
@@ -75,7 +75,7 @@ export class AuthApiService {
       const expiredAt = new Date(existingVerifyEmailToken.created_at);
       expiredAt.setHours(expiredAt.getHours() + 24);
       if (now < expiredAt) {
-        this.logger.warn(`Email has been registered but not verified: ${email}`);
+        this.logger.warn(`Failed to register. Email has been registered but not verified: ${email}`);
         throw new BadRequestException('Email has been registered but not verified. Please check your email and spam folder for the verification link.');
       }
       await this.verifyEmailTokenRepository.delete({ email: existingVerifyEmailToken.email });
@@ -148,7 +148,7 @@ export class AuthApiService {
         `
       );
 
-      this.logger.log(`User registered by email: ${postRegisterDto.email}`);
+      this.logger.log(`Success to register, by email: ${postRegisterDto.email}`);
       return {
         message: "Check your email and spam folder for a link to verify your account.",
       };
@@ -156,7 +156,7 @@ export class AuthApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to register by email: ${postRegisterDto.email}, Error: ${error.message}`);
+      this.logger.error(`Failed to register, by email: ${postRegisterDto.email}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to register, please try another time');
     }
   }
@@ -169,7 +169,7 @@ export class AuthApiService {
         where: { token: queryToken } 
       });
       if (!verifyEmailToken) {
-        this.logger.warn(`Verify email failed. Token not found: ${queryToken}`);
+        this.logger.warn(`Failed to verify email. Token not found: ${queryToken}`);
         throw new NotFoundException('Token not found');
       }
 
@@ -180,7 +180,7 @@ export class AuthApiService {
       });
       if (!user) {
         await this.verifyEmailTokenRepository.delete({user_id: verifyEmailToken.user_id});
-        this.logger.warn(`User not found for verify email token: ${queryToken}`);
+        this.logger.warn(`Failed to verify email. User not found for verify email token: ${queryToken}`);
         throw new NotFoundException('User not found');
       }
 
@@ -194,7 +194,7 @@ export class AuthApiService {
         if (!user.is_email_verified) {
           await this.userRepository.delete(verifyEmailToken.user_id);
         }
-        this.logger.warn(`Email verification link expired for token: ${verifyEmailToken.token}`);
+        this.logger.warn(`Failed to verify email. Email verification link expired for token: ${verifyEmailToken.token}`);
         throw new BadRequestException('Email verification link expired');
       }
 
@@ -202,13 +202,13 @@ export class AuthApiService {
       await this.userRepository.update(verifyEmailToken.user_id, { email: verifyEmailToken.email, is_email_verified: true });
       await this.verifyEmailTokenRepository.delete({token: queryToken});
 
-      this.logger.log(`Email verified successfully for user with ID: ${verifyEmailToken.user_id}`);
+      this.logger.log(`Success to verify email, for user with ID: ${verifyEmailToken.user_id}`);
       return res.render('get-verify-email');
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to verify email by token: ${queryToken}, Error: ${error.message}`);
+      this.logger.error(`Failed to verify email, by token: ${queryToken}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to verify email, please try another time');
     }
   }
@@ -225,7 +225,7 @@ export class AuthApiService {
         ],
       });
       if (!user) {
-        this.logger.warn(`Login failed. User not found: ${postLoginDto.identity}`);
+        this.logger.warn(`Failed to login. User not found: ${postLoginDto.identity}`);
         throw new UnauthorizedException('Invalid identity');
       }
 
@@ -238,10 +238,10 @@ export class AuthApiService {
         if (now >= expiredAt) {
           await this.verifyEmailTokenRepository.delete({ user_id: user.id });
           await this.userRepository.delete(user.id);
-          this.logger.warn(`Email verification link expired for user ID: ${user.id}`);
+          this.logger.warn(`Failed to login. Email verification link expired for user ID: ${user.id}`);
           throw new BadRequestException('Email verification expired, please register again');
         }
-        this.logger.warn(`Login failed. Email not verified for identity: ${postLoginDto.identity}`);
+        this.logger.warn(`Failed to login. Email not verified for identity: ${postLoginDto.identity}`);
         const timeRemaining = Math.ceil((expiredAt.getTime() - now.getTime()) / 1000 / 60); // dalam menit
         throw new UnauthorizedException(`Email not verified yet. Please verify your email within ${timeRemaining} minutes`);
       }
@@ -249,7 +249,7 @@ export class AuthApiService {
       // Check if the password is valid
       const isPasswordValid = await bcrypt.compare(postLoginDto.password, user.password);
       if (!isPasswordValid) {
-        this.logger.warn(`Login failed. Invalid password for: ${postLoginDto.identity}`);
+        this.logger.warn(`Failed to login. Invalid password for: ${postLoginDto.identity}`);
         throw new UnauthorizedException('Invalid password');
       }
 
@@ -272,7 +272,7 @@ export class AuthApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to login by identity: ${postLoginDto.identity}, Error: ${error.message}`);
+      this.logger.error(`Failed to login, by identity: ${postLoginDto.identity}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to login, please try another time');
     }
   }
@@ -285,7 +285,7 @@ export class AuthApiService {
         where: { email: postForgotPasswordDto.email } 
       });
       if (!user?.email) {
-        this.logger.warn(`Email not found or does not match: ${postForgotPasswordDto.email}`);
+        this.logger.warn(`Failed to forgot password. Email not found or does not match: ${postForgotPasswordDto.email}`);
         throw new NotFoundException('Email not found');
       }
 
@@ -297,10 +297,10 @@ export class AuthApiService {
         if (now >= expiredAt) {
           await this.verifyEmailTokenRepository.delete({ email: user.email });
           await this.userRepository.delete({ email: user.email });
-          this.logger.warn(`Email verification link expired for user with email: ${user.email}`);
+          this.logger.warn(`Failed to forgot password. Email verification link expired for user with email: ${user.email}`);
           throw new BadRequestException('Email verification expired, please register again');
         }
-        this.logger.warn(`Password reset failed. Email not verified for: ${postForgotPasswordDto.email}`);
+        this.logger.warn(`Failed to forgot password. Email not verified for: ${postForgotPasswordDto.email}`);
         const timeRemaining = Math.ceil((expiredAt.getTime() - now.getTime()) / 1000 / 60); // dalam menit
         throw new UnauthorizedException(`Email not verified yet. Please verify your email first, within ${timeRemaining} minutes`);
       }
@@ -357,14 +357,14 @@ export class AuthApiService {
         `
       );
 
-      this.logger.log(`Reset password sent to email: ${postForgotPasswordDto.email}`);
+      this.logger.log(`Success to forgot password, sent to email: ${postForgotPasswordDto.email}`);
       return { message: 'Check your email and spam folder for a link to reset your password.' };
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to send email forgot password by email: ${postForgotPasswordDto.email}, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed to send email forgot password, please try another time');
+      this.logger.error(`Failed to forgot password, by email: ${postForgotPasswordDto.email}, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to forgot password, please try another time');
     }
   }
 
@@ -376,7 +376,7 @@ export class AuthApiService {
         where: { token: token }
       });
       if (!resetPasswordToken) {
-        this.logger.warn(`Reset password failed. Token not found: ${token}`);
+        this.logger.warn(`Failed to get reset password. Token not found: ${token}`);
         throw new BadRequestException('Token is invalid');
       }
       const now = new Date();
@@ -384,18 +384,18 @@ export class AuthApiService {
       expiredAt.setHours(expiredAt.getHours() + 1);
       if (now >= expiredAt) {
         await this.resetPasswordTokenRepository.delete(resetPasswordToken.id);
-        this.logger.warn(`Reset password link expired for token: ${token}`);
+        this.logger.warn(`Failed to get reset password. Reset password link expired for token: ${token}`);
         throw new BadRequestException('Reset password link expired, please try again');
       }
 
-      this.logger.log(`Reset password page for user ID: ${resetPasswordToken.user_id}`);
+      this.logger.log(`Success to get reset password page, for user ID: ${resetPasswordToken.user_id}`);
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       return res.render('get-reset-password', {baseUrl, token})
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to get reset password by token: ${token}, Error: ${error.message}`);
+      this.logger.error(`Failed to get reset password, by token: ${token}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to get reset password, please try another time');
     }
   }
@@ -408,7 +408,7 @@ export class AuthApiService {
         where: { token: postResetPasswordDto.token } 
       });
       if (!resetPasswordToken) {
-        this.logger.warn(`Reset password failed. Token not found: ${postResetPasswordDto.token}`);
+        this.logger.warn(`Failed to reset password. Token not found: ${postResetPasswordDto.token}`);
         throw new NotFoundException('Token not found');
       }
       const now = new Date();
@@ -416,7 +416,7 @@ export class AuthApiService {
       expiredAt.setHours(expiredAt.getHours() + 1);
       if (now >= expiredAt) {
         await this.resetPasswordTokenRepository.delete(resetPasswordToken.id);
-        this.logger.warn(`Reset password link expired for token: ${postResetPasswordDto.token}`);
+        this.logger.warn(`Failed to reset password. Reset password link expired for token: ${postResetPasswordDto.token}`);
         throw new BadRequestException('Reset password link expired, please try again');
       }
 
@@ -427,7 +427,7 @@ export class AuthApiService {
       });
       if (!user) {
         await this.resetPasswordTokenRepository.delete(resetPasswordToken.id);
-        this.logger.error(`User not found for reset password token: ${postResetPasswordDto.token}`);
+        this.logger.error(`Failed to reset password. User not found for reset password token: ${postResetPasswordDto.token}`);
         throw new NotFoundException('User not found');
       }
 
@@ -439,13 +439,13 @@ export class AuthApiService {
       // Delete the reset password token
       await this.resetPasswordTokenRepository.delete(resetPasswordToken.id);
 
-      this.logger.log(`Successfully reset password, by ID: ${resetPasswordToken.user_id}`);
+      this.logger.log(`Success to reset password, by ID: ${resetPasswordToken.user_id}`);
       return res.render('post-reset-password')
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to reset password by token: ${postResetPasswordDto.token}, Error: ${error}`);
+      this.logger.error(`Failed to reset password, by token: ${postResetPasswordDto.token}, Error: ${error}`);
       throw new InternalServerErrorException('Failed to reset password, please try another time');
     }
   }
@@ -458,11 +458,11 @@ export class AuthApiService {
         where: { id }
       });
       if (!user) {
-        this.logger.warn(`User not found by id: ${id}`);
+        this.logger.warn(`Failed to get profile. User not found by id: ${id}`);
         throw new UnauthorizedException('User not found');
       }
 
-      this.logger.log(`User profile retrieved by id: ${id}`);
+      this.logger.log(`Success to get profile, by id: ${id}`);
       return {
         message : "User profile retrieved successfully",
         data: { 
@@ -480,7 +480,7 @@ export class AuthApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed to login by id: ${id}, Error: ${error.message}`);
+      this.logger.error(`Failed to get profile, by id: ${id}, Error: ${error.message}`);
       throw new InternalServerErrorException('Failed to get profile, please try another time');
     }
   }
@@ -493,7 +493,7 @@ export class AuthApiService {
         where: { id }
       });
       if (!user) {
-        this.logger.warn(`User not found by id: ${id}`);
+        this.logger.warn(`Failed to update profile. User not found by id: ${id}`);
         throw new UnauthorizedException('User not found');
       }
 
@@ -501,7 +501,7 @@ export class AuthApiService {
       const checkDuplicate = async (field: keyof User, value: string, fieldName: string) => {
         const existing = await this.userRepository.findOne({ where: { [field]: value } });
         if (existing && existing.id !== id) {
-          this.logger.warn(`${fieldName} already exists: ${value}`);
+          this.logger.warn(`Failed to update profile. ${fieldName} already exists: ${value}`);
           throw new BadRequestException(`${fieldName} already exists`);
         }
       };
@@ -534,7 +534,7 @@ export class AuthApiService {
       // Update the user profile
       await this.userRepository.update(id, updateDataProfile);
 
-      this.logger.log(`User profile updated by id: ${id}`);
+      this.logger.log(`Success to update profile by id: ${id}`);
       return {
         message: 'Profile updated successfully.',
         data: {
@@ -566,7 +566,7 @@ export class AuthApiService {
         where: { id }
       });
       if (!user) {
-        this.logger.error(`User not found by id: ${id}`);
+        this.logger.error(`Failed to change email. User not found by id: ${id}`);
         throw new UnauthorizedException('User not found');
       }
 
@@ -576,7 +576,7 @@ export class AuthApiService {
         where: { email: patchChangeEmailDto.new_email }
       });
       if (existingEmail) {
-        this.logger.warn(`Email already exists: ${patchChangeEmailDto.new_email}`);
+        this.logger.warn(`Failed to change email. Email already exists: ${patchChangeEmailDto.new_email}`);
         throw new BadRequestException('Email already exists');
       }
 
@@ -589,7 +589,7 @@ export class AuthApiService {
         ],
       });
       if (existingVerifyEmailToken?.email === patchChangeEmailDto.new_email) {
-        this.logger.warn(`Email already exists: ${patchChangeEmailDto.new_email}`);
+        this.logger.warn(`Failed to change email. Email already exists: ${patchChangeEmailDto.new_email}`);
         throw new BadRequestException('Email already exists, but not verified');
       }
       if (existingVerifyEmailToken?.user_id === user.id) {
@@ -640,7 +640,7 @@ export class AuthApiService {
         `
       );
 
-      this.logger.log(`User changed email by id: ${id}`);
+      this.logger.log(`Success to changed email by id: ${id}`);
       return {
         message: "Check your email and spam folder for a link to verify your new email.",
       };
@@ -661,7 +661,7 @@ export class AuthApiService {
         where: { id }
       });
       if (!user) {
-        this.logger.warn(`User not found by id: ${id}`);
+        this.logger.warn(`Failed to change password. User not found by id: ${id}`);
         throw new UnauthorizedException('User not found');
       }
 
@@ -670,7 +670,7 @@ export class AuthApiService {
       // Check if the old password is valid
       const isPasswordValid = await bcrypt.compare(old_password, user.password);
       if (!isPasswordValid) {
-        this.logger.warn(`Incorrect old password by id: ${id}`);
+        this.logger.warn(`Failed to change password. Incorrect old password by id: ${id}`);
         throw new BadRequestException('Incorrect old password');
       }
 
@@ -679,7 +679,7 @@ export class AuthApiService {
       const hashedPassword = await bcrypt.hash(new_password, salt);
       await this.userRepository.update(id, { password: hashedPassword });
 
-      this.logger.log(`Password changed by id: ${id}`);
+      this.logger.log(`Success to change password by id: ${id}`);
       return {
         message: 'Password changed successfully.',
       };

@@ -7,7 +7,7 @@ export async function checkToken(request: Request, jwtService: JwtService, logge
   // Get token from Authorization header
   const authHeader = request.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
-    logger.warn('Token not provided');
+    logger.warn('Guard: Token not provided');
     throw new UnauthorizedException('Token not provided');
   }
   const token = authHeader.split(' ')[1];

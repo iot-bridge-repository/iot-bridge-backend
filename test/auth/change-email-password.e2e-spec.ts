@@ -11,7 +11,7 @@ import { VerifyEmailToken } from 'src/common/entities';
 
 describe('Auth Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4NjVkMDhhLTEyNmMtNDQ4Mi05YTU2LTBkY2Q0ODQyMWY2MyIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDY1MDEzNTR9.2N8RHoejnxr6JI1c9SQhQm2oEl8mYuu6fuQCjVptTo4';
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZWEzMzhkLTJkMDYtNGFhYy04MmMwLTE0ZDU1OThhZTgyZiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcwOTQ2NTF9.z1IlqHFIVPh0cfnzfQyHpuVfPZcbWr_ttM9fjZr9YBw';
   const email = 'test2@example.com';
 
   beforeAll(async () => {
@@ -54,6 +54,7 @@ describe('Auth Controller (e2e)', () => {
       })
 
     console.log('successfully change email response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -67,6 +68,7 @@ describe('Auth Controller (e2e)', () => {
       })
 
     console.log('failed change email response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
@@ -99,6 +101,7 @@ describe('Auth Controller (e2e)', () => {
       })
 
     console.log('successfully change password response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
@@ -113,8 +116,8 @@ describe('Auth Controller (e2e)', () => {
       })
 
     console.log('failed change password response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
-
 });

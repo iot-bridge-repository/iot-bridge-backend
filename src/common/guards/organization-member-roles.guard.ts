@@ -31,7 +31,7 @@ export class OrganizationMemberRolesGuard implements CanActivate {
       // Get organization id from params
       const organizationId = request.params.organizationId;
       if (!organizationId) {
-        this.logger.warn('Organization ID not provided');
+        this.logger.warn('Organization member roles guard: Organization ID not provided');
         throw new ForbiddenException('Organization ID not provided');
       }
 
@@ -41,11 +41,11 @@ export class OrganizationMemberRolesGuard implements CanActivate {
         where: { id: organizationId }
       });
       if (!organization) {
-        this.logger.warn(`Organization with id ${organizationId} does not exist`);
+        this.logger.warn(`Organization member roles guard: Organization with id ${organizationId} does not exist`);
         throw new ForbiddenException('Organization does not exist');
       }
       if (!organization.is_verified) {
-        this.logger.warn(`Organization with id ${organizationId} is not verified`);
+        this.logger.warn(`Organization member roles guard: Organization with id ${organizationId} is not verified`);
         throw new ForbiddenException('Organization is not verified');
       }
 
@@ -60,7 +60,7 @@ export class OrganizationMemberRolesGuard implements CanActivate {
         },
       });
       if (!memberOrganization) {
-        this.logger.warn(`User with id ${id} is not part of the organization with id ${organizationId}`);
+        this.logger.warn(`Organization member roles guard: User with id ${id} is not part of the organization with id ${organizationId}`);
         throw new ForbiddenException('User not part of organization');
       }
 
@@ -68,12 +68,12 @@ export class OrganizationMemberRolesGuard implements CanActivate {
       const roleHierarchy = [OrganizationMemberRole.ADMIN, OrganizationMemberRole.OPERATOR, OrganizationMemberRole.VIEWER];
       const hasAccess = [requiredRole].some(requiredRole => roleHierarchy.indexOf(memberOrganization.role) <= roleHierarchy.indexOf(requiredRole));
       if (!hasAccess) {
-        this.logger.warn(`User with role ${memberOrganization.role} tried to access ${context.getHandler().name} without sufficient permissions`);
+        this.logger.warn(`Organization member roles guard: User with role ${memberOrganization.role} tried to access ${context.getHandler().name} without sufficient permissions`);
         throw new ForbiddenException('Insufficient role permissions');
       }
       return true;
     } catch (error) {
-      this.logger.warn(`Authentication failed: ${error}`);
+      this.logger.warn(`Organization member roles guard: Authentication failed: ${error}`);
 
       if (error instanceof HttpException || error?.status || error?.response) throw error;
       if (error.name === 'TokenExpiredError') throw new UnauthorizedException('Token expired');

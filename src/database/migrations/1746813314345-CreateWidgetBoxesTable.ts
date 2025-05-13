@@ -17,6 +17,7 @@ export class CreateWidgetBoxesTable1746813314345 implements MigrationInterface {
           {
             name: 'device_id',
             type: 'varchar',
+            isUnique: false,
             isNullable: false,
           },
           {

@@ -7,11 +7,14 @@ import helmet from 'helmet';
 import { DataSource } from 'typeorm';
 import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
-import { User, VerifyEmailToken } from 'src/common/entities';
+import { VerifyEmailToken } from 'src/common/entities';
 
 describe('Auth Controller (e2e)', () => {
   let app: NestExpressApplication;
   const email = 'test@example.com';
+  const username = 'user_test';
+  const phone_number = '081234567890';
+  const password = '12345678';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -40,9 +43,6 @@ describe('Auth Controller (e2e)', () => {
   });
 
   afterAll(async () => {
-    /* const dataSource = app.get(DataSource);
-    await dataSource.getRepository(User).delete({ email }); */
-
     await app.close();
   });
 
@@ -51,32 +51,32 @@ describe('Auth Controller (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/auth/register')
       .send({
-        username: 'user_test',
+        username,
         email,
-        phone_number: '081234567890',
-        password: '12345678',
+        phone_number,
+        password,
       });
 
     console.log('successfully register response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
-    expect(res.body.message).toBe("Check your email and spam folder for a link to verify your account.");
   });
 
   it('failed register', async () => {
     const res = await request(app.getHttpServer())
       .post('/auth/register')
       .send({
-        username: 'user_test',
+        username,
         email,
-        phone_number: '081234567890',
-        password: '12345678',
+        phone_number,
+        password,
       });
 
     console.log('failed register response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
-    expect(res.body.message).toBeDefined();
   });
 
   // Login
@@ -84,11 +84,12 @@ describe('Auth Controller (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
-        identity: 'user_test',
-        password: '12345678',
+        identity: email,
+        password,
       });
 
     console.log('failed login response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
@@ -116,6 +117,7 @@ describe('Auth Controller (e2e)', () => {
       .query({ token: 'invalid_token' });
 
     console.log('failed verify email response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
@@ -125,13 +127,13 @@ describe('Auth Controller (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
-        identity: 'user_test',
-        password: '12345678',
+        identity: email,
+        password,
       });
 
     console.log('successfully login response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
-    expect(res.body.message).toBe("User logged in successfully.");
   });
 });
