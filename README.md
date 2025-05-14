@@ -96,7 +96,7 @@ JWT_SECRET=your_jwt_secret_key
 NODE_ENV=development  # Use "development" or "production"
 
 # ✉️ Email Configuration
-EMAIL_SERVICE_USER=your-email@gmail.com
+EMAIL_SERVICE_ADDRESS=your-email@gmail.com
 EMAIL_SERVICE_PASSWORD=your-app-password  # Use an App Password from Gmail
 ```
 
