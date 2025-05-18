@@ -4,15 +4,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as request from 'supertest';
 import helmet from 'helmet';
-import { DataSource } from 'typeorm';
 import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
-import { VerifyEmailToken } from 'src/common/entities';
 
 describe('Auth Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZWEzMzhkLTJkMDYtNGFhYy04MmMwLTE0ZDU1OThhZTgyZiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcwOTQ2NTF9.z1IlqHFIVPh0cfnzfQyHpuVfPZcbWr_ttM9fjZr9YBw';
-  const email = 'test2@example.com';
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ1MjQzYWM2LWFiMWItNDk4Yi04NDJmLWI1ZGZiODM0OTIzNiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDc1NTI2NTZ9.f-UwNUVTnw2c2K9sv7K12wrobhIYqvmCeSNqw_MaQsk';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -44,78 +41,54 @@ describe('Auth Controller (e2e)', () => {
     await app.close();
   });
 
-  // Change email 
-  it('successfully change email', async () => {
+  // Get profile
+  it.only('successfully get profile', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/auth/email')
+      .get('/auth/profile')
       .set('Authorization', `Bearer ${token}`)
-      .send({
-        new_email: email,
-      })
 
-    console.log('successfully change email response:', res.body);
+    console.log('successfully get profile response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed change email', async () => {
+  it('failed get profile', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/auth/email')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        new_email: email,
-      })
+      .get('/auth/profile')
+      .set('Authorization', `Bearer invalid_token`)
 
-    console.log('failed change email response:', res.body);
+    console.log('failed get profile response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
 
-  // Verify email
-  it('successfully verify email', async () => {
-    const dataSource = app.get(DataSource);
-    const verifyEmailToken = await dataSource.getRepository(VerifyEmailToken).findOne({
-      select: { token: true },
-      where: { email },
-    });
-
+  // Update profile
+  it('successfully update profile', async () => {
     const res = await request(app.getHttpServer())
-      .get(`/auth/verify-email/`)
-      .query({ token: verifyEmailToken?.token });
-
-    console.log('successfully verify email response:', res.text);
-    expect(res.status).toBeGreaterThanOrEqual(200);
-    expect(res.status).toBeLessThan(300);
-  });
-
-  // Change password
-  it('successfully change password', async () => {
-    const res = await request(app.getHttpServer())
-      .patch('/auth/password')
+      .patch('/auth/profile')
       .set('Authorization', `Bearer ${token}`)
-      .send({
-        old_password: "12345678",
-        new_password: "12345678"
-      })
+      .field('username', 'userTest2.1') // field biasa
+      .field('phone_number', '081234567895') // field biasa
+      .attach('profile_picture', 'test/01-auth/1.jpeg');
 
-    console.log('successfully change password response:', res.body);
+    console.log('successfully update profile response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed change password', async () => {
+  it('failed update profile', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/auth/password')
+      .patch('/auth/profile')
       .set('Authorization', `Bearer ${token}`)
       .send({
-        old_password: "123456789",
-        new_password: "12345678"
+        username: 'Bill Valentinov',
+        phone_number: '081234567890',
       })
 
-    console.log('failed change password response:', res.body);
+    console.log('failed update profile response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);

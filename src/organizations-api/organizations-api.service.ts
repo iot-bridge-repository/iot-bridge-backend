@@ -675,6 +675,11 @@ export class OrganizationsApiService {
         ])
         .where('o.id = :organizationId', { organizationId })
         .getRawOne();
+      if (!organizations) {
+        this.logger.warn(`Failed to get organization by id. Organization with id ${organizationId} does not exist`);
+        throw new NotFoundException('Organization not found');
+      }
+
       const members = await this.organizationMemberRepository
         .createQueryBuilder('om')
         .leftJoin('users', 'user', 'om.user_id = user.id')

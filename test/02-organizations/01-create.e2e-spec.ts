@@ -11,8 +11,8 @@ import { Organization } from 'src/common/entities';
 
 describe('Organization Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const organizationName = "organization_test";
-  const regularUserToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZWEzMzhkLTJkMDYtNGFhYy04MmMwLTE0ZDU1OThhZTgyZiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcwOTQ2NTF9.z1IlqHFIVPh0cfnzfQyHpuVfPZcbWr_ttM9fjZr9YBw';
+  const organizationName = "organization_test2";
+  const regularUserToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ1MjQzYWM2LWFiMWItNDk4Yi04NDJmLWI1ZGZiODM0OTIzNiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDc1NTI2NTZ9.f-UwNUVTnw2c2K9sv7K12wrobhIYqvmCeSNqw_MaQsk';
   const adminSystemToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1NTVmNmI1LWM3MjQtNDVhNi04N2NmLTk1Nzg2ZWIyYTAyMCIsInJvbGUiOiJBZG1pbiBTeXN0ZW0iLCJpYXQiOjE3NDY1MTQ3MTl9.NdUZTygW-nirskKvKgd_OloX7I9BAFYh3o2sWGxNVGE'
 
   beforeAll(async () => {
@@ -86,6 +86,17 @@ describe('Organization Controller (e2e)', () => {
     expect(res.status).toBeLessThan(300);
   });
 
+  it('failed get search', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/organizations/search?keyword=')
+      .set('Authorization', `Bearer ${regularUserToken}`)
+
+    console.log('failed get search response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+  });
+
   // Patch verify
   it('successfully patch verify', async () => {
     const dataSource = app.get(DataSource);
@@ -122,7 +133,7 @@ describe('Organization Controller (e2e)', () => {
   });
 
   // Patch unverify
-  it('successfully patch unverify', async () => {
+  it.only('successfully patch unverify', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: {id: true},
@@ -142,7 +153,7 @@ describe('Organization Controller (e2e)', () => {
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed patch unverify', async () => {
+  it.only('failed patch unverify', async () => {
     const res = await request(app.getHttpServer())
       .patch('/organizations/unverify')
       .set('Authorization', `Bearer ${regularUserToken}`)

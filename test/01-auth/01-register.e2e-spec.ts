@@ -7,11 +7,14 @@ import helmet from 'helmet';
 import { DataSource } from 'typeorm';
 import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
-import { User } from 'src/common/entities';
+import { VerifyEmailToken } from 'src/common/entities';
 
 describe('Auth Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const email = 'test@example.com'; 
+  const email = 'userTest2@example.com';
+  const username = 'userTest2';
+  const phone_number = '081234567891';
+  const password = '12345678';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -43,98 +46,94 @@ describe('Auth Controller (e2e)', () => {
     await app.close();
   });
 
-  // Forgot Password
-  it('successfully forgot password', async () => {
+  // Register
+  it('successfully register', async () => {
     const res = await request(app.getHttpServer())
-      .post('/auth/forgot-password')
+      .post('/auth/register')
       .send({
+        username,
         email,
+        phone_number,
+        password,
       });
 
-    console.log('successfully forgot password response:', res.body);
+    console.log('successfully register response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed forgot password', async () => {
+  it('failed register', async () => {
     const res = await request(app.getHttpServer())
-      .post('/auth/forgot-password')
+      .post('/auth/register')
       .send({
-        email: 'test@example.co',
+        username,
+        email,
+        phone_number,
+        password,
       });
 
-    console.log('failed forgot password response:', res.body);
+    console.log('failed register response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
 
-  // Get reset password 
-  it('successfully get reset password', async () => {
+  // Login
+  it('failed login', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        identity: email,
+        password,
+      });
+
+    console.log('failed login response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+  });
+
+  // Verify email
+  it('successfully verify email', async () => {
     const dataSource = app.get(DataSource);
-    const resetPasswordToken = await dataSource.getRepository(User)
-      .createQueryBuilder('u')
-      .leftJoin('reset_password_tokens', 'prt', 'u.id = prt.user_id')
-      .select([
-        'prt.token AS token',
-      ])
-      .where('u.email = :email', { email })
-      .getRawOne();
+    const verifyEmailToken = await dataSource.getRepository(VerifyEmailToken).findOne({
+      select: {token: true},
+      where: { email }, 
+    });
 
     const res = await request(app.getHttpServer())
-      .get(`/auth/reset-password/${resetPasswordToken.token}`);
+      .get(`/auth/verify-email/`)
+      .query({ token: verifyEmailToken?.token });
 
-    console.log('successfully get reset password response:', res.text);
+    console.log('successfully verify email response:', res.body);
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed get reset password', async () => {
+  it('failed verify email', async () => {
     const res = await request(app.getHttpServer())
-      .get('/auth/reset-password/invalid_token');
+      .get('/auth/verify-email')
+      .query({ token: 'invalid_token' });
 
-    console.log('failed get reset password response:', res.body);
+    console.log('failed verify email response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
 
-  // Post reset password
-  it('successfully post reset password', async () => {
-    const dataSource = app.get(DataSource);
-    const resetPasswordToken = await dataSource.getRepository(User)
-      .createQueryBuilder('u')
-      .leftJoin('reset_password_tokens', 'prt', 'u.id = prt.user_id')
-      .select([
-        'prt.token AS token',
-      ])
-      .where('u.email = :email', { email })
-      .getRawOne();
-
+  // Login
+  it('successfully login', async () => {
     const res = await request(app.getHttpServer())
-      .post('/auth/reset-password')
-      .send({ 
-        token: resetPasswordToken?.token,
-        new_password: '12345678',
+      .post('/auth/login')
+      .send({
+        identity: email,
+        password,
       });
 
-    console.log('successfully post reset password response:', res.text);
+    console.log('successfully login response:', res.body);
+    expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
-  });
-
-  it('failed post reset password', async () => {
-    const res = await request(app.getHttpServer())
-      .post('/auth/reset-password')
-      .send({ 
-        token: 'invalid_token',
-        new_password: '12345678',
-      });
-
-    console.log('failed post reset password response:', res.body);
-    expect(res.body.message).toBeDefined();
-    expect(res.status).toBeGreaterThanOrEqual(400);
-    expect(res.status).toBeLessThan(500);
   });
 });

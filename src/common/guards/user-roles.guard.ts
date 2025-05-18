@@ -33,7 +33,7 @@ export class UserRolesGuard implements CanActivate {
       const hasAccess = [requiredRole].some(requiredRole => roleHierarchy.indexOf(role) <= roleHierarchy.indexOf(requiredRole));
       if (!hasAccess) {
         this.logger.warn(`User roles guard: User with role ${role} tried to access ${context.getHandler().name} without sufficient permissions`);
-        throw new UnauthorizedException('Insufficient role permissions');
+        throw new UnauthorizedException(`Insufficient role permissions, only user with minimum role ${requiredRole} can access this resource`);
       }
       return true;
     } catch (error) {

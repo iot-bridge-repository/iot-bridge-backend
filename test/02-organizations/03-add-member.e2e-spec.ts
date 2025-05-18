@@ -11,10 +11,10 @@ import { Organization } from 'src/common/entities';
 
 describe('Organization Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const organizationName = "organization_test";
-  const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZWEzMzhkLTJkMDYtNGFhYy04MmMwLTE0ZDU1OThhZTgyZiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcwOTQ2NTF9.z1IlqHFIVPh0cfnzfQyHpuVfPZcbWr_ttM9fjZr9YBw';
-  const memberOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRhNTBkZTU5LTFmNjctNDAwNy1hYjMzLTNkZThkMDg4MjViOSIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcxMDcwNDl9.XmmiIsWudyy8zlRTFjqS03KeCu-__GwKCjriaKn35WI';
-  const memberId = 'da50de59-1f67-4007-ab33-3de8d08825b9'
+  const organizationName = "organization_test2";
+  const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ1MjQzYWM2LWFiMWItNDk4Yi04NDJmLWI1ZGZiODM0OTIzNiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDc1NTI2NTZ9.f-UwNUVTnw2c2K9sv7K12wrobhIYqvmCeSNqw_MaQsk';
+  const memberId = '25d35595-fd8c-4f3f-ad93-023a7c799bd4'
+  const memberOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjI1ZDM1NTk1LWZkOGMtNGYzZi1hZDkzLTAyM2E3Yzc5OWJkNCIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDc1NTYyMDR9.6CqphO9VNASFn_GW55FQxogQh-E_Fx8926sWadootFY';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -46,8 +46,8 @@ describe('Organization Controller (e2e)', () => {
     await app.close();
   });
 
-  // Get member list
-  it('successfully member list', async () => {
+  // Post member invitation
+  it('successfully post member invitation', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -55,60 +55,34 @@ describe('Organization Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .get(`/organizations/${organization?.id}/member-list`)
+      .post(`/organizations/${organization?.id}/member-invitation`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
+      .send({
+        user_id: memberId,
+      })
 
-    console.log('successfully member list response:', res.body);
+    console.log('successfully post member invitation response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  // Patch change member roles
-  it('successfully patch change member roles', async () => {
-    const dataSource = app.get(DataSource);
-    const organization = await dataSource.getRepository(Organization).findOne({
-      select: { id: true },
-      where: { name: organizationName },
-    });
-
+  it('failed post member invitation', async () => {
     const res = await request(app.getHttpServer())
-      .patch(`/organizations/${organization?.id}/member-roles`)
+      .post(`/organizations/invalid_organization_id/member-invitation`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
       .send({
         user_id: memberId,
-        new_role: "Operator"
       })
 
-    console.log('successfully patch change member roles response:', res.body);
-    expect(res.body.message).toBeDefined();
-    expect(res.status).toBeGreaterThanOrEqual(200);
-    expect(res.status).toBeLessThan(300);
-  });
-
-  it('failed patch change member roles', async () => {
-    const dataSource = app.get(DataSource);
-    const organization = await dataSource.getRepository(Organization).findOne({
-      select: { id: true },
-      where: { name: organizationName },
-    });
-
-    const res = await request(app.getHttpServer())
-      .patch(`/organizations/${organization?.id}/member-roles`)
-      .set('Authorization', `Bearer ${memberOrganizationToken}`)
-      .send({
-        user_id: memberId,
-        new_role: "Operator"
-      })
-
-    console.log('failed patch change member roles response:', res.body);
+    console.log('failed post member invitation response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
 
-  // Delete member
-  it('successfully delete member', async () => {
+  // Patch invitation response
+  it('successfully patch invitation response', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -116,34 +90,34 @@ describe('Organization Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .delete(`/organizations/${organization?.id}/member/${memberId}`)
-      .set('Authorization', `Bearer ${adminOrganizationToken}`)
+      .patch(`/organizations/${organization?.id}/member-invitation-response`)
+      .set('Authorization', `Bearer ${memberOrganizationToken}`)
+      .send({
+        is_accepted: true,
+      })
 
-    console.log('successfully delete member response:', res.body);
+    console.log('successfully patch invitation response response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed delete member', async () => {
-    const dataSource = app.get(DataSource);
-    const organization = await dataSource.getRepository(Organization).findOne({
-      select: { id: true },
-      where: { name: organizationName },
-    });
-
+  it('failed patch invitation response', async () => {
     const res = await request(app.getHttpServer())
-      .delete(`/organizations/${organization?.id}/member/${memberId}`)
-      .set('Authorization', `Bearer ${memberOrganizationToken}`)
+      .patch(`/organizations/invalid_organization_id/member-invitation-response`)
+      .set('Authorization', `Bearer ${adminOrganizationToken}`)
+      .send({
+        is_accepted: false,
+      })
 
-    console.log('failed delete member response:', res.body);
+    console.log('failed patch invitation response response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
 
-  // Delete leave
-  it('successfully delete leave', async () => {
+  // Post create lokal member
+  it('successfully post create lokal member', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -151,16 +125,20 @@ describe('Organization Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .delete(`/organizations/${organization?.id}/leave`)
-      .set('Authorization', `Bearer ${memberOrganizationToken}`)
+      .post(`/organizations/${organization?.id}/lokal-member`)
+      .set('Authorization', `Bearer ${adminOrganizationToken}`)
+      .send({
+        username: "lokalMemberTest2",
+        password: "12345678"
+      })
 
-    console.log('successfully delete leave response:', res.body);
+    console.log('successfully post create lokal member response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed delete leave', async () => {
+  it('failed post create lokal member', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -168,10 +146,14 @@ describe('Organization Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .delete(`/organizations/${organization?.id}/leave`)
-      .set('Authorization', `Bearer ${adminOrganizationToken}`)
+      .post(`/organizations/${organization?.id}/lokal-member`)
+      .set('Authorization', `Bearer ${memberOrganizationToken}`)
+      .send({
+        username: "userLokalMemberTest",
+        password: "12345678"
+      })
 
-    console.log('failed delete leave response:', res.body);
+    console.log('failed post create lokal member response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);

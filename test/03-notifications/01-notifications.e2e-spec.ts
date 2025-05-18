@@ -7,9 +7,9 @@ import helmet from 'helmet';
 import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
-describe('Auth Controller (e2e)', () => {
+describe('Notification Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZWEzMzhkLTJkMDYtNGFhYy04MmMwLTE0ZDU1OThhZTgyZiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcwOTQ2NTF9.z1IlqHFIVPh0cfnzfQyHpuVfPZcbWr_ttM9fjZr9YBw';
+  const userToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZWEzMzhkLTJkMDYtNGFhYy04MmMwLTE0ZDU1OThhZTgyZiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcwOTQ2NTF9.z1IlqHFIVPh0cfnzfQyHpuVfPZcbWr_ttM9fjZr9YBw';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -41,54 +41,70 @@ describe('Auth Controller (e2e)', () => {
     await app.close();
   });
 
-  // Get profile
-  it('successfully get profile', async () => {
+  // Get notification
+  it('successfully notification', async () => {
     const res = await request(app.getHttpServer())
-      .get('/auth/profile')
-      .set('Authorization', `Bearer ${token}`)
+      .get(`/notifications`)
+      .set('Authorization', `Bearer ${userToken}`)
 
-    console.log('successfully get profile response:', res.body);
+    console.log('successfully notification response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed get profile', async () => {
+  it('failed notification', async () => {
     const res = await request(app.getHttpServer())
-      .get('/auth/profile')
-      .set('Authorization', `Bearer invalid_token`)
+      .get(`/notifications`)
+      .set('Authorization', `Bearer `)
 
-    console.log('failed get profile response:', res.body);
+    console.log('failed notification response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
 
-  // Update profile
-  it.only('successfully update profile', async () => {
+  // Delete specific notification
+  it('successfully delete specific notification', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/auth/profile')
-      .set('Authorization', `Bearer ${token}`)
-      .field('username', 'user_test 1') // field biasa
-      .field('phone_number', '081234567890') // field biasa
-      .attach('profile_picture', 'test/(1).jpg');
+      .delete(`/notifications/a392c71a-5275-42c4-bcde-dacfa9940864`)
+      .set('Authorization', `Bearer ${userToken}`)
 
-    console.log('successfully update profile response:', res.body);
+    console.log('successfully delete specific notification response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed update profile', async () => {
+  it('failed delete specific notification', async () => {
     const res = await request(app.getHttpServer())
-      .patch('/auth/profile')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        username: 'Bill Valentinov',
-        phone_number: '081234567890',
-      })
+      .delete(`/notifications/a392c71a-5275-42c4-bcde-dacfa99408`)
+      .set('Authorization', `Bearer `)
 
-    console.log('failed update profile response:', res.body);
+    console.log('failed delete specific notification response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+  });
+
+  // Delete all notification
+  it('successfully delete all notification', async () => {
+    const res = await request(app.getHttpServer())
+      .delete(`/notifications`)
+      .set('Authorization', `Bearer ${userToken}`)
+
+    console.log('successfully delete all notification response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(200);
+    expect(res.status).toBeLessThan(300);
+  });
+
+  it('failed delete all notification', async () => {
+    const res = await request(app.getHttpServer())
+      .delete(`/notifications`)
+      .set('Authorization', `Bearer `)
+
+    console.log('failed delete all notification response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);

@@ -69,7 +69,7 @@ export class OrganizationMemberRolesGuard implements CanActivate {
       const hasAccess = [requiredRole].some(requiredRole => roleHierarchy.indexOf(memberOrganization.role) <= roleHierarchy.indexOf(requiredRole));
       if (!hasAccess) {
         this.logger.warn(`Organization member roles guard: User with role ${memberOrganization.role} tried to access ${context.getHandler().name} without sufficient permissions`);
-        throw new ForbiddenException('Insufficient role permissions');
+      throw new ForbiddenException(`Insufficient role permissions, only user with minimum role ${requiredRole} can access this resource`);
       }
       return true;
     } catch (error) {

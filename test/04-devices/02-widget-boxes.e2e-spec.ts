@@ -11,9 +11,10 @@ import { Organization, Device, WidgetBox } from 'src/common/entities';
 
 describe('Device Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const organizationName = "organization_test";
-  const deviceName = "Device test";
-  const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZWEzMzhkLTJkMDYtNGFhYy04MmMwLTE0ZDU1OThhZTgyZiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcwOTQ2NTF9.z1IlqHFIVPh0cfnzfQyHpuVfPZcbWr_ttM9fjZr9YBw';
+  const organizationName = "organization_test2";
+  const deviceName = "Device test organization_test2";
+  const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ1MjQzYWM2LWFiMWItNDk4Yi04NDJmLWI1ZGZiODM0OTIzNiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDc1NTI2NTZ9.f-UwNUVTnw2c2K9sv7K12wrobhIYqvmCeSNqw_MaQsk';
+  const nonMemberOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjI1ZDM1NTk1LWZkOGMtNGYzZi1hZDkzLTAyM2E3Yzc5OWJkNCIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDc1NTYyMDR9.6CqphO9VNASFn_GW55FQxogQh-E_Fx8926sWadootFY';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -46,7 +47,7 @@ describe('Device Controller (e2e)', () => {
   });
 
   // Create or update widget boxes
-  it.only('successfully create or update widget boxes', async () => {
+  it('successfully create or update widget boxes', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -71,6 +72,31 @@ describe('Device Controller (e2e)', () => {
     expect(res.status).toBeLessThan(300);
   });
 
+  it('failed create or update widget boxes', async () => {
+    const dataSource = app.get(DataSource);
+    const organization = await dataSource.getRepository(Organization).findOne({
+      select: { id: true },
+      where: { name: organizationName },
+    });
+    const device = await dataSource.getRepository(Device).findOne({
+      select: { id: true },
+      where: { name: deviceName, organization_id: organization?.id },
+    });
+
+    const res = await request(app.getHttpServer())
+      .put(`/organizations/${organization?.id}/devices/${device?.id}/widget-boxes`)
+      .set('Authorization', `Bearer ${nonMemberOrganizationToken}`)
+      .send({
+        name: 'suhu 2',
+        pin: 'A1',
+      })
+
+    console.log('failed create or update widget boxes response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+  });
+
   // Get widget boxes list
   it('successfully get widget boxes list', async () => {
     const dataSource = app.get(DataSource);
@@ -93,8 +119,29 @@ describe('Device Controller (e2e)', () => {
     expect(res.status).toBeLessThan(300);
   });
 
+  it('failed get widget boxes list', async () => {
+    const dataSource = app.get(DataSource);
+    const organization = await dataSource.getRepository(Organization).findOne({
+      select: { id: true },
+      where: { name: organizationName },
+    });
+    const device = await dataSource.getRepository(Device).findOne({
+      select: { id: true },
+      where: { name: deviceName, organization_id: organization?.id },
+    });
+
+    const res = await request(app.getHttpServer())
+      .get(`/organizations/${organization?.id}/devices/${device?.id}/widget-boxes/list`)
+      .set('Authorization', `Bearer ${nonMemberOrganizationToken}`)
+
+    console.log('failed get widget boxes list response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+  });
+
   // Get widget boxes
-  it.only('successfully get widget boxes', async () => {
+  it('successfully get widget boxes by id', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -113,10 +160,35 @@ describe('Device Controller (e2e)', () => {
       .get(`/organizations/${organization?.id}/devices/${device?.id}/widget-boxes/${widgetBox?.id}`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
 
-    console.log('successfully get widget boxes response:', res.body);
+    console.log('successfully get widget boxes by id response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
+  });
+
+  it('failed get widget boxes by id', async () => {
+    const dataSource = app.get(DataSource);
+    const organization = await dataSource.getRepository(Organization).findOne({
+      select: { id: true },
+      where: { name: organizationName },
+    });
+    const device = await dataSource.getRepository(Device).findOne({
+      select: { id: true },
+      where: { name: deviceName, organization_id: organization?.id },
+    });
+    const widgetBox = await dataSource.getRepository(WidgetBox).findOne({
+      select: { id: true },
+      where: { device_id: device?.id },
+    })
+
+    const res = await request(app.getHttpServer())
+      .get(`/organizations/${organization?.id}/devices/${device?.id}/widget-boxes/${widgetBox?.id}`)
+      .set('Authorization', `Bearer ${nonMemberOrganizationToken}`)
+
+    console.log('failed get widget boxes by id response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
   });
 
   // Delete widget boxes
@@ -143,5 +215,30 @@ describe('Device Controller (e2e)', () => {
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
+  });
+
+  it('failed delete widget boxes', async () => {
+    const dataSource = app.get(DataSource);
+    const organization = await dataSource.getRepository(Organization).findOne({
+      select: { id: true },
+      where: { name: organizationName },
+    });
+    const device = await dataSource.getRepository(Device).findOne({
+      select: { id: true },
+      where: { name: deviceName, organization_id: organization?.id },
+    });
+    const widgetBox = await dataSource.getRepository(WidgetBox).findOne({
+      select: { id: true },
+      where: { device_id: device?.id },
+    })
+
+    const res = await request(app.getHttpServer())
+      .delete(`/organizations/${organization?.id}/devices/${device?.id}/widget-boxes/${widgetBox?.id}`)
+      .set('Authorization', `Bearer ${nonMemberOrganizationToken}`)
+
+    console.log('failed delete widget boxes response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
   });
 });

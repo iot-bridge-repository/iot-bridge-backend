@@ -11,10 +11,8 @@ import { VerifyEmailToken } from 'src/common/entities';
 
 describe('Auth Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const email = 'test@example.com';
-  const username = 'user_test';
-  const phone_number = '081234567890';
-  const password = '12345678';
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ1MjQzYWM2LWFiMWItNDk4Yi04NDJmLWI1ZGZiODM0OTIzNiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDc1NTI2NTZ9.f-UwNUVTnw2c2K9sv7K12wrobhIYqvmCeSNqw_MaQsk';
+  const email = 'userTest2.1@example.com';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -46,49 +44,30 @@ describe('Auth Controller (e2e)', () => {
     await app.close();
   });
 
-  // Register
-  it('successfully register', async () => {
+  // Change email 
+  it('successfully change email', async () => {
     const res = await request(app.getHttpServer())
-      .post('/auth/register')
+      .patch('/auth/email')
+      .set('Authorization', `Bearer ${token}`)
       .send({
-        username,
-        email,
-        phone_number,
-        password,
-      });
+        new_email: email,
+      })
 
-    console.log('successfully register response:', res.body);
+    console.log('successfully change email response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed register', async () => {
+  it('failed change email', async () => {
     const res = await request(app.getHttpServer())
-      .post('/auth/register')
+      .patch('/auth/email')
+      .set('Authorization', `Bearer ${token}`)
       .send({
-        username,
-        email,
-        phone_number,
-        password,
-      });
+        new_email: email,
+      })
 
-    console.log('failed register response:', res.body);
-    expect(res.body.message).toBeDefined();
-    expect(res.status).toBeGreaterThanOrEqual(400);
-    expect(res.status).toBeLessThan(500);
-  });
-
-  // Login
-  it('failed login', async () => {
-    const res = await request(app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        identity: email,
-        password,
-      });
-
-    console.log('failed login response:', res.body);
+    console.log('failed change email response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
@@ -98,42 +77,47 @@ describe('Auth Controller (e2e)', () => {
   it('successfully verify email', async () => {
     const dataSource = app.get(DataSource);
     const verifyEmailToken = await dataSource.getRepository(VerifyEmailToken).findOne({
-      select: {token: true},
-      where: { email }, 
+      select: { token: true },
+      where: { email },
     });
 
     const res = await request(app.getHttpServer())
       .get(`/auth/verify-email/`)
       .query({ token: verifyEmailToken?.token });
 
-    console.log('successfully verify email response:', res.body);
+    console.log('successfully verify email response:', res.text);
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed verify email', async () => {
+  // Change password
+  it('successfully change password', async () => {
     const res = await request(app.getHttpServer())
-      .get('/auth/verify-email')
-      .query({ token: 'invalid_token' });
+      .patch('/auth/password')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        old_password: "12345678",
+        new_password: "12345678"
+      })
 
-    console.log('failed verify email response:', res.body);
+    console.log('successfully change password response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(200);
+    expect(res.status).toBeLessThan(300);
+  });
+
+  it('failed change password', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/auth/password')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        old_password: "123456789",
+        new_password: "12345678"
+      })
+
+    console.log('failed change password response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
-  });
-
-  // Login
-  it('successfully login', async () => {
-    const res = await request(app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        identity: email,
-        password,
-      });
-
-    console.log('successfully login response:', res.body);
-    expect(res.body.message).toBeDefined();
-    expect(res.status).toBeGreaterThanOrEqual(200);
-    expect(res.status).toBeLessThan(300);
   });
 });

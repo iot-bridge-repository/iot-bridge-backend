@@ -7,14 +7,14 @@ import helmet from 'helmet';
 import { DataSource } from 'typeorm';
 import { AppModule } from 'src/app.module';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
-import { Organization, Device } from 'src/common/entities';
+import { Organization } from 'src/common/entities';
 
-describe('Device Controller (e2e)', () => {
+describe('Organization Controller (e2e)', () => {
   let app: NestExpressApplication;
-  const organizationName = "organization_test";
-  const deviceName = "Device test";
-  const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZWEzMzhkLTJkMDYtNGFhYy04MmMwLTE0ZDU1OThhZTgyZiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDcwOTQ2NTF9.z1IlqHFIVPh0cfnzfQyHpuVfPZcbWr_ttM9fjZr9YBw';
-  const nonMemberOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhZjM0YWVmLTAwZTItNDYzMC04OTE4LWI0NDFiM2VlZTg0NyIsInJvbGUiOiJBZG1pbiBTeXN0ZW0iLCJpYXQiOjE3NDY3NzA5NTd9.UVlK5V-H4ZwsQovVIUD-TFkvkoiwQeNUOoDmfLc86x4';
+  const organizationName = "organization_test2";
+  const adminOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ1MjQzYWM2LWFiMWItNDk4Yi04NDJmLWI1ZGZiODM0OTIzNiIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDc1NTI2NTZ9.f-UwNUVTnw2c2K9sv7K12wrobhIYqvmCeSNqw_MaQsk';
+  const memberId = '25d35595-fd8c-4f3f-ad93-023a7c799bd4'
+  const memberOrganizationToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjI1ZDM1NTk1LWZkOGMtNGYzZi1hZDkzLTAyM2E3Yzc5OWJkNCIsInJvbGUiOiJSZWd1bGFyIFVzZXIiLCJpYXQiOjE3NDc1NTYyMDR9.6CqphO9VNASFn_GW55FQxogQh-E_Fx8926sWadootFY';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -46,8 +46,8 @@ describe('Device Controller (e2e)', () => {
     await app.close();
   });
 
-  // Create device
-  it.only('successfully create device', async () => {
+  // Get member list
+  it('successfully member list', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -55,19 +55,17 @@ describe('Device Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .post(`/organizations/${organization?.id}/devices`)
+      .get(`/organizations/${organization?.id}/member-list`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
-      .send({
-        name: deviceName,
-      })
 
-    console.log('successfully create device response:', res.body);
+    console.log('successfully member list response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed create device', async () => {
+  // Patch change member roles
+  it('successfully patch change member roles', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -75,20 +73,42 @@ describe('Device Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .post(`/organizations/${organization?.id}/devices`)
-      .set('Authorization', `Bearer ${nonMemberOrganizationToken}}`)
+      .patch(`/organizations/${organization?.id}/member-roles`)
+      .set('Authorization', `Bearer ${adminOrganizationToken}`)
       .send({
-        name: deviceName,
+        user_id: memberId,
+        new_role: "Operator"
       })
 
-    console.log('failed create device response:', res.body);
+    console.log('successfully patch change member roles response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(200);
+    expect(res.status).toBeLessThan(300);
+  });
+
+  it('failed patch change member roles', async () => {
+    const dataSource = app.get(DataSource);
+    const organization = await dataSource.getRepository(Organization).findOne({
+      select: { id: true },
+      where: { name: organizationName },
+    });
+
+    const res = await request(app.getHttpServer())
+      .patch(`/organizations/${organization?.id}/member-roles`)
+      .set('Authorization', `Bearer ${memberOrganizationToken}`)
+      .send({
+        user_id: memberId,
+        new_role: "Operator"
+      })
+
+    console.log('failed patch change member roles response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
 
-  // Get devices search
-  it('successfully get devices search', async () => {
+  // Delete member
+  it('successfully delete member', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -96,105 +116,82 @@ describe('Device Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .get(`/organizations/${organization?.id}/devices/search?name=`)
+      .delete(`/organizations/${organization?.id}/member/${memberId}`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
 
-    console.log('successfully get devices search response:', res.body);
+    console.log('successfully delete member response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  // Get devices
-  it('successfully get devices', async () => {
+  it('failed delete member', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
       where: { name: organizationName },
     });
-    const device = await dataSource.getRepository(Device).findOne({
-      select: { id: true },
-      where: { name: deviceName, organization_id: organization?.id },
-    });
 
     const res = await request(app.getHttpServer())
-      .get(`/organizations/${organization?.id}/devices/${device?.id}`)
-      .set('Authorization', `Bearer ${adminOrganizationToken}`)
+      .delete(`/organizations/${organization?.id}/member/${memberId}`)
+      .set('Authorization', `Bearer ${memberOrganizationToken}`)
 
-    console.log('successfully get devices response:', res.body);
-    expect(res.body.message).toBeDefined();
-    expect(res.status).toBeGreaterThanOrEqual(200);
-    expect(res.status).toBeLessThan(300);
-  });
-
-  // Update device
-  it('successfully update device', async () => {
-    const dataSource = app.get(DataSource);
-    const organization = await dataSource.getRepository(Organization).findOne({
-      select: { id: true },
-      where: { name: organizationName },
-    });
-    const device = await dataSource.getRepository(Device).findOne({
-      select: { id: true },
-      where: { name: deviceName, organization_id: organization?.id },
-    });
-
-    const res = await request(app.getHttpServer())
-      .patch(`/organizations/${organization?.id}/devices/${device?.id}`)
-      .set('Authorization', `Bearer ${adminOrganizationToken}`)
-      .send({
-        name: `${deviceName} updated`,
-      })
-
-    console.log('successfully update device response:', res.body);
-    expect(res.body.message).toBeDefined();
-    expect(res.status).toBeGreaterThanOrEqual(200);
-    expect(res.status).toBeLessThan(300);
-  });
-
-  it('failed update device', async () => {
-    const dataSource = app.get(DataSource);
-    const organization = await dataSource.getRepository(Organization).findOne({
-      select: { id: true },
-      where: { name: organizationName },
-    });
-    const device = await dataSource.getRepository(Device).findOne({
-      select: { id: true },
-      where: { name: deviceName, organization_id: organization?.id },
-    });
-
-    const res = await request(app.getHttpServer())
-      .patch(`/organizations/${organization?.id}/devices/${device?.id}`)
-      .set('Authorization', `Bearer ${adminOrganizationToken}`)
-      .send({
-        name: `${deviceName} updated`,
-      })
-
-    console.log('failed update device response:', res.body);
+    console.log('failed delete member response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
   });
 
-  // Delete device
-  it('successfully delete device', async () => {
+  // Delete leave
+  it('successfully delete leave', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
       where: { name: organizationName },
     });
-    const device = await dataSource.getRepository(Device).findOne({
-      select: { id: true },
-      where: { name: deviceName + ' updated', organization_id: organization?.id },
-    });
 
     const res = await request(app.getHttpServer())
-      .delete(`/organizations/${organization?.id}/devices/${device?.id}`)
-      .set('Authorization', `Bearer ${adminOrganizationToken}`)
+      .delete(`/organizations/${organization?.id}/leave`)
+      .set('Authorization', `Bearer ${memberOrganizationToken}`)
 
-    console.log('successfully delete device response:', res.body);
+    console.log('successfully delete leave response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
+  });
+
+  it('failed delete leave', async () => {
+    const dataSource = app.get(DataSource);
+    const organization = await dataSource.getRepository(Organization).findOne({
+      select: { id: true },
+      where: { name: organizationName },
+    });
+
+    const res = await request(app.getHttpServer())
+      .delete(`/organizations/${organization?.id}/leave`)
+      .set('Authorization', `Bearer ${adminOrganizationToken}`)
+
+    console.log('failed delete leave response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+  });
+
+  // Get member list
+  it('failed member list', async () => {
+    const dataSource = app.get(DataSource);
+    const organization = await dataSource.getRepository(Organization).findOne({
+      select: { id: true },
+      where: { name: organizationName },
+    });
+
+    const res = await request(app.getHttpServer())
+      .get(`/organizations/${organization?.id}/member-list`)
+      .set('Authorization', `Bearer ${memberOrganizationToken}`)
+
+    console.log('failed member list response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
   });
 });
