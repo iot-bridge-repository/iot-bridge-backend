@@ -22,9 +22,11 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_IP }} \
-          "bash -lc 'cd ~/iot-bridge-backend && \
-          git pull origin main && \
+          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_IP }} "\
+          export NVM_DIR=\$HOME/.nvm && \
+          source \$NVM_DIR/nvm.sh && \
+          cd ~/iot-bridge-backend && \
+          git fetch origin main && git reset --hard origin/main && \
           npm install && \
           npm run build && \
-          pm2 restart iot-bridge-backend || pm2 start dist/main.js --name iot-bridge-backend'"
+          pm2 restart iot-bridge-backend || pm2 start dist/main.js --name iot-bridge-backend"

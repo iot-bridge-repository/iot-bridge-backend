@@ -12,7 +12,7 @@ const addDummyDeviceData = async (dataSource: DataSource) => {
     const data = new DeviceData();
     data.device_id = '892e17be-d44c-4766-8e2e-6e71edf4e74d'; // gunakan ID acak untuk simulasi device
     data.pin = `V${Math.floor(Math.random() * 5)}`; // V0 sampai V4
-    data.value = (Math.random() * 100).toFixed(2); // value antara 0.00 sampai 100.00
+    data.value = parseFloat((Math.random() * 100).toFixed(2)); // value antara 0.00 sampai 100.00
     dummyData.push(data);
   }
 

@@ -89,6 +89,14 @@ $ npx ts-node src/database/seeders/createUsersAdminSystem.ts
 Add the following variables to the .env file in the project root:
 
 ```bash
+# 📦 Database config
+DB_TYPE=postgres # must be postgres
+DB_HOST=your-db-host
+DB_PORT=your-db-port
+DB_USERNAME=your-db-username
+DB_PASSWORD=your-db-password
+DB_NAME=your-db-name
+
 # 🔐 JWT Configuration
 JWT_SECRET=your_jwt_secret_key
 
@@ -98,6 +106,11 @@ NODE_ENV=development  # Use "development" or "production"
 # ✉️ Email Configuration
 EMAIL_SERVICE_ADDRESS=your-email@gmail.com
 EMAIL_SERVICE_PASSWORD=your-app-password  # Use an App Password from Gmail
+
+# 📡 MQTT Configuration
+MQTT_BROKER_URL=mqtt://your-broker-url:your-broker-port
+MQTT_BROKER_USERNAME=your-broker-username
+MQTT_BROKER_PASSWORD=your-broker-password
 ```
 
 NODE_ENV → Choose "development" for development mode or "production" for production mode.

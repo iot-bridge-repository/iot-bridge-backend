@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -10,6 +11,16 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const logger = new Logger('Bootstrap');
+
+  // Microservice configuration for MQTT
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.MQTT,
+    options: {
+      url: process.env.MQTT_BROKER_URL,
+      username: process.env.MQTT_BROKER_USERNAME,
+      password: process.env.MQTT_BROKER_PASSWORD,
+    },
+  });
 
   // Middleware for security
   app.use(helmet());
@@ -46,6 +57,11 @@ async function bootstrap() {
   app.setBaseViewsDir(join(__dirname, '..', 'src', 'common', 'views'));
   app.setViewEngine('hbs');
 
+  // Start microservice
+  await app.startAllMicroservices();
+  logger.log('✅ MQTT Microservice started');
+
+  // Start HTTP server
   await app.listen(process.env.PORT ?? 3000);
   logger.log(`Application is running on port ${process.env.PORT ?? 3000}`);
 }

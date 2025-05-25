@@ -11,6 +11,7 @@ import { OrganizationsApiModule } from './organizations-api/organizations-api.mo
 import { NotificationsApiModule } from './notifications-api/notifications-api.module';
 import { DevicesApiModule } from './devices-api/devices-api.module';
 import { UsersApiModule } from './users-api/users-api.module';
+import { MqttModule } from './mqtt/mqtt.module';
 
 @Module({
   imports: [
@@ -49,7 +50,8 @@ import { UsersApiModule } from './users-api/users-api.module';
     OrganizationsApiModule,
     NotificationsApiModule,
     DevicesApiModule,
-    UsersApiModule
+    UsersApiModule,
+    MqttModule,
   ],
   controllers: [AppController],
   providers: [AppService],

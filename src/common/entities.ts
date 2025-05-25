@@ -230,7 +230,7 @@ export class DeviceData {
   pin: string;
 
   @Column({ type: 'double precision', nullable: false })
-  value: string;
+  value: number;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   time: Date;
