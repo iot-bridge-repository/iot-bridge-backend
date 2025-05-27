@@ -9,15 +9,18 @@ export class MqttController {
     private readonly mqttService: MqttService
   ) { }
 
-  @MessagePattern('device/auth-code/+')
-  getDeviceData(@Payload() data: number[], @Ctx() context: MqttContext) {
-    console.log(`Topic: ${context.getTopic()}`);
-    console.log(data);
+  @MessagePattern('auth-code/+')
+  async getDeviceData(@Payload() data: number[], @Ctx() context: MqttContext) {
+    this.logger.log(`Received MQTT message on topic: ${context.getTopic()}`);
 
     const topic = context.getTopic();
     const topicParts = topic.split('/');
-    const authCode = topicParts[2];
+    const authCode = topicParts[1];
+    if (!authCode) {
+      this.logger.warn('Auth code is missing in the topic');
+      return;
+    }
 
-    this.mqttService.handleMqttMessage(authCode, data);
+    await this.mqttService.handleMqttMessage(authCode, data);
   }
 }

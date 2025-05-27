@@ -3,17 +3,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from "uuid";
 import { Device, DeviceData, NotificationEvent, ComparisonType, OrganizationMember, OrganizationMemberStatus, UserNotification } from '../common/entities';
+import { WebsocketGateway } from '../websocket/websocket.gateway';
 
 @Injectable()
 export class MqttService {
-  private readonly logger = new Logger(MqttService .name);
+  private readonly logger = new Logger(MqttService.name);
   constructor(
     @InjectRepository(Device) private readonly deviceRepository: Repository<Device>,
     @InjectRepository(DeviceData) private readonly deviceDataRepository: Repository<DeviceData>,
-
     @InjectRepository(NotificationEvent) private readonly notificationEventRepository: Repository<NotificationEvent>,
     @InjectRepository(OrganizationMember) private readonly organizationMemberRepository: Repository<OrganizationMember>,
     @InjectRepository(UserNotification) private readonly userNotificationRepository: Repository<UserNotification>,
+    private readonly websocketGateway: WebsocketGateway,
   ) { }
 
   async handleMqttMessage(authCode: string, payload: any) {
@@ -44,6 +45,14 @@ export class MqttService {
       });
     });
     this.deviceDataRepository.save(data);
+
+    for (const [pin, value] of entries) {
+      // Emit the data to the WebSocket server
+      this.websocketGateway.emitDeviceData(device.id, pin, {
+        value: value,
+        time: new Date(),
+      });
+    }
 
     // Check for notification events
     for (const [pin, value] of entries) {

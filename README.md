@@ -35,56 +35,7 @@ Run the following command to install all required dependencies:
 $ npm install
 ```
 
-#### 2️⃣ Database config
-
-Create an .env file in the project root with the following contents:
-
-```bash
-# Database config
-DB_TYPE=
-DB_HOST=
-DB_PORT=
-DB_USERNAME=
-DB_PASSWORD=
-DB_NAME=
-```
-
-#### 3️⃣ Create database
-
-Create database according to name in DB_NAME.
-
-#### 4️⃣ Run migrations
-
-After configuring the database, run the following command to run the migration:
-
-```bash
-$ npx typeorm-ts-node-commonjs migration:run -d src/database/database.config.ts
-```
-
-#### 5️⃣ Run seeders (Admin System)
-
-If you don't want to add a Admin System user, you can skip this step.
-
-To add a System Admin user to the database, add the following variables in .env:
-
-```bash
-ADMIN_SYSTEM_EMAILS=admin1@example.com,admin2@example.com,admin3@example.com,admin4@example.com,admin5@example.com
-ADMIN_SYSTEM_PHONE_NUMBERS=08xxxxxxxx,08xxxxxxxx,08xxxxxxxx,08xxxxxxxx,08xxxxxxxx
-ADMIN_SYSTEM_USERNAMES=admin1,admin2,admin3,admin4,admin5
-ADMIN_SYSTEM_PASSWORD=password123
-```
-
-Remember the password must be at least 6 characters and a maximum of 20. 
-
-You can only fill in one password for all users and the deafult password is `12345678`.
-
-Then run the following command:
-
-```bash
-$ npx ts-node src/database/seeders/createUsersAdminSystem.ts
-```
-
-#### 6️⃣ Configure .env
+#### 2️⃣ Configure .env
 
 Add the following variables to the .env file in the project root:
 
@@ -122,6 +73,41 @@ EMAIL_SERVICE_PASSWORD → Do not use your regular Gmail password. Use an App Pa
 2. Enable 2-Step Verification (if not already enabled).
 3. Search App passwords, and create an app password.
 4. Use the password for EMAIL_SERVICE_PASSWORD.
+
+#### 3️⃣ Create database
+
+Create database according to name in DB_NAME.
+
+#### 4️⃣ Run migrations
+
+After configuring the database, run the following command to run the migration:
+
+```bash
+$ npx typeorm-ts-node-commonjs migration:run -d src/database/database.config.ts
+```
+
+#### 5️⃣ Run seeders (Admin System)
+
+If you don't want to add a Admin System user, you can skip this step.
+
+To add a System Admin user to the database, add the following variables in .env:
+
+```bash
+ADMIN_SYSTEM_EMAILS=admin1@example.com,admin2@example.com,admin3@example.com,admin4@example.com,admin5@example.com
+ADMIN_SYSTEM_PHONE_NUMBERS=08xxxxxxxx,08xxxxxxxx,08xxxxxxxx,08xxxxxxxx,08xxxxxxxx
+ADMIN_SYSTEM_USERNAMES=admin1,admin2,admin3,admin4,admin5
+ADMIN_SYSTEM_PASSWORD=password123
+```
+
+Remember the password must be at least 6 characters and a maximum of 20. 
+
+You can only fill in one password for all users and the deafult password is `12345678`.
+
+Then run the following command:
+
+```bash
+$ npx ts-node src/database/seeders/createUsersAdminSystem.ts
+```
 
 ## Compile and run the project
 
@@ -188,3 +174,31 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Websocket and MQTT Documentation
+
+### 📡 WebSocket
+
+#### 🔸 Event: `device-id/{deviceId}/pin/{pin}`
+Emitted by server to send real-time sensor data for a specific pin of a device.
+
+**Payload:**
+```json
+{
+  "value": 23.5,
+  "time": "2025-05-27T12:00:00Z"
+}
+```
+
+### 🛰️ MQTT
+
+#### 🔸 Topic: `auth-code/{authCode}`
+This topic is used to send the auth code to the client.
+
+**Payload:**
+```json
+{
+  "V1": 23.5,
+  "V2": 23.5
+}
+```
