@@ -106,7 +106,7 @@ You can only fill in one password for all users and the deafult password is `123
 Then run the following command:
 
 ```bash
-$ npx ts-node src/database/seeders/createUsersAdminSystem.ts
+$ npx ts-node src/database/seeders/addUsersAdminSystem.ts
 ```
 
 ## Compile and run the project

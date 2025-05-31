@@ -257,7 +257,7 @@ export class AuthApiService {
       const payload = { id: user.id, role: user.role };
       const token = this.jwtService.sign(payload);
 
-      this.logger.log(`User logged in: ${user.id}`);
+      this.logger.log(`User logged in successfully, by ID: ${user.id}`);
       return {
         message : "User logged in successfully.",
         data: { 

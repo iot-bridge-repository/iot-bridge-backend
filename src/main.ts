@@ -59,7 +59,10 @@ async function bootstrap() {
 
   // Start microservice
   await app.startAllMicroservices();
-  logger.log('✅ MQTT Microservice started');
+  logger.log('✅ Microservice started');
+
+  // CORS configuration
+  app.enableCors();
 
   // Start HTTP server
   await app.listen(process.env.PORT ?? 3000);
