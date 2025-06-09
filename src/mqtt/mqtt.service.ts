@@ -44,7 +44,7 @@ export class MqttService {
         time: new Date(),
       });
     });
-    this.deviceDataRepository.save(data);
+    await this.deviceDataRepository.save(data);
 
     for (const [pin, value] of entries) {
       // Emit the data to the WebSocket server
@@ -63,7 +63,7 @@ export class MqttService {
   private async checkNotificationEvents(deviceId: string, pin: string, value: number, organizationId: string) {
     // Find active notification events for the device and pin
     const events = await this.notificationEventRepository.find({
-      select: { subject: true, message: true, threshold_value: true, comparison_type: true },
+      select: { threshold_value: true, comparison_type: true, last_triggered: true, subject: true, message: true, id: true, last_triggered_at: true },
       where: { device_id: deviceId, pin, is_active: true },
     });
     if (events.length === 0) return;
@@ -94,24 +94,35 @@ export class MqttService {
           break;
       }
 
-      // If the condition is met, create a notification
-      if (shouldNotify) {
+      const currentTriggered = shouldNotify;
+      const previouslyTriggered = event.last_triggered;
+      // Send notification if the event is triggered and was not previously triggered
+      if (currentTriggered && !previouslyTriggered) {
         const memberId = await this.organizationMemberRepository.find({
           select: { user_id: true },
           where: { organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
-        })
-        const notifications = memberId.map(member => {
-          return this.userNotificationRepository.create({
+        });
+
+        const notifications = memberId.map(member =>
+          this.userNotificationRepository.create({
             id: uuidv4(),
             user_id: member.user_id,
             subject: event.subject,
             message: event.message,
             type: 'notification_event',
             created_at: new Date(),
-          });
-        });
+          }),
+        );
 
         await this.userNotificationRepository.save(notifications);
+      }
+
+      // Update last_triggered status in the event
+      if (currentTriggered !== previouslyTriggered) {
+        await this.notificationEventRepository.update(event.id, {
+          last_triggered: currentTriggered,
+          last_triggered_at: currentTriggered ? new Date() : event.last_triggered_at,
+        });
       }
     }
   }

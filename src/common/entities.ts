@@ -271,6 +271,12 @@ export class NotificationEvent {
   @Column({ type: 'boolean', default: false, nullable: false })
   is_active: boolean;
 
+  @Column({ type: 'boolean', default: false, nullable: false })
+  last_triggered: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  last_triggered_at: Date | null;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 }

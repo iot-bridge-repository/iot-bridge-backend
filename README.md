@@ -62,6 +62,10 @@ EMAIL_SERVICE_PASSWORD=your-app-password  # Use an App Password from Gmail
 MQTT_BROKER_URL=mqtt://your-broker-url:your-broker-port
 MQTT_BROKER_USERNAME=your-broker-username
 MQTT_BROKER_PASSWORD=your-broker-password
+
+# 🔥Firebase Configuration
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_SERVICE_ACCOUNT_KEY=your-firebase-service-account-key
 ```
 
 NODE_ENV → Choose "development" for development mode or "production" for production mode.
@@ -73,6 +77,8 @@ EMAIL_SERVICE_PASSWORD → Do not use your regular Gmail password. Use an App Pa
 2. Enable 2-Step Verification (if not already enabled).
 3. Search App passwords, and create an app password.
 4. Use the password for EMAIL_SERVICE_PASSWORD.
+
+FIREBASE_SERVICE_ACCOUNT_KEY → Get the Firebase service account key from Firebase Console.
 
 #### 3️⃣ Create database
 
@@ -107,6 +113,34 @@ Then run the following command:
 
 ```bash
 $ npx ts-node src/database/seeders/addUsersAdminSystem.ts
+```
+
+## Websocket and MQTT Documentation
+
+### 📡 WebSocket
+
+#### 🔸 Event: `device-id/{deviceId}/pin/{pin}`
+Emitted by server to send real-time sensor data for a specific pin of a device.
+
+**Payload:**
+```json
+{
+  "value": 23.5,
+  "time": "2025-05-27T12:00:00Z"
+}
+```
+
+### 🛰️ MQTT
+
+#### 🔸 Topic: `auth-code/{authCode}`
+This topic is used to send the auth code to the client.
+
+**Payload:**
+```json
+{
+  "V1": 23.5,
+  "V2": 23.5
+}
 ```
 
 ## Compile and run the project
@@ -174,31 +208,3 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-
-## Websocket and MQTT Documentation
-
-### 📡 WebSocket
-
-#### 🔸 Event: `device-id/{deviceId}/pin/{pin}`
-Emitted by server to send real-time sensor data for a specific pin of a device.
-
-**Payload:**
-```json
-{
-  "value": 23.5,
-  "time": "2025-05-27T12:00:00Z"
-}
-```
-
-### 🛰️ MQTT
-
-#### 🔸 Topic: `auth-code/{authCode}`
-This topic is used to send the auth code to the client.
-
-**Payload:**
-```json
-{
-  "V1": 23.5,
-  "V2": 23.5
-}
-```

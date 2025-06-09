@@ -55,6 +55,17 @@ export class CreateNotificationEventsTable1746893411053 implements MigrationInte
             isNullable: false,
           },
           {
+            name: 'last_triggered',
+            type: 'boolean',
+            default: false,
+            isNullable: false,
+          },
+          {
+            name: 'last_triggered_at',
+            type: 'timestamp',
+            isNullable: true,
+          },
+          {
             name: 'created_at',
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',
