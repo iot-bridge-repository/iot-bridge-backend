@@ -80,6 +80,8 @@ EMAIL_SERVICE_PASSWORD → Do not use your regular Gmail password. Use an App Pa
 
 FIREBASE_SERVICE_ACCOUNT_KEY → Get the Firebase service account key from Firebase Console.
 
+**Note:** create firebase folder in root project and put the service account key there.
+
 #### 3️⃣ Create database
 
 Create database according to name in DB_NAME.
