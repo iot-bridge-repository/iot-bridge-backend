@@ -1,13 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from "uuid";
 import { Device, DeviceData, NotificationEvent, ComparisonType, OrganizationMember, OrganizationMemberStatus, UserNotification } from '../common/entities';
 import { WebsocketGateway } from '../websocket/websocket.gateway';
+import { FcmService } from '../common/services/fcm.service';
 
 @Injectable()
 export class MqttService {
   private readonly logger = new Logger(MqttService.name);
+  private readonly fcmService: FcmService;
   constructor(
     @InjectRepository(Device) private readonly deviceRepository: Repository<Device>,
     @InjectRepository(DeviceData) private readonly deviceDataRepository: Repository<DeviceData>,
@@ -15,7 +18,10 @@ export class MqttService {
     @InjectRepository(OrganizationMember) private readonly organizationMemberRepository: Repository<OrganizationMember>,
     @InjectRepository(UserNotification) private readonly userNotificationRepository: Repository<UserNotification>,
     private readonly websocketGateway: WebsocketGateway,
-  ) { }
+    private readonly configService: ConfigService,
+  ) {
+    this.fcmService = new FcmService(this.configService);
+  }
 
   async handleMqttMessage(authCode: string, payload: any) {
     // Validate the authCode
@@ -102,7 +108,6 @@ export class MqttService {
           select: { user_id: true },
           where: { organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
         });
-
         const notifications = memberId.map(member =>
           this.userNotificationRepository.create({
             id: uuidv4(),
@@ -113,8 +118,12 @@ export class MqttService {
             created_at: new Date(),
           }),
         );
-
         await this.userNotificationRepository.save(notifications);
+
+        // Send mobile notification
+        for (const member of memberId) {
+          await this.fcmService.sendMobileNotification(member.user_id, event.subject, event.message, { deviceId, pin, value: value.toString() });
+        }
       }
 
       // Update last_triggered status in the event

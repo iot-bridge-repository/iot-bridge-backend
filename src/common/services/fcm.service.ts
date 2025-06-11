@@ -57,7 +57,7 @@ export class FcmService {
         },
       );
 
-      this.logger.log(`Successfully sent FCM notification to user`, JSON.stringify(response));
+      this.logger.log(`Successfully sent FCM notification to user: ${userId}`, `Response: ${JSON.stringify(response.data)}`);
     } catch (error) {
       this.logger.error(`❌ Failed to send notification to user with id ${userId}.`, error);
     }

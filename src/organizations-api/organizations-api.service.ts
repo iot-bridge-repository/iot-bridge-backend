@@ -9,17 +9,21 @@ import { v4 as uuidv4 } from "uuid";
 import * as bcrypt from 'bcrypt';
 import { User, UserRole, UserNotification, Organization, OrganizationMember, OrganizationMemberRole, OrganizationMemberStatus } from '../common/entities';
 import * as dto from './dto';
+import { FcmService } from '../common/services/fcm.service';
 
 @Injectable()
 export class OrganizationsApiService {
   private readonly logger = new Logger(OrganizationsApiService.name);
+  private readonly fcmService: FcmService;
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(UserNotification) private readonly userNotificationRepository: Repository<UserNotification>,
     @InjectRepository(Organization) private readonly organizationRepository: Repository<Organization>,
     @InjectRepository(OrganizationMember) private readonly organizationMemberRepository: Repository<OrganizationMember>,
     private readonly configService: ConfigService,
-  ) { }
+  ) {
+    this.fcmService = new FcmService(this.configService);
+  }
 
   async getList(id: string) {
     try {
@@ -145,6 +149,9 @@ export class OrganizationsApiService {
       });
       await this.userNotificationRepository.save(userNotification);
 
+      // Send FCM notification to user
+      await this.fcmService.sendMobileNotification(organization.created_by, `Organisasi telah diverifikasi`, `Organisasi ${organization.name} anda telah diverifikasi, silahkan mengelola organisasi anda :)`)
+
       this.logger.log(`Success to verify organization. Organization with id ${patchVerifyDto.organization_id} verified`);
       return {
         message: 'Organization verified successfully.',
@@ -182,6 +189,9 @@ export class OrganizationsApiService {
         type: 'organization_unverified',
       });
       await this.userNotificationRepository.save(userNotification);
+
+      // Send FCM notification to user
+      await this.fcmService.sendMobileNotification(organization.created_by, `Organisasi tidak diverifikasi`, `Organisasi ${organization.name} anda tidak terverifikasi, silahkan menghubungi admin system untuk diverifikasi ulang :)`);
 
       this.logger.log(`Success to unverify organization. Organization with id ${patchUnverifyDto.organization_id} unverified`);
       return {
@@ -297,7 +307,7 @@ export class OrganizationsApiService {
       });
       await this.organizationMemberRepository.save(newOrganizationMember);
 
-      // Create notification for user
+      // Create notification for organization member
       const organization = await this.organizationRepository.findOne({
         select: { name: true },
         where: { id: organizationId }
@@ -310,6 +320,9 @@ export class OrganizationsApiService {
         type: 'organization_member_invitation',
       });
       await this.userNotificationRepository.save(userNotification);
+
+      // Send FCM notification to organization member
+      await this.fcmService.sendMobileNotification(postMemberInvitationDto.user_id, `Undangan untuk bergabung di organisasi`, `Anda telah diundang untuk bergabung di organisasi: ${organization?.name}`);
 
       this.logger.log(`Success to invite member. Member with id ${postMemberInvitationDto.user_id} added to organization with id ${organizationId}`);
       return {
@@ -379,6 +392,9 @@ export class OrganizationsApiService {
         type: 'organization_member_invitation_response',
       });
       await this.userNotificationRepository.save(notification);
+
+      // Send FCM notification to organization admin
+      await this.fcmService.sendMobileNotification(admin.user_id, subject, message);
 
       this.logger.log(`Success to response invite member. Invitation response from user with id ${id} updated`);
       return {
@@ -562,10 +578,13 @@ export class OrganizationsApiService {
           id: uuidv4(),
           user_id: user?.id,
           subject: `Anda dikeluarkan dari organisasi`,
-          message: `Anda telah dikeluarkan dari organisasi: ${organization?.name}.`,
+          message: `Anda telah dikeluarkan dari organisasi: ${organization?.name}`,
           type: 'organization_member_deleted',
         });
         await this.userNotificationRepository.save(userNotification);
+
+        // Send FCM notification to organization member
+        await this.fcmService.sendMobileNotification(userId, `Anda dikeluarkan dari organisasi`, `Anda telah dikeluarkan dari organisasi: ${organization?.name}`);
       }
 
       this.logger.log(`Success to delete member. User with id: ${userId} deleted from organization with id: ${organizationId}`);
@@ -610,6 +629,10 @@ export class OrganizationsApiService {
         select: { user_id: true },
         where: { organization_id: organizationId, role: OrganizationMemberRole.ADMIN },
       });
+      if (!admin) {
+        this.logger.warn(`Failed to leave organization. No admin found in organization with id ${organizationId}`);
+        throw new NotFoundException('No admin in organization');
+      }
       const member = await this.userRepository.findOne({ select: { username: true }, where: { id: id } });
       const organization = await this.organizationRepository.findOne({ select: { name: true }, where: { id: organizationId } });
       const adminNotification = this.userNotificationRepository.create({
@@ -620,6 +643,9 @@ export class OrganizationsApiService {
         type: 'organization_member_leave',
       });
       await this.userNotificationRepository.save(adminNotification);
+
+      // Send FCM notification to organization admin
+      await this.fcmService.sendMobileNotification(admin?.user_id, `Anggota telah meninggalkan organisasi`, `Anggota dengan username ${member?.username} telah meninggalkan organisasi ${organization?.name}.`);
 
       this.logger.log(`Success to leave organization. User with id: ${id} leave organization with id: ${organizationId}`);
       return {
