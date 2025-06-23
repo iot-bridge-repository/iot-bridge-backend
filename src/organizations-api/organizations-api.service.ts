@@ -288,6 +288,13 @@ export class OrganizationsApiService {
 
   async postMemberInvitation(organizationId: string, postMemberInvitationDto: dto.PostMemberInvitationDto) {
     try {
+      // Check if user exists
+      const existingUser = await this.userRepository.findOne({ select: { id: true }, where: { id: postMemberInvitationDto.user_id } });
+      if (!existingUser) {
+        this.logger.warn(`Failed to invite member. User with id ${postMemberInvitationDto.user_id} not found`);
+        throw new BadRequestException(`User with id ${postMemberInvitationDto.user_id} not found`);
+      }
+      // Check if member already exists
       const existingOrganizationMember = await this.organizationMemberRepository.findOne({
         select: { id: true },
         where: { user_id: postMemberInvitationDto.user_id, organization_id: organizationId }
@@ -365,16 +372,16 @@ export class OrganizationsApiService {
       }
 
       // Create notification
-      const [user, admin, organization] = await Promise.all([
+      const [user, adminOrganization, organization] = await Promise.all([
         this.userRepository.findOne({ select: { username: true }, where: { id } }),
-        this.organizationMemberRepository.findOne({ select: { user_id: true }, where: { organization_id: organizationId, role: OrganizationMemberRole.ADMIN } }),
+        this.organizationMemberRepository.find({ select: { user_id: true }, where: { organization_id: organizationId, role: OrganizationMemberRole.ADMIN } }),
         this.organizationRepository.findOne({ select: { name: true }, where: { id: organizationId } }),
       ]);
       if (!user) {
         this.logger.warn(`Failed to response invite member. No user found with id ${id} in organization with id ${organizationId}`);
         throw new NotFoundException('User not found');
       }
-      if (!admin) {
+      if (adminOrganization.length === 0) {
         this.logger.warn(`Failed to response invite member. No admin found in organization with id ${organizationId}`);
         throw new ForbiddenException('No admin in organization');
       }
@@ -384,17 +391,22 @@ export class OrganizationsApiService {
       }
       const subject = `Undangan anda ${patchInvitationResponseDto.is_accepted ? 'diterima' : 'ditolak'} oleh ${user.username}`;
       const message = `${user.username} ${patchInvitationResponseDto.is_accepted ? 'telah menjadi anggota' : 'menolak menjadi anggota'} organisasi: ${organization.name}`;
-      const notification = this.userNotificationRepository.create({
-        id: uuidv4(),
-        user_id: admin.user_id,
-        subject,
-        message,
-        type: 'organization_member_invitation_response',
-      });
-      await this.userNotificationRepository.save(notification);
+      await this.userNotificationRepository.save(
+        adminOrganization.map((admin) => ({
+          id: uuidv4(),
+          user_id: admin.user_id,
+          subject,
+          message,
+          type: 'organization_member_invitation_response',
+        }))
+      );
 
       // Send FCM notification to organization admin
-      await this.fcmService.sendMobileNotification(admin.user_id, subject, message);
+      await Promise.all(
+        adminOrganization.map(admin => (
+          this.fcmService.sendMobileNotification(admin.user_id, subject, message)     
+        ))
+      );
 
       this.logger.log(`Success to response invite member. Invitation response from user with id ${id} updated`);
       return {
@@ -511,24 +523,23 @@ export class OrganizationsApiService {
         this.logger.warn(`Failed to change member role. User with id ${patchMemberRolesDto.user_id} is a lokal member`);
         throw new BadRequestException('User is a lokal member, cannot change role');
       }
-      // Check if member is admin
-      const admin = await this.organizationMemberRepository.findOne({
-        select: { id: true },
-        where: { user_id: patchMemberRolesDto.user_id, organization_id: organizationId, role: OrganizationMemberRole.ADMIN }
-      });
-      if (admin) {
-        this.logger.warn(`Failed to change member role. User with id ${patchMemberRolesDto.user_id} is an admin and cannot change role`);
-        throw new BadRequestException('User is an admin and cannot change role');
-      }
-
       // Check if a member of the organization
       const organizationMember = await this.organizationMemberRepository.findOne({
-        select: { id: true },
+        select: { id: true, role: true },
         where: { user_id: patchMemberRolesDto.user_id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
       });
       if (!organizationMember) {
         this.logger.warn(`Failed to change member role. User with id ${patchMemberRolesDto.user_id} is not a member of organization with id ${organizationId}`);
         throw new BadRequestException('User is not a member of this organization');
+      }
+      // Check if a member is admin of the organization
+      if (organizationMember.role === OrganizationMemberRole.ADMIN) {
+        // Check if there is only one admin
+        const numberOfAdmin = await this.organizationMemberRepository.count({ where: { organization_id: organizationId, role: OrganizationMemberRole.ADMIN } });
+        if (numberOfAdmin === 1) {
+          this.logger.warn(`Failed to change admin member role. There is only one admin in organization with id ${organizationId}`);
+          throw new BadRequestException('There is only one admin in organization, you cannot change role this member');
+        }
       }
 
       await this.organizationMemberRepository.update(
@@ -551,18 +562,14 @@ export class OrganizationsApiService {
 
   async deleteMember(organizationId: string, userId: string) {
     try {
-      // Check if is user part of the organization and is not admin
+      // Check if is user part of the organization
       const organizationMember = await this.organizationMemberRepository.findOne({
-        select: { id: true, role: true },
+        select: { id: true },
         where: { user_id: userId, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
       });
       if (!organizationMember) {
         this.logger.warn(`Failed to delete member. User with id ${userId} is not a member of organization with id ${organizationId}`);
         throw new BadRequestException('User is not a member of this organization');
-      }
-      if (organizationMember.role === OrganizationMemberRole.ADMIN) {
-        this.logger.warn(`Failed to delete member. User with id ${userId} is an admin and cannot be deleted`);
-        throw new BadRequestException('User is an admin and cannot be deleted');
       }
 
       await this.organizationMemberRepository.delete({ user_id: userId, organization_id: organizationId });
@@ -608,9 +615,9 @@ export class OrganizationsApiService {
         this.logger.warn(`Failed to leave organization. User with id ${id} is a lokal member`);
         throw new BadRequestException('You are a lokal member, cannot leave organization');
       }
-      // Check if user is a member of the organization and is not admin
+      // Check if user is a member of the organization and is a admin
       const organizationMember = await this.organizationMemberRepository.findOne({
-        select: { id: true, role: true },
+        select: { role: true },
         where: { user_id: id, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
       });
       if (!organizationMember) {
@@ -618,34 +625,41 @@ export class OrganizationsApiService {
         throw new BadRequestException('You are not a member of this organization or not accepted the organization');
       }
       if (organizationMember.role === OrganizationMemberRole.ADMIN) {
-        this.logger.warn(`Failed to leave organization. User with id ${id} is an admin and cannot leave organization`);
-        throw new BadRequestException('User is an admin and cannot leave organization');
+        // Check if there is only one admin
+        const numberOfAdmin = await this.organizationMemberRepository.count({ where: { organization_id: organizationId, role: OrganizationMemberRole.ADMIN } });
+        if (numberOfAdmin === 1) {
+          this.logger.warn(`Failed to leave organization. There is only one admin in organization with id ${organizationId}`);
+          throw new BadRequestException('There is only one admin in organization, you cannot leave');
+        }
       }
 
+      // Leave organization
       await this.organizationMemberRepository.delete({ user_id: id, organization_id: organizationId });
 
-      // Create admin notification
-      const admin = await this.organizationMemberRepository.findOne({
+      // Create notification for organization admin
+      const adminOrganization = await this.organizationMemberRepository.find({
         select: { user_id: true },
         where: { organization_id: organizationId, role: OrganizationMemberRole.ADMIN },
       });
-      if (!admin) {
-        this.logger.warn(`Failed to leave organization. No admin found in organization with id ${organizationId}`);
-        throw new NotFoundException('No admin in organization');
-      }
       const member = await this.userRepository.findOne({ select: { username: true }, where: { id: id } });
       const organization = await this.organizationRepository.findOne({ select: { name: true }, where: { id: organizationId } });
-      const adminNotification = this.userNotificationRepository.create({
-        id: uuidv4(),
-        user_id: admin?.user_id,
-        subject: `Anggota telah meninggalkan organisasi`,
-        message: `Anggota dengan username ${member?.username} telah meninggalkan organisasi ${organization?.name}.`,
-        type: 'organization_member_leave',
-      });
-      await this.userNotificationRepository.save(adminNotification);
+
+      await this.userNotificationRepository.save(
+        adminOrganization.map(admin => ({
+          id: uuidv4(),
+          user_id: admin.user_id,
+          subject: `Anggota telah meninggalkan organisasi`,
+          message: `Anggota dengan username ${member?.username} telah meninggalkan organisasi ${organization?.name}.`,
+          type: 'organization_member_leave',
+        }))
+      );
 
       // Send FCM notification to organization admin
-      await this.fcmService.sendMobileNotification(admin?.user_id, `Anggota telah meninggalkan organisasi`, `Anggota dengan username ${member?.username} telah meninggalkan organisasi ${organization?.name}.`);
+      await Promise.all(
+        adminOrganization.map(admin =>
+          this.fcmService.sendMobileNotification(admin.user_id, `Anggota telah meninggalkan organisasi`, `Anggota dengan username ${member?.username} telah meninggalkan organisasi ${organization?.name}.`)
+        )
+      );
 
       this.logger.log(`Success to leave organization. User with id: ${id} leave organization with id: ${organizationId}`);
       return {
