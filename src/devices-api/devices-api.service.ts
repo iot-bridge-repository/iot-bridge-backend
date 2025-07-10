@@ -157,6 +157,29 @@ export class DevicesApiService {
     }
   }
 
+    async getPinList(deviceId: string) {
+    try {
+      const pins = await this.deviceDataRepository
+        .createQueryBuilder('device_data')
+        .select('DISTINCT device_data.pin', 'pin')
+        .where('device_data.device_id = :deviceId', { deviceId })
+        .getRawMany();
+      const pinList = pins.map(item => item.pin);
+
+      this.logger.log(`Success to get pin list. Successfully retrieved pin list with device id: ${deviceId}`);
+      return {
+        message: 'Pin list.',
+        data: pinList,
+      };
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to get pin list with device id: ${deviceId}, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get pin list, please try again later');
+    }
+  }
+
   async putWidgetBox(organizationId: string, deviceId: string, putWidgetBoxDto: dto.PutWidgetBoxDto) {
     try {
       // Check device and organization id

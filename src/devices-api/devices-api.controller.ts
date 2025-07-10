@@ -121,6 +121,24 @@ export class DevicesApiController {
     return this.devicesApiService.delete(request.params.deviceId);
   }
 
+  @ApiOperation({ summary: 'Get pin list' })
+  @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: 'Pin list.',
+        data: [ "V1", "V2", "V3", "V4" ],
+      }
+    }
+  })
+  @Get(':deviceId/pin-list')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
+  async getPinList(@Req() request: AuthenticatedRequest) {
+    this.logger.log(`There is a request to get pin list`);
+    return this.devicesApiService.getPinList(request.params.deviceId);
+  }
+
   @ApiOperation({ summary: 'Create or update widget box' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
