@@ -115,43 +115,51 @@ export class AuthApiService {
       await this.verifyEmailTokenRepository.save(verifyEmailToken);
 
       // Send verify email link
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
-      await this.emailService.sendEmail(
-        postRegisterDto.email,
-        '🔒 Verifikasi Akun Anda - IoT Bridge',
-        `Halo ${postRegisterDto.username}`,
-        `
-          <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; color: #333;">
-            <h2 style="color: #007bff;">🔒 Verifikasi Email Anda</h2>
-            <p>Halo <strong>${postRegisterDto.username}</strong>,</p>
-            <p>Terima kasih telah mendaftar di <strong>IoT Bridge</strong>. Untuk mengaktifkan akun Anda, silakan klik tombol di bawah ini untuk memverifikasi alamat email Anda:</p>
-            <div style="margin: 20px 0;">
-              <a href="${baseUrl}/auth/verify-email/?token=${token}" 
-                style="
-                  display: inline-block;
-                  padding: 12px 24px;
-                  background-color: #007bff;
-                  color: #fff;
-                  text-decoration: none;
-                  border-radius: 5px;
-                  font-size: 16px;
-                  font-weight: bold;
-                  "
-              >📧 Verifikasi Email</a>
+      if (this.configService.get('TESTING_MODE') !== 'true') {
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        await this.emailService.sendEmail(
+          postRegisterDto.email,
+          '🔒 Verifikasi Akun Anda - IoT Bridge',
+          `Halo ${postRegisterDto.username}`,
+          `
+            <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; color: #333;">
+              <h2 style="color: #007bff;">🔒 Verifikasi Email Anda</h2>
+              <p>Halo <strong>${postRegisterDto.username}</strong>,</p>
+              <p>Terima kasih telah mendaftar di <strong>IoT Bridge</strong>. Untuk mengaktifkan akun Anda, silakan klik tombol di bawah ini untuk memverifikasi alamat email Anda:</p>
+              <div style="margin: 20px 0;">
+                <a href="${baseUrl}/auth/verify-email/?token=${token}" 
+                  style="
+                    display: inline-block;
+                    padding: 12px 24px;
+                    background-color: #007bff;
+                    color: #fff;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    "
+                >📧 Verifikasi Email</a>
+              </div>
+              <p>Setelah Anda memverifikasi alamat email ini, Anda dapat menggunakan alamat email, username, atau nomer telepon yang anda daftarkan untuk login ke akun <strong>IoT Bridge</strong>.</p>
+              <p>Link verifikasi ini hanya berlaku selama <strong>24 jam</strong> dan hanya dapat digunakan <strong>1 kali</strong>. Jika Anda tidak melakukan pendaftaran, silakan abaikan email ini.</p>
+              <p style="margin-top: 40px;">Salam hangat,<br><strong>Tim IoT Bridge</strong></p>
+              <hr style="margin-top: 40px;">
+              <p style="font-size: 12px; color: #999;">Email ini dikirim secara otomatis. Mohon untuk tidak membalas ke alamat ini.</p>
             </div>
-            <p>Setelah Anda memverifikasi alamat email ini, Anda dapat menggunakan alamat email, username, atau nomer telepon yang anda daftarkan untuk login ke akun <strong>IoT Bridge</strong>.</p>
-            <p>Link verifikasi ini hanya berlaku selama <strong>24 jam</strong> dan hanya dapat digunakan <strong>1 kali</strong>. Jika Anda tidak melakukan pendaftaran, silakan abaikan email ini.</p>
-            <p style="margin-top: 40px;">Salam hangat,<br><strong>Tim IoT Bridge</strong></p>
-            <hr style="margin-top: 40px;">
-            <p style="font-size: 12px; color: #999;">Email ini dikirim secara otomatis. Mohon untuk tidak membalas ke alamat ini.</p>
-          </div>
-        `
-      );
+          `
+        );
+      }
 
       this.logger.log(`Success to register, by email: ${postRegisterDto.email}`);
-      return {
+      const response: any = {
         message: "Check your email and spam folder for a link to verify your account.",
       };
+      if (this.configService.get('TESTING_MODE') === 'true') {
+        response.data = {
+          verifyToken: token,
+        };
+      }
+      return response;
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
@@ -325,40 +333,50 @@ export class AuthApiService {
       await this.resetPasswordTokenRepository.save(resetPasswordToken);
 
       // Send password reset link via email
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
-      await this.emailService.sendEmail(
-        user.email,
-        '🔐 Permintaan Reset Password - IoT Bridge',
-        `Halo ${user.username}`,
-        `
-          <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; color: #333;">
-            <h2 style="color: #007bff;">🔐 Permintaan Reset Password</h2>
-            <p>Halo <strong>${user.username}</strong>,</p>
-            <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun Anda di <strong>IoT Bridge</strong>. Klik tombol di bawah ini untuk melanjutkan proses reset password:</p>
-            <div style="margin: 20px 0;">
-              <a href="${baseUrl}/auth/reset-password/${token}" 
-                style="
-                  display: inline-block;
-                  padding: 12px 24px;
-                  background-color: #007bff;
-                  color: #fff;
-                  text-decoration: none;
-                  border-radius: 5px;
-                  font-size: 16px;
-                  font-weight: bold;
-                ">🔁 Atur Ulang Kata Sandi</a>
+      if (this.configService.get('TESTING_MODE') !== 'true') {
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        await this.emailService.sendEmail(
+          user.email,
+          '🔐 Permintaan Reset Password - IoT Bridge',
+          `Halo ${user.username}`,
+          `
+            <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; color: #333;">
+              <h2 style="color: #007bff;">🔐 Permintaan Reset Password</h2>
+              <p>Halo <strong>${user.username}</strong>,</p>
+              <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun Anda di <strong>IoT Bridge</strong>. Klik tombol di bawah ini untuk melanjutkan proses reset password:</p>
+              <div style="margin: 20px 0;">
+                <a href="${baseUrl}/auth/reset-password/${token}" 
+                  style="
+                    display: inline-block;
+                    padding: 12px 24px;
+                    background-color: #007bff;
+                    color: #fff;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    font-size: 16px;
+                    font-weight: bold;
+                  ">🔁 Atur Ulang Kata Sandi</a>
+              </div>
+              <p>Link reset password ini hanya berlaku selama <strong>1 jam</strong> dan hanya bisa digunakan satu kali.</p>
+              <p>Jika Anda tidak meminta pengaturan ulang kata sandi, abaikan email ini. Akun Anda tetap aman.</p>
+              <p style="margin-top: 40px;">Salam hangat,<br><strong>Tim IoT Bridge</strong></p>
+              <hr style="margin-top: 40px;">
+              <p style="font-size: 12px; color: #999;">Email ini dikirim secara otomatis. Mohon untuk tidak membalas ke alamat ini.</p>
             </div>
-            <p>Link reset password ini hanya berlaku selama <strong>1 jam</strong> dan hanya bisa digunakan satu kali.</p>
-            <p>Jika Anda tidak meminta pengaturan ulang kata sandi, abaikan email ini. Akun Anda tetap aman.</p>
-            <p style="margin-top: 40px;">Salam hangat,<br><strong>Tim IoT Bridge</strong></p>
-            <hr style="margin-top: 40px;">
-            <p style="font-size: 12px; color: #999;">Email ini dikirim secara otomatis. Mohon untuk tidak membalas ke alamat ini.</p>
-          </div>
-        `
-      );
+          `
+        );
+      }
 
       this.logger.log(`Success to forgot password, sent to email: ${postForgotPasswordDto.email}`);
-      return { message: 'Check your email and spam folder for a link to reset your password.' };
+      const response: any = {
+        message: 'Check your email and spam folder for a link to reset your password.',
+      };
+      if (this.configService.get('TESTING_MODE') === 'true') {
+        response.data = {
+          resetPasswordToken: token,
+        };
+      }
+      return response;
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
@@ -608,42 +626,50 @@ export class AuthApiService {
       await this.verifyEmailTokenRepository.save(verifyEmailToken);
 
       // Send verify email link
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
-      await this.emailService.sendEmail(
-        patchChangeEmailDto.new_email,
-        '🔄 Verifikasi Email Baru Anda - IoT Bridge',
-        `Halo ${user.username}`,
-        `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; color: #333;">
-          <h2 style="color: #007bff;">🔄 Verifikasi Alamat Email Baru Anda</h2>
-          <p>Halo <strong>${user.username}</strong>,</p>
-          <p>Anda telah mengajukan permintaan untuk mengganti alamat email akun <strong>IoT Bridge</strong> Anda ke:</p>
-          <p style="font-size: 16px; font-weight: bold;">📧 ${patchChangeEmailDto.new_email}</p>
-          <p>Untuk menyelesaikan perubahan ini, silakan klik tombol di bawah ini untuk memverifikasi alamat email baru:</p>
-          <div style="margin: 20px 0;">
-            <a href="${baseUrl}/auth/verify-email?token=${token}" style="
-              display: inline-block;
-              padding: 12px 24px;
-              background-color: #007bff;
-              color: #fff;
-              text-decoration: none;
-              border-radius: 5px;
-              font-size: 16px;
-              font-weight: bold;
-            ">✅ Verifikasi Email Baru</a>
+      if (this.configService.get('TESTING_MODE') !== 'true') {
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        await this.emailService.sendEmail(
+          patchChangeEmailDto.new_email,
+          '🔄 Verifikasi Email Baru Anda - IoT Bridge',
+          `Halo ${user.username}`,
+          `
+          <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; color: #333;">
+            <h2 style="color: #007bff;">🔄 Verifikasi Alamat Email Baru Anda</h2>
+            <p>Halo <strong>${user.username}</strong>,</p>
+            <p>Anda telah mengajukan permintaan untuk mengganti alamat email akun <strong>IoT Bridge</strong> Anda ke:</p>
+            <p style="font-size: 16px; font-weight: bold;">📧 ${patchChangeEmailDto.new_email}</p>
+            <p>Untuk menyelesaikan perubahan ini, silakan klik tombol di bawah ini untuk memverifikasi alamat email baru:</p>
+            <div style="margin: 20px 0;">
+              <a href="${baseUrl}/auth/verify-email?token=${token}" style="
+                display: inline-block;
+                padding: 12px 24px;
+                background-color: #007bff;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 5px;
+                font-size: 16px;
+                font-weight: bold;
+              ">✅ Verifikasi Email Baru</a>
+            </div>
+            <p>Link ini hanya berlaku selama <strong>24 jam</strong>. Jika Anda tidak mengajukan permintaan ini, abaikan saja email ini dan perubahan tidak akan dilakukan.</p>
+            <p style="margin-top: 40px;">Salam hangat,<br><strong>Tim IoT Bridge</strong></p>
+            <hr style="margin-top: 40px;">
+            <p style="font-size: 12px; color: #999;">Email ini dikirim secara otomatis. Mohon untuk tidak membalas ke alamat ini.</p>
           </div>
-          <p>Link ini hanya berlaku selama <strong>24 jam</strong>. Jika Anda tidak mengajukan permintaan ini, abaikan saja email ini dan perubahan tidak akan dilakukan.</p>
-          <p style="margin-top: 40px;">Salam hangat,<br><strong>Tim IoT Bridge</strong></p>
-          <hr style="margin-top: 40px;">
-          <p style="font-size: 12px; color: #999;">Email ini dikirim secara otomatis. Mohon untuk tidak membalas ke alamat ini.</p>
-        </div>
-        `
-      );
+          `
+        );
+      }
 
       this.logger.log(`Success to changed email by id: ${id}`);
-      return {
+      const response: any = {
         message: "Check your email and spam folder for a link to verify your new email.",
       };
+      if (this.configService.get('TESTING_MODE') === 'true') {
+        response.data = {
+          verifyToken: token,
+        };
+      }
+      return response;
     } catch (error) {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;

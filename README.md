@@ -30,10 +30,11 @@ DB_PASSWORD=your-db-password
 DB_NAME=your-db-name
 
 # 🔐 JWT Configuration
-JWT_SECRET=your_jwt_secret_key
+JWT_SECRET=your-jwt-secret-key
 
 # 🌍 Application Environment
-NODE_ENV=development  # Use "development" or "production"
+NODE_ENV=development  # Choose "development" for development mode or "production" for production mode
+TESTING_MODE=false  # Set to "true" to expose test data for testing
 
 # ✉️ Email Configuration
 EMAIL_SERVICE_ADDRESS=your-email@gmail.com
@@ -49,8 +50,6 @@ FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_SERVICE_ACCOUNT_KEY=your-firebase-service-account-key
 ```
 
-NODE_ENV → Choose "development" for development mode or "production" for production mode.
-
 EMAIL_SERVICE_PASSWORD → Do not use your regular Gmail password. Use an App Password from Google.
 
 🔗 How to get an App Password:
@@ -63,7 +62,7 @@ FIREBASE_SERVICE_ACCOUNT_KEY → Get the Firebase service account key from the F
 
 #### 3️⃣ Create database
 
-Create database according to name in DB_NAME.
+Create a postgreSQL database according to name in DB_NAME.
 
 #### 4️⃣ Run migrations
 
