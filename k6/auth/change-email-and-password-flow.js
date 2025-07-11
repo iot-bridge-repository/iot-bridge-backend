@@ -2,7 +2,7 @@ import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
 import { BASE_URL } from '../utils/config.js';
 
-export default function changeEmailandPassword(email, jwtToken) {
+export default function changeEmailandPassword(email, userJwtToken) {
   // 1. Patch email
   const patchEmailRes = http.patch(`${BASE_URL}auth/email`,
     JSON.stringify({
@@ -11,7 +11,7 @@ export default function changeEmailandPassword(email, jwtToken) {
     {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${jwtToken}`,
+        Authorization: `Bearer ${userJwtToken}`,
       },
     },
   );
@@ -43,7 +43,7 @@ export default function changeEmailandPassword(email, jwtToken) {
     {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${jwtToken}`,
+        Authorization: `Bearer ${userJwtToken}`,
       },
     },
   );

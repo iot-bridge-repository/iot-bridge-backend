@@ -11,14 +11,8 @@ export default function login (identity) {
     }),
     { headers: { 'Content-Type': 'application/json' } },
   );
-  let label;
-  if (postLoginRes.json().data.user.role === "Admin System") {
-    label = 'post login admin system success';
-  } else {
-    label = 'post login user success';
-  }
   const checkPostLoginRes = check(postLoginRes, {
-    [label]: (r) => r.status >= 200 && r.status < 300,
+    'post login success': (r) => r.status >= 200 && r.status < 300,
   });
   if (!checkPostLoginRes) {
     fail(`post login failed by virtual user with id ${__VU}, status: ${postLoginRes.status}, body: ${postLoginRes.body}`);

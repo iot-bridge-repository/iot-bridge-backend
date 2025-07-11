@@ -2,11 +2,11 @@ import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
 import { BASE_URL } from '../utils/config.js';
 
-export default function profile(jwtToken, user) {
+export default function profile(userJwtToken, user) {
   // 1. Get profile
   const getProfileRes = http.get(`${BASE_URL}auth/profile`, {
     headers: {
-      Authorization: `Bearer ${jwtToken}`,
+      Authorization: `Bearer ${userJwtToken}`,
     },
   });
   const checkGetProfileRes = check(getProfileRes, {
@@ -26,7 +26,7 @@ export default function profile(jwtToken, user) {
     {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${jwtToken}`,
+        Authorization: `Bearer ${userJwtToken}`,
       },
     },
   );

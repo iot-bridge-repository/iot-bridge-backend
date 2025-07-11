@@ -139,6 +139,7 @@ export class OrganizationsApiController {
         name: { type: 'string', example: 'POKDAKAN BINTANG ROSELA JAYA' },
         description: { type: 'string', example: 'description of organization' },
         organization_picture: { type: 'string', format: 'binary', description: '(optional)' },
+        location: { type: 'string', example: 'location of organization' },
       },
     },
   })
