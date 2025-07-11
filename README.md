@@ -120,7 +120,9 @@ $ npm run start:prod
 $ k6 run k6/scenarios/sanity.test.js
 ```
 
-Before running the sanity test, make sure to set the `TESTING_MODE` environment variable to `true` in the `.env` file. And make Admin System users in the database with username `adminSystem` and password `12345678`.
+Before running the sanity test, ensure that the TESTING_MODE environment variable is set to true in your .env file.
+
+Also, make sure that the database contains an Admin System user with the username adminSystem and password 12345678, as well as a regular user with the username userDummy and password 12345678.
 
 ## 📖 Websocket and MQTT Documentation
 

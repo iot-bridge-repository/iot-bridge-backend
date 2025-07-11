@@ -6,6 +6,8 @@ import changeEmailAndPassword from "../auth/change-email-and-password-flow.js";
 import createOrganization from "../organizations/create-flow.js";
 import profileOrganization from "../organizations/profile-flow.js";
 import addMemberOrganization from "../organizations/add-member-flow.js";
+import setMemberOrganization from "../organizations/set-member-flow.js";
+import getOrganization from "../organizations/get-flow.js";
 
 export const options = {
   vus: 1,
@@ -27,4 +29,6 @@ export default function () {
   profileOrganization(organizationId, userJwtToken, user.username);
   const memberJwtToken = login('userDummy');
   addMemberOrganization(userJwtToken, organizationId, memberJwtToken);
+  setMemberOrganization(organizationId, userJwtToken, memberJwtToken);
+  getOrganization(organizationId, adminSystemJwtToken);
 }
