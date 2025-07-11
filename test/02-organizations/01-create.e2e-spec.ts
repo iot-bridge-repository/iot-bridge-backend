@@ -97,41 +97,6 @@ describe('Organization Controller (e2e)', () => {
     expect(res.status).toBeLessThan(500);
   });
 
-  // Patch verify
-  it('successfully patch verify', async () => {
-    const dataSource = app.get(DataSource);
-    const organization = await dataSource.getRepository(Organization).findOne({
-      select: {id: true},
-      where: { name: organizationName }, 
-    });
-
-    const res = await request(app.getHttpServer())
-      .patch('/organizations/verify')
-      .set('Authorization', `Bearer ${adminSystemToken}`)
-      .send({
-        organization_id: organization?.id
-      })
-
-    console.log('successfully patch verify response:', res.body);
-    expect(res.body.message).toBeDefined();
-    expect(res.status).toBeGreaterThanOrEqual(200);
-    expect(res.status).toBeLessThan(300);
-  });
-
-  it('failed patch verify', async () => {
-    const res = await request(app.getHttpServer())
-      .patch('/organizations/verify')
-      .set('Authorization', `Bearer ${regularUserToken}`)
-      .send({
-        organization_id: '123'
-      })
-
-    console.log('failed patch verify response:', res.body);
-    expect(res.body.message).toBeDefined();
-    expect(res.status).toBeGreaterThanOrEqual(400);
-    expect(res.status).toBeLessThan(500);
-  });
-
   // Patch unverify
   it.only('successfully patch unverify', async () => {
     const dataSource = app.get(DataSource);
@@ -162,6 +127,41 @@ describe('Organization Controller (e2e)', () => {
       })
 
     console.log('failed patch unverify response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+  });
+
+  // Patch verify
+  it('successfully patch verify', async () => {
+    const dataSource = app.get(DataSource);
+    const organization = await dataSource.getRepository(Organization).findOne({
+      select: {id: true},
+      where: { name: organizationName }, 
+    });
+
+    const res = await request(app.getHttpServer())
+      .patch('/organizations/verify')
+      .set('Authorization', `Bearer ${adminSystemToken}`)
+      .send({
+        organization_id: organization?.id
+      })
+
+    console.log('successfully patch verify response:', res.body);
+    expect(res.body.message).toBeDefined();
+    expect(res.status).toBeGreaterThanOrEqual(200);
+    expect(res.status).toBeLessThan(300);
+  });
+
+  it('failed patch verify', async () => {
+    const res = await request(app.getHttpServer())
+      .patch('/organizations/verify')
+      .set('Authorization', `Bearer ${regularUserToken}`)
+      .send({
+        organization_id: '123'
+      })
+
+    console.log('failed patch verify response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);

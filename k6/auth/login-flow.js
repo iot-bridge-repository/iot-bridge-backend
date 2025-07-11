@@ -2,17 +2,23 @@ import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
 import { BASE_URL } from '../utils/config.js';
 
-export default function login (user) {
+export default function login (identity) {
   // 1. Login
   const postLoginRes = http.post( `${BASE_URL}auth/login`,
     JSON.stringify({
-      identity: user.email,
+      identity: identity,
       password: '12345678',
     }),
     { headers: { 'Content-Type': 'application/json' } },
   );
+  let label;
+  if (postLoginRes.json().data.user.role === "Admin System") {
+    label = 'post login admin system success';
+  } else {
+    label = 'post login user success';
+  }
   const checkPostLoginRes = check(postLoginRes, {
-    'post login success': (r) => r.status >= 200 && r.status < 300,
+    [label]: (r) => r.status >= 200 && r.status < 300,
   });
   if (!checkPostLoginRes) {
     fail(`post login failed by virtual user with id ${__VU}, status: ${postLoginRes.status}, body: ${postLoginRes.body}`);

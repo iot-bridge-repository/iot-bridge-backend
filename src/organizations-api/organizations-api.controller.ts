@@ -328,7 +328,8 @@ export class OrganizationsApiController {
           {
             name: 'organization_test',
             location: 'Universitas Lampung',
-            creator_username: 'user_test 1'
+            creator_username: 'user_test 1',
+            is_verified: true
           }
         ]
       }
@@ -352,6 +353,7 @@ export class OrganizationsApiController {
           name: 'organization_test',
           location: 'Universitas Lampung',
           creator_username: 'user_test 1',
+          is_verified: true,
           members: [
             {
               username: "user_test 1",

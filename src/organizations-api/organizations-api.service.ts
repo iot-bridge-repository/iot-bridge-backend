@@ -682,6 +682,8 @@ export class OrganizationsApiService {
         .select([
           'o.name AS name',
           'o.location AS location',
+          'o.is_verified AS is_verified',
+          'o.id AS id',
           'creator.username AS creator_username',
         ])
         .where('o.name ILIKE :keyword', { keyword: `%${keyword}%` })
@@ -711,6 +713,8 @@ export class OrganizationsApiService {
         .select([
           'o.name AS name',
           'o.location AS location',
+          'o.is_verified AS is_verified',
+          'o.id AS id',
           'creator.username AS creator_username',
         ])
         .where('o.id = :organizationId', { organizationId })
@@ -738,6 +742,7 @@ export class OrganizationsApiService {
           name: organizations.name,
           location: organizations.location,
           creator_username: organizations.creator_username,
+          is_verified: organizations.is_verified,
           members,
         },
       };

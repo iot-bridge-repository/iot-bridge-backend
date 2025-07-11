@@ -33,8 +33,7 @@ DB_NAME=your-db-name
 JWT_SECRET=your-jwt-secret-key
 
 # 🌍 Application Environment
-NODE_ENV=development  # Choose "development" for development mode or "production" for production mode
-TESTING_MODE=false  # Set to "true" to expose test data for testing
+NODE_ENV=development  # Choose "development" for development mode or "production" for production mode, but by default it is set to "development"
 
 # ✉️ Email Configuration
 EMAIL_SERVICE_ADDRESS=your-email@gmail.com
@@ -48,6 +47,12 @@ MQTT_BROKER_PASSWORD=your-broker-password
 # 🔥Firebase Configuration
 FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_SERVICE_ACCOUNT_KEY=your-firebase-service-account-key
+
+# 🌍 Application Environment
+NODE_ENV=development  # Choose "development" for development mode or "production" for production mode, but by default it is set to "development"
+
+# 🧪 TESTING MODE
+TESTING_MODE=false  # Set to "true" to for testing mode
 ```
 
 EMAIL_SERVICE_PASSWORD → Do not use your regular Gmail password. Use an App Password from Google.
@@ -107,6 +112,15 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+### 7️⃣ Run tests
+
+```bash
+# sanity test
+$ k6 run k6/scenarios/sanity.test.js
+```
+
+Before running the sanity test, make sure to set the `TESTING_MODE` environment variable to `true` in the `.env` file. And make Admin System users in the database with username `adminSystem` and password `12345678`.
 
 ## 📖 Websocket and MQTT Documentation
 
