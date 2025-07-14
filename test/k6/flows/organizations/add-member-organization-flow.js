@@ -1,8 +1,8 @@
 import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
-import { BASE_URL } from '../utils/config.js';
+import { BASE_URL } from '../../utils/config.js';
 
-export default function addMemberOrganization(userJwtToken, organizationId, memberJwtToken) {
+export default function addMemberOrganizationFlow(userJwtToken, organizationId, memberJwtToken) {
   // 1. Get user
   const getUsersRes = http.get(`${BASE_URL}users/search?identity=`,{
     headers: {

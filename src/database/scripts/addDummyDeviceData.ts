@@ -1,6 +1,6 @@
 import { DataSource } from "typeorm";
 import 'dotenv/config'
-import { DeviceData } from "../../common/entities";
+import { DeviceData } from "../entities/device-data";
 import AppDataSource from "../database.config";
 
 const addDummyDeviceData = async (dataSource: DataSource) => {

@@ -1,8 +1,8 @@
 import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
-import { BASE_URL } from '../utils/config.js';
+import { BASE_URL } from '../../utils/config.js';
 
-export default function profileOrganization(organizationId, userJwtToken, username) {
+export default function updateOrganizationProfileflow (organizationId, userJwtToken, username) {
   // 1. Get organization profile
   const getOrganizationsProfileRes = http.get(`${BASE_URL}organizations/${organizationId}/profile`,{
     headers: {

@@ -1,6 +1,6 @@
 import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
-import { BASE_URL } from '../utils/config.js';
+import { BASE_URL } from '../../utils/config.js';
 
 export default function getOrganization(organizationId, adminSystemJwtToken) {
   // 1. Get organization

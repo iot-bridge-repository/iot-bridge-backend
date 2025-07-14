@@ -1,8 +1,8 @@
 import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
-import { BASE_URL } from '../utils/config.js';
+import { BASE_URL } from '../../utils/config.js';
 
-export default function createOrganization(username, userJwtToken, adminSystemJwtToken) {
+export default function createOrganizationFlow (username, userJwtToken, adminSystemJwtToken) {
   // 1. Post organization propose
   const postOrganizationsProposeRes = http.post(`${BASE_URL}organizations/propose`,
     JSON.stringify({

@@ -1,9 +1,9 @@
 import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
-import { generateUser } from '../utils/helper.js';
-import { BASE_URL } from '../utils/config.js';
+import { generateUser } from '../../utils/helper.js';
+import { BASE_URL } from '../../utils/config.js';
 
-export default function register () {
+export default function registerFlow () {
   const user = generateUser();
 
   // 1. Register

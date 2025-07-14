@@ -77,7 +77,7 @@ After configuring the database, run the following command to run the migration:
 $ npx typeorm-ts-node-commonjs migration:run -d src/database/database.config.ts
 ```
 
-#### 5️⃣ Run seeders (Admin System)
+#### 5️⃣ Run scripts to add Admin System user
 
 If you don't want to add a Admin System user, you can skip this step.
 
@@ -97,7 +97,7 @@ You can only fill in one password for all users and the deafult password is `123
 Then run the following command:
 
 ```bash
-$ npx ts-node src/database/seeders/addUsersAdminSystem.ts
+$ npx ts-node src/database/scripts/addUsersAdminSystem.ts
 ```
 
 ### 6️⃣ Compile and run the project
@@ -117,12 +117,18 @@ $ npm run start:prod
 
 ```bash
 # sanity test
-$ k6 run k6/scenarios/sanity.test.js
+$ k6 run test/k6/scenarios/sanity.test.js
 ```
 
 Before running the sanity test, ensure that the TESTING_MODE environment variable is set to true in your .env file.
 
-Also, make sure that the database contains an Admin System user with the username adminSystem and password 12345678, as well as a regular user with the username userDummy and password 12345678.
+Also, make sure that the database contains an Admin System user with the username adminSystem with password 12345678, as well as a regular user with the username userDummy with password 12345678, and remember not to create those users in the production database.
+
+After running the tests, you can clean the database by running the following command:
+
+```bash
+$ npx ts-node src/database/scripts/cleanTestData.ts
+```
 
 ## 📖 Websocket and MQTT Documentation
 

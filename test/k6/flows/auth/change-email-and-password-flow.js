@@ -1,8 +1,8 @@
 import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
-import { BASE_URL } from '../utils/config.js';
+import { BASE_URL } from '../../utils/config.js';
 
-export default function changeEmailandPassword(email, userJwtToken) {
+export default function changeEmailandPasswordFlow (email, userJwtToken) {
   // 1. Patch email
   const patchEmailRes = http.patch(`${BASE_URL}auth/email`,
     JSON.stringify({

@@ -1,8 +1,8 @@
 import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
-import { BASE_URL } from '../utils/config.js';
+import { BASE_URL } from '../../utils/config.js';
 
-export default function setMemberOrganization(organizationId, userJwtToken, memberJwtToken) {
+export default function setMemberOrganizationFlow(organizationId, userJwtToken, memberJwtToken) {
   // 1. Get organization member list
   const getOrganizationsMemberListRes = http.get(`${BASE_URL}organizations/${organizationId}/member-list`,{
     headers: {

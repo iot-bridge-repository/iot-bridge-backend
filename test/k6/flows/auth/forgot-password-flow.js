@@ -1,8 +1,8 @@
 import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
-import { BASE_URL } from '../utils/config.js';
+import { BASE_URL } from '../../utils/config.js';
 
-export default function forgotPassword (email) {
+export default function forgotPasswordFlow (email) {
   // 1. Post forgot password
   const postForgotPasswordRes = http.post( `${BASE_URL}auth/forgot-password`,
     JSON.stringify({ email }),
