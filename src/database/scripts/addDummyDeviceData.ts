@@ -23,10 +23,10 @@ const addDummyDeviceData = async (dataSource: DataSource) => {
 
 AppDataSource.initialize()
   .then(async (dataSource) => {
-    console.log('Database connected! Running device data seeder...');
+    console.log('Database connected! Running device data script...');
     await addDummyDeviceData(dataSource);
     await dataSource.destroy();
   })
   .catch((error) => {
-    console.error('❌ Error while running device data seeder:', error);
+    console.error('❌ Error while running device data script:', error);
   });

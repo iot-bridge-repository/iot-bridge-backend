@@ -110,6 +110,6 @@ export default function deviceCrudFlow (organizationId, username, userJwtToken) 
     fail(`post device again failed by virtual user with id ${__VU}, status: ${postDevicesAgainRes.status}, body: ${postDevicesAgainRes.body}`);
   }
   sleep(1);
-  
+
   return postDevicesAgainRes.json('data.id');
 }

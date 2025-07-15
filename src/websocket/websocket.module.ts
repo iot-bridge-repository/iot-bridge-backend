@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { WebsocketGateway } from './websocket.gateway';
+import { WebsocketService } from './websocket.service';
 
 @Module({
-  providers: [WebsocketGateway],
-  exports: [WebsocketGateway], // agar bisa di-inject ke service lain
+  providers: [WebsocketService],
+  exports: [WebsocketService],
 })
 export class WebsocketModule {}

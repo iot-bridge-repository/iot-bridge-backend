@@ -24,5 +24,5 @@ AppDataSource.initialize()
     await dataSource.destroy();
   })
   .catch((error) => {
-    console.error('❌ Error while running device data seeder:', error);
+    console.error('❌ Error while running clean test data script:', error);
   });

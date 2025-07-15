@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from "uuid";
 import { Device, DeviceData, NotificationEvent, ComparisonType, OrganizationMember, OrganizationMemberStatus, UserNotification } from '../common/entities';
-import { WebsocketGateway } from '../websocket/websocket.gateway';
+import { WebsocketService } from '../websocket/websocket.service';
 import { FcmService } from '../common/services/fcm.service';
 
 @Injectable()
@@ -17,7 +17,7 @@ export class MqttService {
     @InjectRepository(NotificationEvent) private readonly notificationEventRepository: Repository<NotificationEvent>,
     @InjectRepository(OrganizationMember) private readonly organizationMemberRepository: Repository<OrganizationMember>,
     @InjectRepository(UserNotification) private readonly userNotificationRepository: Repository<UserNotification>,
-    private readonly websocketGateway: WebsocketGateway,
+    private readonly websocketService: WebsocketService,
     private readonly configService: ConfigService,
   ) {
     this.fcmService = new FcmService(this.configService);
@@ -50,12 +50,12 @@ export class MqttService {
         time: new Date(),
       });
     });
-    await this.deviceDataRepository.save(data);
+    this.deviceDataRepository.save(data);
 
+    // Emit the device pin data
     for (const [pin, value] of entries) {
-      // Emit the data to the WebSocket server
-      this.websocketGateway.emitDeviceData(device.id, pin, {
-        value: value,
+      this.websocketService.emitDevicePinData(device.id, pin, {
+        value: parseFloat(value as string),
         time: new Date(),
       });
     }

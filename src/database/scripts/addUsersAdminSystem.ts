@@ -43,10 +43,10 @@ const createUsersAdminSystem = async (dataSource: DataSource) => {
 
 AppDataSource.initialize()
   .then(async (dataSource) => {
-    console.log("Database connected! Running admin system seeder...");
+    console.log("Database connected! Running admin system script...");
     await createUsersAdminSystem(dataSource);
     await dataSource.destroy();
   })
   .catch((error) => {
-    console.error("Error while running admin system seeder:", error);
+    console.error("Error while running admin system script:", error);
   });

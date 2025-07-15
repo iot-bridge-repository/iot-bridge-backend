@@ -134,26 +134,33 @@ $ npx ts-node src/database/scripts/cleanTestData.ts
 
 ### 1️⃣ 📡 WebSocket
 
-#### 🔸 Event: `device-id/{deviceId}/pin/{pin}`
-Emitted by server to send real-time sensor data for a specific pin of a device.
-
-**Payload:**
+#### 🔸 Connection URL: `ws://localhost:3001`
+#### 🔸 Subscription Topic Format:
 ```json
 {
-  "value": 23.5,
-  "time": "2025-05-27T12:00:00Z"
+  "type": "subscribe",
+  "topic": "device-id/${deviceId}/pin/${pin}"
 }
 ```
+#### 🔸 Data Obtained Format:
+```json
+{
+  "data": {
+    "value": 23.5,
+    "time": "2025-05-27T12:00:00Z"
+  }
+}
+```
+this is the data format obtained from websocket.
 
 ### 2️⃣ 🛰️ MQTT
 
 #### 🔸 Topic: `auth-code/{authCode}`
-This topic is used to send the auth code to the client.
-
-**Payload:**
+#### 🔸 Payload Format:
 ```json
 {
   "V1": 23.5,
   "V2": 23.5
 }
 ```
+This format is used to send data to the MQTT broker.

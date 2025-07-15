@@ -22,6 +22,7 @@ export const options = {
 
 export default function () {
   const adminSystemJwtToken = login('adminSystem');
+  const memberJwtToken = login('userDummy');
 
   // 1. Auth
   const user = registerFlow();
@@ -33,7 +34,6 @@ export default function () {
   // 2. Organizations
   const organizationId = createOrganizationFlow(user.username, userJwtToken, adminSystemJwtToken);
   updateOrganizationProfileflow(organizationId, userJwtToken, user.username);
-  const memberJwtToken = login('userDummy');
   addMemberOrganizationFlow(userJwtToken, organizationId, memberJwtToken);
   setMemberOrganizationFlow(organizationId, userJwtToken, memberJwtToken);
   getOrganization(organizationId, adminSystemJwtToken);
