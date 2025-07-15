@@ -14,6 +14,7 @@ import notificationEventCrudFlow from "../flows/devices/notification-event-crud-
 import getDeviceReport from "../flows/devices/get-device-report.js";
 import getAndDeleteNotification from "../flows/notifications/get-and-delete-notification.js";
 import getUser from "../flows/users/get-user.js";
+import wsDevicePinSubscription from "../ws/device-pin-subscription.js";
 
 export const options = {
   vus: 1,
@@ -41,6 +42,7 @@ export default function () {
   // 3. Devices
   const deviceId = deviceCrudFlow(organizationId, user.username, userJwtToken);
   widgetBoxCrudFlow(organizationId, deviceId, userJwtToken, user.username);
+  wsDevicePinSubscription(deviceId, "V1", 5);
   notificationEventCrudFlow(organizationId, deviceId, userJwtToken, user.username);
   getDeviceReport(organizationId, deviceId, userJwtToken);
 
