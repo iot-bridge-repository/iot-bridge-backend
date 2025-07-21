@@ -115,7 +115,7 @@ export class AuthApiService {
       await this.verifyEmailTokenRepository.save(verifyEmailToken);
 
       // Send verify email link
-      if (this.configService.get('TESTING_MODE') !== 'true') {
+      if (this.configService.get('NODE_ENV') === 'staging') {
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         await this.emailService.sendEmail(
           postRegisterDto.email,
@@ -154,7 +154,7 @@ export class AuthApiService {
       const response: any = {
         message: "Check your email and spam folder for a link to verify your account.",
       };
-      if (this.configService.get('TESTING_MODE') === 'true') {
+      if (this.configService.get('NODE_ENV') === 'staging') {
         response.data = {
           verifyToken: token,
         };
@@ -333,7 +333,7 @@ export class AuthApiService {
       await this.resetPasswordTokenRepository.save(resetPasswordToken);
 
       // Send password reset link via email
-      if (this.configService.get('TESTING_MODE') !== 'true') {
+      if (this.configService.get('NODE_ENV') === 'staging') {
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         await this.emailService.sendEmail(
           user.email,
@@ -371,7 +371,7 @@ export class AuthApiService {
       const response: any = {
         message: 'Check your email and spam folder for a link to reset your password.',
       };
-      if (this.configService.get('TESTING_MODE') === 'true') {
+      if (this.configService.get('NODE_ENV') === 'staging') {
         response.data = {
           resetPasswordToken: token,
         };
@@ -626,7 +626,7 @@ export class AuthApiService {
       await this.verifyEmailTokenRepository.save(verifyEmailToken);
 
       // Send verify email link
-      if (this.configService.get('TESTING_MODE') !== 'true') {
+      if (this.configService.get('NODE_ENV') === 'staging') {
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         await this.emailService.sendEmail(
           patchChangeEmailDto.new_email,
@@ -664,7 +664,7 @@ export class AuthApiService {
       const response: any = {
         message: "Check your email and spam folder for a link to verify your new email.",
       };
-      if (this.configService.get('TESTING_MODE') === 'true') {
+      if (this.configService.get('NODE_ENV') === 'staging') {
         response.data = {
           verifyToken: token,
         };

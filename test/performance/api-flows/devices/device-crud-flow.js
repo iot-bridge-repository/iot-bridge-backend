@@ -91,8 +91,8 @@ export default function deviceCrudFlow (organizationId, username, userJwtToken) 
   }
   sleep(1);
 
-  // 6. Post devices again
-  const postDevicesAgainRes = http.post(`${BASE_URL}organizations/${organizationId}/devices`,
+  // 6. Post devices 2
+  const postDevices2Res = http.post(`${BASE_URL}organizations/${organizationId}/devices`,
     JSON.stringify({
       name: `Device-test-${username}`,
     }),
@@ -103,13 +103,16 @@ export default function deviceCrudFlow (organizationId, username, userJwtToken) 
       },
     },
   );
-  const checkPostDevicesAgainRes = check(postDevicesAgainRes, {
-    'post device again success': (r) => r.status >= 200 && r.status < 300,
+  const checkPostDevices2Res = check(postDevices2Res, {
+    'post device 2 success': (r) => r.status >= 200 && r.status < 300,
   });
-  if (!checkPostDevicesAgainRes) {
-    fail(`post device again failed by virtual user with id ${__VU}, status: ${postDevicesAgainRes.status}, body: ${postDevicesAgainRes.body}`);
+  if (!checkPostDevices2Res) {
+    fail(`post device 2 failed by virtual user with id ${__VU}, status: ${postDevices2Res.status}, body: ${postDevices2Res.body}`);
   }
   sleep(1);
 
-  return postDevicesAgainRes.json('data.id');
+  return{
+    id: postDevices2Res.json('data.id'),
+    authCode: postDevices2Res.json('data.auth_code'),
+  } 
 }

@@ -33,7 +33,7 @@ DB_NAME=your-db-name
 JWT_SECRET=your-jwt-secret-key
 
 # 🌍 Application Environment
-NODE_ENV=development  # Choose "development" for development mode or "production" for production mode, but by default it is set to "development"
+NODE_ENV=development  # Choose "development", "staging", or "production" to set the desired mode, but by default it is set to "development"
 
 # ✉️ Email Configuration
 EMAIL_SERVICE_ADDRESS=your-email@gmail.com
@@ -48,11 +48,6 @@ MQTT_BROKER_PASSWORD=your-broker-password
 FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_SERVICE_ACCOUNT_KEY=your-firebase-service-account-key
 
-# 🌍 Application Environment
-NODE_ENV=development  # Choose "development" for development mode or "production" for production mode, but by default it is set to "development"
-
-# 🧪 TESTING MODE
-TESTING_MODE=false  # Set to "true" to for testing mode
 ```
 
 EMAIL_SERVICE_PASSWORD → Do not use your regular Gmail password. Use an App Password from Google.
@@ -113,18 +108,36 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-### 7️⃣ Run tests
+### 7️⃣ Tests
+
+### Sanity test
 
 ```bash
 # sanity test
-$ k6 run test/k6/scenarios/sanity.test.js
+$ k6 run test/performance/scenarios/sanity.test.js
 ```
 
-Before running the sanity test, ensure that the TESTING_MODE environment variable is set to true in your .env file.
+Before running this test, make sure you've:
 
-Also, make sure that the database contains an Admin System user with the username adminSystem with password 12345678, as well as a regular user with the username userDummy with password 12345678, and remember not to create those users in the production database.
+1. Installed k6: If not, you'll need to install it first.
 
-After running the tests, you can clean the database by running the following command:
+2. Set up ngrok: Run this project with ngrok using the instructions from [this repository](https://github.com/iot-bridge-repository/iot-bridge-mqtt-device-data-publish-test).
+
+3. Configured Environment Variable: After setting up ngrok, run the following command to export the base URL:
+
+```bash
+$ export MQTT_DEVICE_DATA_PUBLISH_BASE_URLL=...
+```
+
+3. Configured Environment Variable: Ensure NODE_ENV is set to staging in .env file.
+
+4. Create Admin System user with username `adminSystem` and password `12345678`. 
+
+5. Create regular user with username `userDummy` and password `12345678`.
+
+Important: Do not create these adminSystem and userDummy users in production database.
+
+After running the tests, you can clean the database by executing the following command:
 
 ```bash
 $ npx ts-node src/database/scripts/cleanTestData.ts
@@ -135,14 +148,18 @@ $ npx ts-node src/database/scripts/cleanTestData.ts
 ### 1️⃣ 📡 WebSocket
 
 #### 🔸 Connection URL: `ws://localhost:3001`
+
 #### 🔸 Subscription Topic Format:
+
 ```json
 {
   "type": "subscribe",
   "topic": "device-id/${deviceId}/pin/${pin}"
 }
 ```
+
 #### 🔸 Data Obtained Format:
+
 ```json
 {
   "data": {
@@ -151,16 +168,20 @@ $ npx ts-node src/database/scripts/cleanTestData.ts
   }
 }
 ```
+
 this is the data format obtained from websocket.
 
 ### 2️⃣ 🛰️ MQTT
 
 #### 🔸 Topic: `auth-code/{authCode}`
+
 #### 🔸 Payload Format:
+
 ```json
 {
   "V1": 23.5,
   "V2": 23.5
 }
 ```
+
 This format is used to send data to the MQTT broker.

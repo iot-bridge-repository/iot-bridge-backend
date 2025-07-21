@@ -114,4 +114,29 @@ export default function notificationEventCrudFlow(organizationId, deviceId, user
   if (!checkDeleteNotificationEventRes) {
     fail(`delete notification event failed by virtual user with id ${__VU}, status: ${deleteNotificationEventRes.status}, body: ${deleteNotificationEventRes.body}`);
   }
+
+  // 2. Post notification event 2
+  const postNotificationEvent2Res = http.post(`${BASE_URL}organizations/${organizationId}/devices/${deviceId}/notification-events`,
+    JSON.stringify({
+      pin: "V1",
+      subject: `Notfication-event-test-${username}`,
+      message: "suhu telalu dingin, nyalakan pompa",
+      comparison_type: "=",
+      threshold_value: "50",
+      is_active: true
+    }),
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${userJwtToken}`,
+      },
+    },
+  );
+  const checkPostNotificationEvent2Res = check(postNotificationEvent2Res, {
+    'post notification event 2 success': (r) => r.status >= 200 && r.status < 300,
+  });
+  if (!checkPostNotificationEvent2Res) {
+    fail(`post notification event 2 failed by virtual user with id ${__VU}, status: ${postNotificationEvent2Res.status}, body: ${postNotificationEvent2Res.body}`);
+  }
+  sleep(1);
 }
