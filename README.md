@@ -8,7 +8,7 @@ This project was developed as part of a bachelor's thesis in Information Technol
 
 ## 🚀 Project setup
 
-#### 1️⃣ Install dependencies
+### 1️⃣ Install dependencies
 
 Run the following command to install all required dependencies:
 
@@ -16,7 +16,7 @@ Run the following command to install all required dependencies:
 $ npm install
 ```
 
-#### 2️⃣ Configure .env
+### 2️⃣ Configure .env
 
 Add the following variables to the .env file in the project root:
 
@@ -60,11 +60,11 @@ EMAIL_SERVICE_PASSWORD → Do not use your regular Gmail password. Use an App Pa
 
 FIREBASE_SERVICE_ACCOUNT_KEY → Get the Firebase service account key from the Firebase Console then create a firebase folder in the project root and place the service account key there.
 
-#### 3️⃣ Create database
+### 3️⃣ Create database
 
 Create a postgreSQL database according to name in DB_NAME.
 
-#### 4️⃣ Run migrations
+### 4️⃣ Run migrations
 
 After configuring the database, run the following command to run the migration:
 
@@ -72,7 +72,7 @@ After configuring the database, run the following command to run the migration:
 $ npx typeorm-ts-node-commonjs migration:run -d src/database/database.config.ts
 ```
 
-#### 5️⃣ Run scripts to add Admin System user
+### 5️⃣ Run scripts to add Admin System user
 
 If you don't want to add a Admin System user, you can skip this step.
 
@@ -108,36 +108,52 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-### 7️⃣ Tests
+### 7️⃣ Test
 
-### Sanity test
+#### 🧪 Performance Test
 
 ```bash
 # sanity test
 $ k6 run test/performance/scenarios/sanity.test.js
+
+# stress test
+$ k6 run test/performance/scenarios/stress.test.js
 ```
 
-Before running this test, make sure you've:
+Make sure the following are done before running the tests:
 
-1. Installed k6: If not, you'll need to install it first.
+1. Install K6
+If not already installed, install K6 from https://grafana.com/docs/k6/latest/set-up/install-k6/
 
-2. Set up ngrok: Run this project with ngrok using the instructions from [this repository](https://github.com/iot-bridge-repository/iot-bridge-mqtt-device-data-publish-test).
+2. Run the MQTT Test Service
+Clone and run this test publisher project with ngrok:
+https://github.com/iot-bridge-repository/iot-bridge-mqtt-device-data-publish-test
 
-3. Configured Environment Variable: After setting up ngrok, run the following command to export the base URL:
+3. Set the MQTT base URL
+After running with ngrok, export the base URL:
 
 ```bash
-$ export MQTT_DEVICE_DATA_PUBLISH_BASE_URLL=...
+$ export MQTT_DEVICE_DATA_PUBLISH_BASE_URL=https://<your-ngrok-url>
 ```
 
-3. Configured Environment Variable: Ensure NODE_ENV is set to staging in .env file.
+4. Set Environment
+Ensure the .env file has:
 
-4. Create Admin System user with username `adminSystem` and password `12345678`. 
+```bash
+NODE_ENV=staging
+```
 
-5. Create regular user with username `userDummy` and password `12345678`.
+5. Create Test Users
+- Admin System
+Username: adminSystem
+Password: 12345678
+- Regular User
+Username: userDummy
+Password: 12345678
 
 Important: Do not create these adminSystem and userDummy users in production database.
 
-After running the tests, you can clean the database by executing the following command:
+After the test is completed, run the following command to clean the test data from the database:
 
 ```bash
 $ npx ts-node src/database/scripts/cleanTestData.ts

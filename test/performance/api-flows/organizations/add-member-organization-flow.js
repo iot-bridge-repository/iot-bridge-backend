@@ -62,7 +62,7 @@ export default function addMemberOrganizationFlow(userJwtToken, organizationId, 
   // 4. Post organization lokal member
   const postOrganizationsLokalMemberRes = http.post(`${BASE_URL}organizations/${organizationId}/lokal-member`,
     JSON.stringify({
-      username: `lokalMemberTest${__ITER}`,
+      username: `lokalMemberTest${__VU}${__ITER+1}`,
       password: '12345678',
     }),
     {

@@ -17,7 +17,7 @@ export default function setMemberOrganizationFlow(organizationId, userJwtToken, 
     fail(`get organization member list failed by virtual user with id ${__VU}, status: ${getOrganizationsMemberListRes.status}, body: ${getOrganizationsMemberListRes.body}`);
   }
   const memberId = getOrganizationsMemberListRes.json('data').find(user => user.username === 'userDummy').user_id;
-  const lokalMemberId = getOrganizationsMemberListRes.json('data').find(user => user.username === `lokalMemberTest${__ITER}`).user_id;
+  const lokalMemberId = getOrganizationsMemberListRes.json('data').find(user => user.username === `lokalMemberTest${__VU}${__ITER+1}`).user_id;
   sleep(1);
 
   // 2. Patch organization member roles

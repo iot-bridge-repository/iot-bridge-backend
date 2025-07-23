@@ -19,8 +19,24 @@ import wsDevicePinSubscription from "../ws/device-pin-subscription.js";
 import mqttDeviceDataPublish from "../mqtt/device-data-publish.js";
 
 export const options = {
-  vus: 1,
-  iterations: 1,
+  stages: [
+    { duration: '1m',  target: 20 },
+    { duration: '2m',  target: 50 },
+    { duration: '2m',  target: 100 },
+    { duration: '2m',  target: 200 },
+    { duration: '3m',  target: 400 },
+    { duration: '3m',  target: 600 },
+    { duration: '3m',  target: 800 },
+    { duration: '5m',  target: 1000 },
+    { duration: '2m',  target: 400 },
+    { duration: '1m',  target: 0 },
+  ],
+  thresholds: {
+    http_req_duration: ['p(95)<1000', 'avg<800', 'max<5000'],
+    http_req_failed: ['rate<0.01'],
+    iteration_duration: ['p(95)<2000'],
+    ws_connecting: ['p(95)<100']
+  },
 };
 
 export default function () {
