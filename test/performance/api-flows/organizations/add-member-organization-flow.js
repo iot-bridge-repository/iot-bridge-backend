@@ -3,20 +3,20 @@ import { check, sleep, fail } from 'k6';
 import { BASE_URL } from '../../utils/config.js';
 
 export default function addMemberOrganizationFlow(userJwtToken, organizationId, memberJwtToken) {
-  // 1. Get user
-  const getUsersRes = http.get(`${BASE_URL}users/search?identity=`,{
+  // 1. Get search members
+  const getSearchMembersRes = http.get(`${BASE_URL}organizations/${organizationId}/search-members?identity=`,{
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${userJwtToken}`,
     },
   });
-  const checkGetUsersRes = check(getUsersRes, {
-    'get user success': (r) => r.status >= 200 && r.status < 300,
+  const checkGetSearchMembersRes = check(getSearchMembersRes, {
+    'get search members success': (r) => r.status >= 200 && r.status < 300,
   });
-  if (!checkGetUsersRes) {
-    fail(`get user failed by virtual user with id ${__VU}, status: ${getUsersRes.status}, body: ${getUsersRes.body}`);
+  if (!checkGetSearchMembersRes) {
+    fail(`get search members failed by virtual user with id ${__VU}, status: ${getSearchMembersRes.status}, body: ${getSearchMembersRes.body}`);
   }
-  const userDummyId = getUsersRes.json('data').find(user => user.username === 'userDummy').id;
+  const userDummyId = getSearchMembersRes.json('data').find(user => user.username === 'userDummy').id;
   sleep(1);
 
   // 2. Post organization member invitation

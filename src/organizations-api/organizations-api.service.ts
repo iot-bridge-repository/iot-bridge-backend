@@ -4,7 +4,7 @@ import { Injectable, Logger, HttpException, BadRequestException, InternalServerE
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Request } from 'express';
-import { Repository } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 import { v4 as uuidv4 } from "uuid";
 import * as bcrypt from 'bcrypt';
 import { User, UserRole, UserNotification, Organization, OrganizationMember, OrganizationMemberRole, OrganizationMemberStatus } from '../common/entities';
@@ -286,13 +286,47 @@ export class OrganizationsApiService {
     }
   }
 
+    async getSearchMembers(identity: string) {
+    try {
+      const users = await this.userRepository
+        .createQueryBuilder('user')
+        .select(['user.id', 'user.username', 'user.email', 'user.phone_number', 'user.role']) // untuk debug
+        .where(
+          new Brackets(qb => {
+            qb.where('user.username ILIKE :identity', { identity: `%${identity}%` })
+              .orWhere('user.email ILIKE :identity', { identity: `%${identity}%` })
+              .orWhere('user.phone_number ILIKE :identity', { identity: `%${identity}%` });
+          }),
+        )
+        .andWhere('user.role != :excludedRole', {
+          excludedRole: UserRole.LOKAL_MEMBER,
+        })
+        .getMany();
+
+      this.logger.log(`Success to search members. Searched members with identity: ${identity}`);
+      return {
+        message: 'Users list.',
+        data: users,
+      }
+    } catch (error) {
+      if (error instanceof HttpException || error?.status || error?.response) {
+        throw error;
+      }
+      this.logger.error(`Failed to get search members, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get search members, please try another time');
+    }
+  }
+
   async postMemberInvitation(organizationId: string, postMemberInvitationDto: dto.PostMemberInvitationDto) {
     try {
       // Check if user exists
-      const existingUser = await this.userRepository.findOne({ select: { id: true }, where: { id: postMemberInvitationDto.user_id } });
+      const existingUser = await this.userRepository.findOne({ select: { id: true, role: true }, where: { id: postMemberInvitationDto.user_id } });
       if (!existingUser) {
         this.logger.warn(`Failed to invite member. User with id ${postMemberInvitationDto.user_id} not found`);
         throw new BadRequestException(`User with id ${postMemberInvitationDto.user_id} not found`);
+      } else if (existingUser.role === UserRole.LOKAL_MEMBER) {
+        this.logger.warn(`Failed to invite member. User with id ${postMemberInvitationDto.user_id} is a local member in some organization`);
+        throw new BadRequestException(`User with id ${postMemberInvitationDto.user_id} is a local member`);
       }
       // Check if member already exists
       const existingOrganizationMember = await this.organizationMemberRepository.findOne({
@@ -404,7 +438,7 @@ export class OrganizationsApiService {
       // Send FCM notification to organization admin
       await Promise.all(
         adminOrganization.map(admin => (
-          this.fcmService.sendMobileNotification(admin.user_id, subject, message)     
+          this.fcmService.sendMobileNotification(admin.user_id, subject, message)
         ))
       );
 

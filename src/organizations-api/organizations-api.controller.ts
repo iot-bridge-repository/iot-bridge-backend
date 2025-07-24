@@ -166,6 +166,31 @@ export class OrganizationsApiController {
     return this.organizationsApiService.patchOrganizationProfile(request, request.params.organizationId, patchOrganizationProfileDto, request.file?.filename ?? null);
   }
 
+  @ApiOperation({ summary: 'Search members' })
+  @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
+  @ApiOkResponse({
+    schema: {
+      example: {
+        message: "Users list",
+        data: [
+          {
+            id: "0555f6b5-c724-45a6-87cf-95786eb2a020",
+            username: "Bill Valentinov",
+            email: "valentinovbill0@gmail.com",
+            phone_number: "085691496242",
+          },
+        ]
+      }
+    }
+  })
+  @Get(':organizationId/search-members')
+  @UseGuards(OrganizationMemberRolesGuard)
+  @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
+  async getSearchMembers(@Query('identity') identity: string) {
+    this.logger.log(`There is a request to search users`);
+    return this.organizationsApiService.getSearchMembers(identity);
+  }
+
   @ApiOperation({ summary: 'Member invitation' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
