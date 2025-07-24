@@ -1,20 +1,19 @@
 import { Injectable, Logger, HttpException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
-import { User, Organization } from '../common/entities';
+import { User } from '../common/entities';
 
 @Injectable()
 export class UsersApiService {
   private readonly logger = new Logger(UsersApiService.name);
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(Organization) private readonly organizationRepository: Repository<Organization>,
   ) { }
 
   async getSearch(identity: string) {
     try {
       const users = await this.userRepository.find({
-        select: { id: true, username: true, email: true, phone_number: true },
+        select: { id: true, username: true, email: true, phone_number: true, role: true },
         where: [
           { username: ILike(`%${identity}%`) },
           { email: ILike(`%${identity}%`) },
