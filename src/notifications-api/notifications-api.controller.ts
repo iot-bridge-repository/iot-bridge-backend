@@ -34,7 +34,7 @@ export class NotificationsApiController {
   })
   @Get('')
   @UseGuards(UserRolesGuard)
-  @UserRoles(UserRole.LOKAL_MEMBER)
+  @UserRoles(UserRole.LOCAL_MEMBER)
   async get(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get notifications`);
     return this.notificationsApiService.get(request.user.id);
@@ -51,7 +51,7 @@ export class NotificationsApiController {
   })
   @Delete(':notificationId')
   @UseGuards(UserRolesGuard)
-  @UserRoles(UserRole.LOKAL_MEMBER)
+  @UserRoles(UserRole.LOCAL_MEMBER)
   async delete(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to delete notification by id`);
     return this.notificationsApiService.delete(request.params.notificationId);
@@ -67,7 +67,7 @@ export class NotificationsApiController {
   })
   @Delete('')
   @UseGuards(UserRolesGuard)
-  @UserRoles(UserRole.LOKAL_MEMBER)
+  @UserRoles(UserRole.LOCAL_MEMBER)
   async deleteAll(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to delete all notifications`);
     return this.notificationsApiService.deleteAll(request.user.id);

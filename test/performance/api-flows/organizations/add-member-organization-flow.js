@@ -59,10 +59,10 @@ export default function addMemberOrganizationFlow(userJwtToken, organizationId, 
   }
   sleep(1);
 
-  // 4. Post organization lokal member
-  const postOrganizationsLokalMemberRes = http.post(`${BASE_URL}organizations/${organizationId}/lokal-member`,
+  // 4. Post organization local member
+  const postOrganizationsLocalMemberRes = http.post(`${BASE_URL}organizations/${organizationId}/local-member`,
     JSON.stringify({
-      username: `lokalMemberTest${__VU}${__ITER+1}`,
+      username: `localMemberTest${__VU}${__ITER+1}`,
       password: '12345678',
     }),
     {
@@ -72,11 +72,11 @@ export default function addMemberOrganizationFlow(userJwtToken, organizationId, 
       },
     },
   );
-  const checkPostOrganizationsLokalMemberRes = check(postOrganizationsLokalMemberRes, {
-    'post organization lokal member invitation success': (r) => r.status >= 200 && r.status < 300,
+  const checkPostOrganizationsLocalMemberRes = check(postOrganizationsLocalMemberRes, {
+    'post organization local member invitation success': (r) => r.status >= 200 && r.status < 300,
   });
-  if (!checkPostOrganizationsLokalMemberRes) {
-    fail(`post organization lokal member invitation failed by virtual user with id ${__VU}, status: ${postOrganizationsLokalMemberRes.status}, body: ${postOrganizationsLokalMemberRes.body}`);
+  if (!checkPostOrganizationsLocalMemberRes) {
+    fail(`post organization local member invitation failed by virtual user with id ${__VU}, status: ${postOrganizationsLocalMemberRes.status}, body: ${postOrganizationsLocalMemberRes.body}`);
   }
   sleep(1);
 }

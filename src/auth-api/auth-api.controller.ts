@@ -193,7 +193,7 @@ export class AuthApiController {
     }
   })
   @UseGuards(UserRolesGuard)
-  @UserRoles(UserRole.LOKAL_MEMBER)
+  @UserRoles(UserRole.LOCAL_MEMBER)
   @Get('profile')
   async getProfile(@Req() request: AuthenticatedRequest) {
     return this.authService.getProfile(request.user.id);
@@ -267,7 +267,7 @@ export class AuthApiController {
   })
   @Patch('password')
   @UseGuards(UserRolesGuard)
-  @UserRoles(UserRole.LOKAL_MEMBER)
+  @UserRoles(UserRole.REGULAR_USER)
   async patchPassword(@Req() request: AuthenticatedRequest, @Body() patchPasswordDto: dto.PatchPasswordDto) {
     this.logger.log(`There is a change password request`);
     return this.authService.patchPassword(request.user.id, patchPasswordDto);

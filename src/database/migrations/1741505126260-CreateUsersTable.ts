@@ -46,7 +46,7 @@ export class CreateUsersTable1741505126260 implements MigrationInterface {
           {
             name: 'role',
             type: 'enum',
-            enum: ['Admin System', 'Regular User', 'Lokal Member'],
+            enum: ['Admin System', 'Regular User', 'Local Member'],
             default: `'Regular User'`,
             isNullable: false,
           },

@@ -29,7 +29,7 @@ export class UserRolesGuard implements CanActivate {
       const { role } = (request as AuthenticatedRequest).user;
 
       // Verify role
-      const roleHierarchy = [UserRole.ADMIN_SYSTEM, UserRole.REGULAR_USER, UserRole.LOKAL_MEMBER];
+      const roleHierarchy = [UserRole.ADMIN_SYSTEM, UserRole.REGULAR_USER, UserRole.LOCAL_MEMBER];
       const hasAccess = [requiredRole].some(requiredRole => roleHierarchy.indexOf(role) <= roleHierarchy.indexOf(requiredRole));
       if (!hasAccess) {
         this.logger.warn(`User roles guard: User with role ${role} tried to access ${context.getHandler().name} without sufficient permissions`);

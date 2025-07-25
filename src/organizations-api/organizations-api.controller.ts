@@ -39,7 +39,7 @@ export class OrganizationsApiController {
   })
   @Get('list')
   @UseGuards(UserRolesGuard)
-  @UserRoles(UserRole.LOKAL_MEMBER)
+  @UserRoles(UserRole.LOCAL_MEMBER)
   async getList(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get organization list`);
     return this.organizationsApiService.getList(request.user.id);
@@ -237,17 +237,17 @@ export class OrganizationsApiController {
     return this.organizationsApiService.patchMemberInvitationResponse(request.user.id, request.params.organizationId, patchInvitationResponseDto);
   }
 
-  @ApiOperation({ summary: 'Create lokal member' })
+  @ApiOperation({ summary: 'Create local member' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     schema: {
       example: {
-        message: 'Lokal member created successfully.',
+        message: 'Local member created successfully.',
         data: {
           user: {
             id: "25d35595-fd8c-4f3f-ad93-023a7c799bd4",
             username: "Bill Valentinov",
-            role: "LOKAL_MEMBER",
+            role: "LOCAL_MEMBER",
           },
           organization: {
             id: "921df4c5-6c5c-46aa-8f60-44f0810a65c2",
@@ -260,12 +260,12 @@ export class OrganizationsApiController {
       }
     }
   })
-  @Post(':organizationId/lokal-member')
+  @Post(':organizationId/local-member')
   @UseGuards(OrganizationMemberRolesGuard)
   @OrganizationMemberRoles(OrganizationMemberRole.ADMIN)
-  async postLokalMember(@Req() request: AuthenticatedRequest, @Body() lokalMemberDto: dto.PostLokalMemberDto) {
-    this.logger.log(`There is a request to create lokal member`);
-    return this.organizationsApiService.postLokalMember(request.params.organizationId, lokalMemberDto);
+  async postLocalMember(@Req() request: AuthenticatedRequest, @Body() localMemberDto: dto.PostLocalMemberDto) {
+    this.logger.log(`There is a request to create local member`);
+    return this.organizationsApiService.postLocalMember(request.params.organizationId, localMemberDto);
   }
 
   @ApiOperation({ summary: 'Get member list' })

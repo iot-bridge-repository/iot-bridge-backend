@@ -17,7 +17,7 @@ export default function setMemberOrganizationFlow(organizationId, userJwtToken, 
     fail(`get organization member list failed by virtual user with id ${__VU}, status: ${getOrganizationsMemberListRes.status}, body: ${getOrganizationsMemberListRes.body}`);
   }
   const memberId = getOrganizationsMemberListRes.json('data').find(user => user.username === 'userDummy').user_id;
-  const lokalMemberId = getOrganizationsMemberListRes.json('data').find(user => user.username === `lokalMemberTest${__VU}${__ITER+1}`).user_id;
+  const localMemberId = getOrganizationsMemberListRes.json('data').find(user => user.username === `localMemberTest${__VU}${__ITER+1}`).user_id;
   sleep(1);
 
   // 2. Patch organization member roles
@@ -42,7 +42,7 @@ export default function setMemberOrganizationFlow(organizationId, userJwtToken, 
   sleep(1);
 
   // 3. Delete organization member
-  const deleteOrganizationsMemberRes = http.del(`${BASE_URL}organizations/${organizationId}/member/${lokalMemberId}`, null,
+  const deleteOrganizationsMemberRes = http.del(`${BASE_URL}organizations/${organizationId}/member/${localMemberId}`, null,
     {
       headers: {
         'Content-Type': 'application/json',

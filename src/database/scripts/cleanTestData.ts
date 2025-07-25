@@ -15,7 +15,7 @@ const cleanTestData = async (dataSource: DataSource) => {
     username: Like('userTest_%'),
   })
   await userRepository.delete({
-    username: Like('lokalMemberTest%'),
+    username: Like('localMemberTest%'),
   })
   console.log('✅ Test data cleaned.');
 };

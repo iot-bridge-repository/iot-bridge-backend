@@ -299,7 +299,7 @@ export class OrganizationsApiService {
           }),
         )
         .andWhere('user.role != :excludedRole', {
-          excludedRole: UserRole.LOKAL_MEMBER,
+          excludedRole: UserRole.LOCAL_MEMBER,
         })
         .getMany();
 
@@ -324,7 +324,7 @@ export class OrganizationsApiService {
       if (!existingUser) {
         this.logger.warn(`Failed to invite member. User with id ${postMemberInvitationDto.user_id} not found`);
         throw new BadRequestException(`User with id ${postMemberInvitationDto.user_id} not found`);
-      } else if (existingUser.role === UserRole.LOKAL_MEMBER) {
+      } else if (existingUser.role === UserRole.LOCAL_MEMBER) {
         this.logger.warn(`Failed to invite member. User with id ${postMemberInvitationDto.user_id} is a local member in some organization`);
         throw new BadRequestException(`User with id ${postMemberInvitationDto.user_id} is a local member`);
       }
@@ -458,25 +458,25 @@ export class OrganizationsApiService {
     }
   }
 
-  async postLokalMember(organizationId: string, postLokalMemberDto: dto.PostLokalMemberDto) {
+  async postLocalMember(organizationId: string, postLocalMemberDto: dto.PostLocalMemberDto) {
     try {
       // Check if username already exists
       const existingUser = await this.userRepository.findOne({
         select: { id: true },
-        where: { username: postLokalMemberDto.username }
+        where: { username: postLocalMemberDto.username }
       });
       if (existingUser) {
-        this.logger.warn(`Failed to create lokal member. Username ${postLokalMemberDto.username} already exists`);
+        this.logger.warn(`Failed to create local member. Username ${postLocalMemberDto.username} already exists`);
         throw new BadRequestException('Username already exists');
       }
       // Create user
       const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(postLokalMemberDto.password, salt);
+      const hashedPassword = await bcrypt.hash(postLocalMemberDto.password, salt);
       const newUser = this.userRepository.create({
         id: uuidv4(),
-        username: postLokalMemberDto.username,
+        username: postLocalMemberDto.username,
         password: hashedPassword,
-        role: UserRole.LOKAL_MEMBER,
+        role: UserRole.LOCAL_MEMBER,
         is_email_verified: true,
       });
       await this.userRepository.save(newUser);
@@ -491,9 +491,9 @@ export class OrganizationsApiService {
       });
       await this.organizationMemberRepository.save(newOrganizationMember);
 
-      this.logger.log(`Success to create lokal member. Lokal member created successfully`);
+      this.logger.log(`Success to create local member. Local member created successfully`);
       return {
-        message: 'Lokal member created successfully.',
+        message: 'Local member created successfully.',
         data: {
           user: {
             id: newUser.id,
@@ -513,8 +513,8 @@ export class OrganizationsApiService {
       if (error instanceof HttpException || error?.status || error?.response) {
         throw error;
       }
-      this.logger.error(`Failed create lokal member, Error: ${error.message}`);
-      throw new InternalServerErrorException('Failed create lokal member, please try another time');
+      this.logger.error(`Failed create local member, Error: ${error.message}`);
+      throw new InternalServerErrorException('Failed create local member, please try another time');
     }
   }
 
@@ -548,14 +548,14 @@ export class OrganizationsApiService {
 
   async patchMemberRoles(organizationId: string, patchMemberRolesDto: dto.PatchMemberRolesDto) {
     try {
-      // Check if member is lokal member
+      // Check if member is local member
       const user = await this.userRepository.findOne({
         select: { id: true },
-        where: { id: patchMemberRolesDto.user_id, role: UserRole.LOKAL_MEMBER }
+        where: { id: patchMemberRolesDto.user_id, role: UserRole.LOCAL_MEMBER }
       });
       if (user) {
-        this.logger.warn(`Failed to change member role. User with id ${patchMemberRolesDto.user_id} is a lokal member`);
-        throw new BadRequestException('User is a lokal member, cannot change role');
+        this.logger.warn(`Failed to change member role. User with id ${patchMemberRolesDto.user_id} is a local member`);
+        throw new BadRequestException('User is a local member, cannot change role');
       }
       // Check if a member of the organization
       const organizationMember = await this.organizationMemberRepository.findOne({
@@ -608,9 +608,9 @@ export class OrganizationsApiService {
 
       await this.organizationMemberRepository.delete({ user_id: userId, organization_id: organizationId });
 
-      // Check if user is lokal member
+      // Check if user is local member
       const user = await this.userRepository.findOne({ select: { id: true, role: true }, where: { id: userId } });
-      if (user?.role === UserRole.LOKAL_MEMBER) {
+      if (user?.role === UserRole.LOCAL_MEMBER) {
         await this.userRepository.delete({ id: userId });
       } else {
         // Create user notification
@@ -643,11 +643,11 @@ export class OrganizationsApiService {
 
   async deleteLeave(id: string, organizationId: string) {
     try {
-      // Check if user is lokal member
-      const user = await this.userRepository.findOne({ select: { id: true }, where: { id, role: UserRole.LOKAL_MEMBER } });
+      // Check if user is local member
+      const user = await this.userRepository.findOne({ select: { id: true }, where: { id, role: UserRole.LOCAL_MEMBER } });
       if (user) {
-        this.logger.warn(`Failed to leave organization. User with id ${id} is a lokal member`);
-        throw new BadRequestException('You are a lokal member, cannot leave organization');
+        this.logger.warn(`Failed to leave organization. User with id ${id} is a local member`);
+        throw new BadRequestException('You are a local member, cannot leave organization');
       }
       // Check if user is a member of the organization and is a admin
       const organizationMember = await this.organizationMemberRepository.findOne({

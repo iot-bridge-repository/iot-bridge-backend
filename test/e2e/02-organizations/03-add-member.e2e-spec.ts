@@ -116,8 +116,8 @@ describe('Organization Controller (e2e)', () => {
     expect(res.status).toBeLessThan(500);
   });
 
-  // Post create lokal member
-  it('successfully post create lokal member', async () => {
+  // Post create local member
+  it('successfully post create local member', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -125,20 +125,20 @@ describe('Organization Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .post(`/organizations/${organization?.id}/lokal-member`)
+      .post(`/organizations/${organization?.id}/local-member`)
       .set('Authorization', `Bearer ${adminOrganizationToken}`)
       .send({
-        username: "lokalMemberTest2",
+        username: "localMemberTest2",
         password: "12345678"
       })
 
-    console.log('successfully post create lokal member response:', res.body);
+    console.log('successfully post create local member response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(200);
     expect(res.status).toBeLessThan(300);
   });
 
-  it('failed post create lokal member', async () => {
+  it('failed post create local member', async () => {
     const dataSource = app.get(DataSource);
     const organization = await dataSource.getRepository(Organization).findOne({
       select: { id: true },
@@ -146,14 +146,14 @@ describe('Organization Controller (e2e)', () => {
     });
 
     const res = await request(app.getHttpServer())
-      .post(`/organizations/${organization?.id}/lokal-member`)
+      .post(`/organizations/${organization?.id}/local-member`)
       .set('Authorization', `Bearer ${memberOrganizationToken}`)
       .send({
-        username: "userLokalMemberTest",
+        username: "userLocalMemberTest",
         password: "12345678"
       })
 
-    console.log('failed post create lokal member response:', res.body);
+    console.log('failed post create local member response:', res.body);
     expect(res.body.message).toBeDefined();
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);

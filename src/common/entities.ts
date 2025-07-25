@@ -3,7 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, Ma
 export enum UserRole {
   ADMIN_SYSTEM = 'Admin System',
   REGULAR_USER = 'Regular User',
-  LOKAL_MEMBER = 'Lokal Member',
+  LOCAL_MEMBER = 'Local Member',
 }
 
 @Entity({ name: "users" })

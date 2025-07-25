@@ -57,7 +57,7 @@ export class PatchInvitationResponseDto {
   is_accepted: boolean;
 }
 
-export class PostLokalMemberDto {
+export class PostLocalMemberDto {
   @ApiProperty({ example: 'username', description: 'User username' })
   @IsNotEmpty({ message: 'Username cannot be empty' })
   @IsString({ message: 'Username must be a string' })
