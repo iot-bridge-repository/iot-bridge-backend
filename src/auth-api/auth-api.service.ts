@@ -538,9 +538,7 @@ export class AuthApiService {
 
         // Check if the old profile picture exists and delete it
         if (user.profile_picture) {
-          const uploadDir = this.configService.get('NODE_ENV') === 'production'
-            ? '/var/www/uploads/profile_picture'
-            : './uploads/profile_picture';
+          const uploadDir = './uploads/profile_picture';
           const oldFilePath = path.join(uploadDir, path.basename(user.profile_picture));
 
           if (fs.existsSync(oldFilePath)) {

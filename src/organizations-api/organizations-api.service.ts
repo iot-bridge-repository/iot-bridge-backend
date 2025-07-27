@@ -252,9 +252,7 @@ export class OrganizationsApiService {
         updateOrganizationProfile.organization_picture = `${baseUrl}/uploads/organization_picture/${organization_picture}`;
 
         if (organization?.organization_picture) {
-          const uploadDir = this.configService.get('NODE_ENV') === 'production'
-            ? '/var/www/uploads/organization_picture'
-            : './uploads/organization_picture';
+          const uploadDir = './uploads/organization_picture';
           const oldFilePath = path.join(uploadDir, path.basename(organization.organization_picture));
 
           if (fs.existsSync(oldFilePath)) {
