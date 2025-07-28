@@ -3,6 +3,7 @@ import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { CacheModule } from '@nestjs/cache-manager';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthApiModule } from './auth-api/auth-api.module';
@@ -15,6 +16,11 @@ import { MqttModule } from './mqtt/mqtt.module';
 
 @Module({
   imports: [
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 10,
+      max: 100,
+    }),
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -31,6 +37,9 @@ import { MqttModule } from './mqtt/mqtt.module';
           autoLoadEntities: true, 
           logging: true,
           logger: 'advanced-console',
+          extra: {
+            max: 10,
+          }
         } as TypeOrmModuleOptions;
       },
     }),

@@ -1,5 +1,6 @@
-import { Controller, Logger, UseGuards, Req, Body, Post, Get, Patch, Delete, Query, Put } from '@nestjs/common';
+import { Controller, Logger, UseGuards, Req, Body, Post, Get, Patch, Delete, Query, Put, UseInterceptors } from '@nestjs/common';
 import { ApiOperation, ApiOkResponse, ApiBearerAuth, ApiTags, ApiParam } from '@nestjs/swagger';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { DevicesApiService } from './devices-api.service';
 import * as dto from './dto';
 import AuthenticatedRequest from '../common/interfaces/authenticated-request.interface';
@@ -10,6 +11,7 @@ import { OrganizationMemberRole } from '../common/entities';
 @ApiTags('Devices')
 @ApiBearerAuth()
 @ApiParam({ name: 'organizationId', type: String, description: 'Organization id' })
+@UseInterceptors(CacheInterceptor)
 @Controller('organizations/:organizationId/devices')
 export class DevicesApiController {
   private readonly logger = new Logger(DevicesApiController.name);

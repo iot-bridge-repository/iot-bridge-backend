@@ -1,5 +1,6 @@
 import { Controller, Logger, UseGuards, Req, Res, Body, Query, Post, Get, Patch, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiConsumes, ApiBody, ApiParam } from '@nestjs/swagger';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { Request, Response } from 'express';
 import { AuthApiService } from './auth-api.service';
 import * as dto from './dto';
@@ -10,6 +11,7 @@ import AuthenticatedRequest from '../common/interfaces/authenticated-request.int
 import { UploadPictureInterceptorFactory } from '../common/interceptors/upload-picture.interceptor';
 
 @ApiTags('Auth')
+@UseInterceptors(CacheInterceptor)
 @Controller('auth')
 export class AuthApiController {
   private readonly logger = new Logger(AuthApiController.name);

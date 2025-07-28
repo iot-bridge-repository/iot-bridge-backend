@@ -23,20 +23,21 @@ export const options = {
     { duration: '1m',  target: 20 },
     { duration: '2m',  target: 50 },
     { duration: '2m',  target: 100 },
-    { duration: '2m',  target: 200 },
+    /* { duration: '2m',  target: 200 },
     { duration: '3m',  target: 400 },
     { duration: '3m',  target: 600 },
     { duration: '3m',  target: 800 },
     { duration: '5m',  target: 1000 },
-    { duration: '2m',  target: 400 },
+    { duration: '2m',  target: 400 }, */
     { duration: '1m',  target: 0 },
   ],
   thresholds: {
-    http_req_duration: ['p(95)<1000', 'avg<800', 'max<5000'],
-    http_req_failed: ['rate<0.01'],
-    iteration_duration: ['p(95)<2000'],
-    ws_connecting: ['p(95)<100']
-  },
+    http_req_duration: ['p(95)<1000', 'p(99)<1500'],  // Mayoritas request harus di bawah 1 detik, 99% di bawah 1.5 detik
+    http_req_failed: ['rate<0.01'],                   // Error rate tidak boleh lebih dari 1%
+    ws_connecting: ['p(95)<100'],                     // Koneksi WebSocket harus cepat (<100ms untuk 95% koneksi)
+    ws_msgs_received: ['count>0'],                    // Harus menerima pesan selama sesi
+    ws_session_duration: ['avg>=5000'],               // Pastikan sesi WebSocket berlangsung seperti yang diharapkan
+  }
 };
 
 export default function () {

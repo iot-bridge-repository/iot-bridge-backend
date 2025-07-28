@@ -1,5 +1,6 @@
-import { Controller, Get, Logger, UseGuards, Req, Query } from '@nestjs/common';
+import { Controller, Get, Logger, UseGuards, Req, Query, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiParam } from '@nestjs/swagger';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { UsersApiService } from './users-api.service';
 import AuthenticatedRequest from '../common/interfaces/authenticated-request.interface';
 import { UserRolesGuard } from '../common/guards/user-roles.guard';
@@ -8,6 +9,7 @@ import { UserRole } from '../common/entities';
 
 @ApiTags('Users')
 @ApiBearerAuth()
+@UseInterceptors(CacheInterceptor)
 @Controller('users')
 export class UsersApiController {
   private readonly logger = new Logger(UsersApiController.name);

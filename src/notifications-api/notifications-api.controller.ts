@@ -1,5 +1,6 @@
-import { Controller, Logger, Req, UseGuards, Get, Delete } from '@nestjs/common';
+import { Controller, Logger, Req, UseGuards, Get, Delete, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiOkResponse, ApiTags, ApiParam } from '@nestjs/swagger';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { NotificationsApiService } from './notifications-api.service';
 import AuthenticatedRequest from '../common/interfaces/authenticated-request.interface';
 import { UserRolesGuard } from '../common/guards/user-roles.guard';
@@ -8,6 +9,7 @@ import { UserRole } from '../common/entities';
 
 @ApiTags('Notifications')
 @ApiBearerAuth()
+@UseInterceptors(CacheInterceptor)
 @Controller('notifications')
 export class NotificationsApiController {
   private readonly logger = new Logger(NotificationsApiController.name);
