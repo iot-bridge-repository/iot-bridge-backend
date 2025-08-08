@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import { Request } from 'express';
 import AuthenticatedRequest from '../interfaces/authenticated-request.interface';
 import { ORGANIZATION_MEMBER_ROLES_KEY } from '../decorators/organization-member-roles.decorator';
-import { Organization, OrganizationMemberRole, OrganizationMember, OrganizationMemberStatus } from '../entities';
+import { Organization, OrganizationMemberRole, OrganizationMember, OrganizationMemberStatus, OrganizationStatus } from '../entities';
 import { checkToken } from '../utils/check-token.util';
 
 @Injectable()
@@ -37,14 +37,14 @@ export class OrganizationMemberRolesGuard implements CanActivate {
 
       // Check if organizationId is verified
       const organization = await this.organizationRepository.findOne({
-        select: { is_verified: true },
+        select: { status: true },
         where: { id: organizationId }
       });
       if (!organization) {
         this.logger.warn(`Organization member roles guard: Organization with id ${organizationId} does not exist`);
         throw new ForbiddenException('Organization does not exist');
       }
-      if (!organization.is_verified) {
+      if (organization.status !== OrganizationStatus.VERIFIED) {
         this.logger.warn(`Organization member roles guard: Organization with id ${organizationId} is not verified`);
         throw new ForbiddenException('Organization is not verified');
       }

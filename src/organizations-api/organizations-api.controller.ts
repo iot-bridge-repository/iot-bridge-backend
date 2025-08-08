@@ -31,7 +31,7 @@ export class OrganizationsApiController {
             id: "9acc6316-f8b0-44a7-9b2f-f8f9005c2973",
             name: "POKDAKAN BINTANG ROSELA JAYA 2",
             description: null,
-            is_verified: false,
+            status: 'Pending',
             created_by: "da50de59-1f67-4007-ab33-3de8d08825b9",
             creator_username: "Kanaya"
           },
@@ -57,7 +57,7 @@ export class OrganizationsApiController {
           name: "Proposed Organization",
           description: null,
           organization_picture: null,
-          is_verified: false,
+          status: 'Pending',
           created_by: "cbb5e309-b7e9-424a-a0bf-a0e8b53c93b8",
           created_at: "2025-04-26T01:31:42.530Z"
         }
@@ -115,7 +115,7 @@ export class OrganizationsApiController {
           name: "POKDAKAN BINTANG ROSELA JAYA 2",
           description: null,
           organization_picture: null,
-          is_verified: false,
+          status: 'Verified',
           location: null,
           created_by: "da50de59-1f67-4007-ab33-3de8d08825b9",
           created_at: "2025-04-26T07:58:00.278Z"
@@ -357,7 +357,7 @@ export class OrganizationsApiController {
             name: 'organization_test',
             location: 'Universitas Lampung',
             creator_username: 'user_test 1',
-            is_verified: true
+            status: 'Pending',
           }
         ]
       }
@@ -381,7 +381,7 @@ export class OrganizationsApiController {
           name: 'organization_test',
           location: 'Universitas Lampung',
           creator_username: 'user_test 1',
-          is_verified: true,
+          status: 'Pending',
           members: [
             {
               username: "user_test 1",

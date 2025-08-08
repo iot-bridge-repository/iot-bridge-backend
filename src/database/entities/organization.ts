@@ -1,5 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
+export enum OrganizationStatus {
+  PENDING = 'Pending',
+  VERIFIED = 'Verified',
+  UNVERIFIED = 'Unverified',
+}
+
 @Entity({ name: 'organizations' })
 export class Organization {
   @PrimaryGeneratedColumn('uuid')
@@ -17,8 +23,8 @@ export class Organization {
   @Column({ type: 'text', nullable: true })
   organization_picture: string | null;
 
-  @Column({ type: 'boolean', default: false, nullable: false })
-  is_verified: boolean;
+  @Column({ type: 'enum', enum: OrganizationStatus, default: OrganizationStatus.PENDING, })
+  status: OrganizationStatus;
 
   @Column({ type: 'varchar', unique: false, nullable: false })
   created_by: string;

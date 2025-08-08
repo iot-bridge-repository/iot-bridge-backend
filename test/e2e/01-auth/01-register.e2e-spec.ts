@@ -36,7 +36,7 @@ describe('Auth Controller (e2e)', () => {
     // Filter configuration
     app.useGlobalFilters(new HttpExceptionFilter());
 
-    app.setBaseViewsDir(join(__dirname, '..', '..', 'src', 'common', 'views'));
+    app.setBaseViewsDir(join(__dirname, '..', '..', '..', 'src', 'common', 'views'));
     app.setViewEngine('hbs');
 
     await app.init();

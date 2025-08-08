@@ -35,9 +35,10 @@ export class CreateOrganizationsTable1743734171305 implements MigrationInterface
             isNullable: true,
           },
           {
-            name: 'is_verified',
-            type: 'boolean',
-            default: false,
+            name: 'status',
+            type: 'enum',
+            enum: ['Pending', 'Verified', 'Unverified'],
+            default: `'Pending'`,
             isNullable: false,
           },
           {

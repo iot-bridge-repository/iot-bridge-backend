@@ -114,10 +114,10 @@ $ npm run start:prod
 
 ```bash
 # sanity test
-$ k6 run test/performance/scenarios/sanity.test.js
+$ K6_WEB_DASHBOARD=true k6 run test/performance/scenarios/sanity.test.js
 
 # stress test
-$ k6 run test/performance/scenarios/stress.test.js
+$ K6_WEB_DASHBOARD=true k6 run test/performance/scenarios/stress.test.js
 ```
 
 Make sure the following are done before running the tests:

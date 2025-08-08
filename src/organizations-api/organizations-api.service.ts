@@ -7,7 +7,7 @@ import { Request } from 'express';
 import { Repository, Brackets } from 'typeorm';
 import { v4 as uuidv4 } from "uuid";
 import * as bcrypt from 'bcrypt';
-import { User, UserRole, UserNotification, Organization, OrganizationMember, OrganizationMemberRole, OrganizationMemberStatus } from '../common/entities';
+import { User, UserRole, UserNotification, Organization, OrganizationMember, OrganizationMemberRole, OrganizationMemberStatus, OrganizationStatus } from '../common/entities';
 import * as dto from './dto';
 import { FcmService } from '../common/services/fcm.service';
 
@@ -36,7 +36,7 @@ export class OrganizationsApiService {
           'om.organization_id AS id',
           'o.name AS name',
           'o.description AS description',
-          'o.is_verified AS is_verified',
+          'o.status AS status',
           'o.created_by AS created_by',
           'creator.username AS creator_username',
         ])
@@ -83,7 +83,7 @@ export class OrganizationsApiService {
       const newOrganization = this.organizationRepository.create({
         id: uuidv4(),
         name: postProposeDto.name,
-        is_verified: false,
+        status: OrganizationStatus.PENDING,
         created_by: id,
       });
       await this.organizationRepository.save(newOrganization);
@@ -137,7 +137,7 @@ export class OrganizationsApiService {
       }
 
       // Verify organization
-      await this.organizationRepository.update({ id: patchVerifyDto.organization_id }, { is_verified: true });
+      await this.organizationRepository.update({ id: patchVerifyDto.organization_id }, { status: OrganizationStatus.VERIFIED });
 
       // Create notification for user
       const userNotification = this.userNotificationRepository.create({
@@ -178,7 +178,7 @@ export class OrganizationsApiService {
       }
 
       // Unverify organization
-      await this.organizationRepository.update({ id: patchUnverifyDto.organization_id }, { is_verified: false });
+      await this.organizationRepository.update({ id: patchUnverifyDto.organization_id }, { status: OrganizationStatus.UNVERIFIED });
 
       // Create notification for user
       const userNotification = this.userNotificationRepository.create({
@@ -714,7 +714,7 @@ export class OrganizationsApiService {
         .select([
           'o.name AS name',
           'o.location AS location',
-          'o.is_verified AS is_verified',
+          'o.status AS status',
           'o.id AS id',
           'creator.username AS creator_username',
         ])
@@ -745,7 +745,7 @@ export class OrganizationsApiService {
         .select([
           'o.name AS name',
           'o.location AS location',
-          'o.is_verified AS is_verified',
+          'o.status AS status',
           'o.id AS id',
           'creator.username AS creator_username',
         ])
@@ -774,7 +774,7 @@ export class OrganizationsApiService {
           name: organizations.name,
           location: organizations.location,
           creator_username: organizations.creator_username,
-          is_verified: organizations.is_verified,
+          status: organizations.status,
           members,
         },
       };

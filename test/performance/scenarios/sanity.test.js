@@ -1,4 +1,3 @@
-import { sleep } from "k6";
 import registerFlow from "../api-flows/auth/register-flow.js";
 import forgotPasswordFlow from "../api-flows/auth/forgot-password-flow.js";
 import login from "../api-flows/auth/login.js";
@@ -58,6 +57,4 @@ const mqttDeviceDataPublishBaseUrl = (__ENV.MQTT_DEVICE_DATA_PUBLISH_BASE_URL &&
 
   // 5. Users
   getUser(adminSystemJwtToken, user.username);
-
-  sleep(1);
 }

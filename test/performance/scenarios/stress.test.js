@@ -1,4 +1,3 @@
-import { sleep } from "k6";
 import registerFlow from "../api-flows/auth/register-flow.js";
 import forgotPasswordFlow from "../api-flows/auth/forgot-password-flow.js";
 import login from "../api-flows/auth/login.js";
@@ -20,13 +19,13 @@ import mqttDeviceDataPublish from "../mqtt/device-data-publish.js";
 
 export const options = {
   stages: [
-    { duration: '1m',  target: 20 },
+    { duration: '2m',  target: 20 },
     { duration: '2m',  target: 50 },
     { duration: '2m',  target: 100 },
-    /* { duration: '2m',  target: 200 },
-    { duration: '3m',  target: 400 },
+    { duration: '2m',  target: 200 },
+    { duration: '2m',  target: 400 },
     { duration: '3m',  target: 600 },
-    { duration: '3m',  target: 800 },
+    /*{ duration: '3m',  target: 800 },
     { duration: '5m',  target: 1000 },
     { duration: '2m',  target: 400 }, */
     { duration: '1m',  target: 0 },
@@ -75,6 +74,4 @@ const mqttDeviceDataPublishBaseUrl = (__ENV.MQTT_DEVICE_DATA_PUBLISH_BASE_URL &&
 
   // 5. Users
   getUser(adminSystemJwtToken, user.username);
-
-  sleep(1);
 }
