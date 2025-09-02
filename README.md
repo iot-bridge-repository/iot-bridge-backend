@@ -179,6 +179,8 @@ $ npx ts-node src/database/scripts/cleanTestData.ts
 ```json
 {
   "data": {
+    "deviceId": "{deviceId}",
+    "pin": "V1",
     "value": 23.5,
     "time": "2025-05-27T12:00:00Z"
   }

@@ -64,7 +64,12 @@ export class WebsocketService implements OnModuleInit {
   // emit device pin data
   emitDevicePinData(deviceId: string, pin: string, data: DevicePinDataPayload) {
     const topic = `device-id/${deviceId}/pin/${pin}`;
-    const payload = JSON.stringify({ value: data.value, time: data.time });
+    const payload = JSON.stringify({
+      deviceId,
+      pin,
+      value: data.value, 
+      time: data.time 
+    });
 
     // send to clients while they have the topic
     this.clients.forEach(({ socket, topics }) => {
