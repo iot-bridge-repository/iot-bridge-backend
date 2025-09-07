@@ -17,7 +17,7 @@ export class NotificationsApiController {
     private readonly notificationsApiService: NotificationsApiService
   ) {}
 
-  @ApiOperation({ summary: 'Get notifications' })
+  @ApiOperation({ summary: 'Get notifications (lokal member minimal role)' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -42,7 +42,7 @@ export class NotificationsApiController {
     return this.notificationsApiService.get(request.user.id);
   }
 
-  @ApiOperation({ summary: 'Delete notification by id' })
+  @ApiOperation({ summary: 'Delete notification by id (lokal member minimal role)' })
   @ApiParam({ name: 'notificationId', type: String, description: 'Notification id' })
   @ApiOkResponse({
     schema: {
@@ -59,7 +59,7 @@ export class NotificationsApiController {
     return this.notificationsApiService.delete(request.params.notificationId);
   }
 
-  @ApiOperation({ summary: 'Delete all notifications' })
+  @ApiOperation({ summary: 'Delete all notifications (lokal member minimal role)' })
   @ApiOkResponse({
     schema: {
       example: {

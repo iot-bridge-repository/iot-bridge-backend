@@ -19,7 +19,7 @@ export class DevicesApiController {
     private readonly devicesApiService: DevicesApiService
   ) { }
 
-  @ApiOperation({ summary: 'Create a new device' })
+  @ApiOperation({ summary: 'Create a new device (organization operator minimal role)' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -42,7 +42,7 @@ export class DevicesApiController {
     return this.devicesApiService.post(request.params.organizationId, postDto);
   }
 
-  @ApiOperation({ summary: 'Search devices' })
+  @ApiOperation({ summary: 'Search devices (organization viewer minimal role)' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -65,7 +65,7 @@ export class DevicesApiController {
     return this.devicesApiService.getSearch(request.params.organizationId, query);
   }
 
-  @ApiOperation({ summary: 'Get device by id' })
+  @ApiOperation({ summary: 'Get device by id (organization viewer minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
@@ -87,7 +87,7 @@ export class DevicesApiController {
     return this.devicesApiService.get(request.params.organizationId, request.params.deviceId);
   }
 
-  @ApiOperation({ summary: 'Update device' })
+  @ApiOperation({ summary: 'Update device (organization operator minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
@@ -108,7 +108,7 @@ export class DevicesApiController {
     return this.devicesApiService.patch(request.params.organizationId, request.params.deviceId, patchDto);
   }
 
-  @ApiOperation({ summary: 'Delete device' })
+  @ApiOperation({ summary: 'Delete device (organization operator minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
@@ -123,7 +123,7 @@ export class DevicesApiController {
     return this.devicesApiService.delete(request.params.deviceId);
   }
 
-  @ApiOperation({ summary: 'Get pin list' })
+  @ApiOperation({ summary: 'Get pin list (organization operator minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
@@ -141,7 +141,7 @@ export class DevicesApiController {
     return this.devicesApiService.getPinList(request.params.deviceId);
   }
 
-  @ApiOperation({ summary: 'Create or update widget box' })
+  @ApiOperation({ summary: 'Create or update widget box (organization operator minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
@@ -163,7 +163,7 @@ export class DevicesApiController {
     return this.devicesApiService.putWidgetBox(request.params.organizationId, request.params.deviceId, putWidgetBoxDto);
   }
 
-  @ApiOperation({ summary: 'Get widget box list' })
+  @ApiOperation({ summary: 'Get widget box list (organization viewer minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
@@ -192,7 +192,7 @@ export class DevicesApiController {
     return this.devicesApiService.getWidgetBoxesList(request.params.organizationId, request.params.deviceId);
   }
 
-  @ApiOperation({ summary: 'Get widget box by id' })
+  @ApiOperation({ summary: 'Get widget box by id (organization viewer minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiParam({ name: 'widgetBoxId', type: String, description: 'Widget box id' })
   @ApiOkResponse({
@@ -220,7 +220,7 @@ export class DevicesApiController {
     return this.devicesApiService.getWidgetBox(request.params.organizationId, request.params.deviceId, request.params.widgetBoxId);
   }
 
-  @ApiOperation({ summary: 'Delete widget box' })
+  @ApiOperation({ summary: 'Delete widget box (organization operator minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiParam({ name: 'widgetBoxId', type: String, description: 'Widget box id' })
   @ApiOkResponse({
@@ -230,13 +230,13 @@ export class DevicesApiController {
   })
   @Delete(':deviceId/widget-boxes/:widgetBoxId')
   @UseGuards(OrganizationMemberRolesGuard)
-  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
+  @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
   async deleteWidgetBox(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to delete widget box`);
     return this.devicesApiService.deleteWidgetBox(request.params.organizationId, request.params.deviceId, request.params.widgetBoxId);
   }
 
-  @ApiOperation({ summary: 'Get device report' })
+  @ApiOperation({ summary: 'Get device report (organization viewer minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
@@ -257,7 +257,7 @@ export class DevicesApiController {
     return this.devicesApiService.getReport(request.params.organizationId, request.params.deviceId, pin, start, end);
   }
 
-  @ApiOperation({ summary: 'Create notification events' })
+  @ApiOperation({ summary: 'Create notification events (organization operator minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
@@ -285,7 +285,7 @@ export class DevicesApiController {
     return this.devicesApiService.postNotificationEvent(request.params.organizationId, request.params.deviceId, postNotificationEvent);
   }
 
-  @ApiOperation({ summary: 'Get notification events list' })
+  @ApiOperation({ summary: 'Get notification events list (organization viewer minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
@@ -313,7 +313,7 @@ export class DevicesApiController {
     return this.devicesApiService.getNotificationEventsList(request.params.organizationId, request.params.deviceId);
   }
 
-  @ApiOperation({ summary: 'Get notification events by id' })
+  @ApiOperation({ summary: 'Get notification events by id (organization viewer minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiParam({ name: 'notificationEventId', type: String, description: 'Notification event id' })
   @ApiOkResponse({
@@ -341,7 +341,7 @@ export class DevicesApiController {
     return this.devicesApiService.getNotificationEvent(request.params.organizationId, request.params.deviceId, request.params.notificationEventId);
   }
 
-  @ApiOperation({ summary: 'Update notification events' })
+  @ApiOperation({ summary: 'Update notification events (organization operator minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiParam({ name: 'notificationEventId', type: String, description: 'Notification event id' })
   @ApiOkResponse({
@@ -367,7 +367,7 @@ export class DevicesApiController {
     return this.devicesApiService.patchNotificationEvent(request.params.organizationId, request.params.deviceId, request.params.notificationEventId, patchNotificationEvent);
   }
 
-  @ApiOperation({ summary: 'Delete notification events' })
+  @ApiOperation({ summary: 'Delete notification events (organization operator minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiParam({ name: 'notificationEventId', type: String, description: 'Notification event id' })
   @ApiOkResponse({

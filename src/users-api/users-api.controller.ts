@@ -17,7 +17,7 @@ export class UsersApiController {
     private readonly usersApiService: UsersApiService
   ) { }
 
-  @ApiOperation({ summary: 'Search users' })
+  @ApiOperation({ summary: 'Search users (admin System minimal role)' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -42,7 +42,7 @@ export class UsersApiController {
     return this.usersApiService.getSearch(identity);
   }
 
-  @ApiOperation({ summary: 'Get users by id' })
+  @ApiOperation({ summary: 'Get users by id (admin System minimal role)' })
   @ApiParam({ name: 'userId', type: String, description: 'User ID' })
   @ApiOkResponse({
     schema: {

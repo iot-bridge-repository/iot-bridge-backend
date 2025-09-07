@@ -21,7 +21,7 @@ export class OrganizationsApiController {
     private readonly organizationsApiService: OrganizationsApiService
   ) { }
 
-  @ApiOperation({ summary: 'Get user organizations list' })
+  @ApiOperation({ summary: 'Get user organizations list (local member minimal role)' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -47,7 +47,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.getList(request.user.id);
   }
 
-  @ApiOperation({ summary: 'Propose an organization' })
+  @ApiOperation({ summary: 'Propose an organization (regular user minimal role)' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -72,7 +72,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.postPropose(request.user.id, postProposeDto);
   }
 
-  @ApiOperation({ summary: 'Verify organization' })
+  @ApiOperation({ summary: 'Verify organization (admin system minimal role)' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -88,7 +88,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.patchVerify(patchVerifyDto);
   }
 
-  @ApiOperation({ summary: 'Unverify organization' })
+  @ApiOperation({ summary: 'Unverify organization (admin system minimal role)' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -104,7 +104,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.patchUnverify(patchUnverifyDto);
   }
 
-  @ApiOperation({ summary: 'Get organization profile' })
+  @ApiOperation({ summary: 'Get organization profile (organization viewer minimal role)' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     schema: {
@@ -131,7 +131,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.getOrganizationProfile(request.user.id, request.params.organizationId);
   }
 
-  @ApiOperation({ summary: 'Update organization profile' })
+  @ApiOperation({ summary: 'Update organization profile (organization admin minimal role)' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -168,7 +168,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.patchOrganizationProfile(request, request.params.organizationId, patchOrganizationProfileDto, request.file?.filename ?? null);
   }
 
-  @ApiOperation({ summary: 'Search members' })
+  @ApiOperation({ summary: 'Search members (organization admin minimal role)' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     schema: {
@@ -193,7 +193,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.getSearchMembers(identity);
   }
 
-  @ApiOperation({ summary: 'Member invitation' })
+  @ApiOperation({ summary: 'Member invitation (organization admin minimal role)' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     schema: {
@@ -219,7 +219,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.postMemberInvitation(request.params.organizationId, postMemberInvitationDto);
   }
 
-  @ApiOperation({ summary: 'Member invitation response' })
+  @ApiOperation({ summary: 'Member invitation response (regular user minimal role)' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     schema: {
@@ -239,7 +239,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.patchMemberInvitationResponse(request.user.id, request.params.organizationId, patchInvitationResponseDto);
   }
 
-  @ApiOperation({ summary: 'Create local member' })
+  @ApiOperation({ summary: 'Create local member (organization admin minimal role)' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     schema: {
@@ -270,7 +270,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.postLocalMember(request.params.organizationId, localMemberDto);
   }
 
-  @ApiOperation({ summary: 'Get member list' })
+  @ApiOperation({ summary: 'Get member list (organization viewer minimal role)' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     schema: {
@@ -295,7 +295,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.getMemberList(request.params.organizationId);
   }
 
-  @ApiOperation({ summary: 'Change member roles' })
+  @ApiOperation({ summary: 'Change member roles (organization admin minimal role)' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     schema: {
@@ -312,7 +312,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.patchMemberRoles(request.params.organizationId, patchMemberRolesDto);
   }
 
-  @ApiOperation({ summary: 'Delete member' })
+  @ApiOperation({ summary: 'Delete member (organization admin minimal role)' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiParam({ name: 'userId', type: String, description: 'ID user' })
   @ApiOkResponse({
@@ -330,7 +330,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.deleteMember(request.params.organizationId, request.params.userId);
   }
 
-  @ApiOperation({ summary: 'Leave organization' })
+  @ApiOperation({ summary: 'Leave organization (organization viewer minimal role)' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     schema: {
@@ -347,7 +347,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.deleteLeave(request.user.id, request.params.organizationId);
   }
 
-  @ApiOperation({ summary: 'Search organizations' })
+  @ApiOperation({ summary: 'Search organizations (admin system minimal role)' })
   @ApiOkResponse({
     schema: {
       example: {
@@ -371,7 +371,7 @@ export class OrganizationsApiController {
     return this.organizationsApiService.getSearch(keyword);
   }
 
-  @ApiOperation({ summary: 'Get organization by id' })
+  @ApiOperation({ summary: 'Get organization by id (admin system minimal role)' })
   @ApiParam({ name: 'organizationId', type: String, description: 'ID organisasi' })
   @ApiOkResponse({
     schema: {

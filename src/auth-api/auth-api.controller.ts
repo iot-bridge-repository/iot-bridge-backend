@@ -175,7 +175,7 @@ export class AuthApiController {
     return this.authService.postResetPassword(resetPasswordDto, res);
   }
 
-  @ApiOperation({ summary: 'Get profile' })
+  @ApiOperation({ summary: 'Get profile (lokal member minimal role)' })
   @ApiBearerAuth()
   @ApiOkResponse({
     schema: {
@@ -201,7 +201,7 @@ export class AuthApiController {
     return this.authService.getProfile(request.user.id);
   }
 
-  @ApiOperation({ summary: 'Update profile username, phone number, and profile picture' })
+  @ApiOperation({ summary: 'Update profile username, phone number, and profile picture (regular user minimal role)' })
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -241,7 +241,7 @@ export class AuthApiController {
     return this.authService.patchProfile(request, request.user.id, patchProfileDto, request.file?.filename ?? null);
   }
 
-  @ApiOperation({ summary: 'Change email' })
+  @ApiOperation({ summary: 'Change email (regular user minimal role)' })
   @ApiBearerAuth()
   @ApiOkResponse({
     schema: {
@@ -258,7 +258,7 @@ export class AuthApiController {
     return this.authService.patchEmail(request, request.user.id, patchEmailDto);
   }
 
-  @ApiOperation({ summary: 'Change password' })
+  @ApiOperation({ summary: 'Change password (lokal member minimal role)' })
   @ApiBearerAuth()
   @ApiOkResponse({
     schema: {
@@ -269,7 +269,7 @@ export class AuthApiController {
   })
   @Patch('password')
   @UseGuards(UserRolesGuard)
-  @UserRoles(UserRole.REGULAR_USER)
+  @UserRoles(UserRole.LOCAL_MEMBER)
   async patchPassword(@Req() request: AuthenticatedRequest, @Body() patchPasswordDto: dto.PatchPasswordDto) {
     this.logger.log(`There is a change password request`);
     return this.authService.patchPassword(request.user.id, patchPasswordDto);
