@@ -73,5 +73,6 @@ export class CreateOrganizationMembersTable1743862903079 implements MigrationInt
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.dropTable('organization_members');
     await queryRunner.query('DROP TYPE IF EXISTS organization_members_role_enum');
+    await queryRunner.query('DROP TYPE IF EXISTS organization_members_status_enum');
   }
 }

@@ -71,5 +71,6 @@ export class CreateOrganizationsTable1743734171305 implements MigrationInterface
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.dropTable('organizations');
+    await queryRunner.query(`DROP TYPE IF EXISTS "organizations_status_enum"`);
   }
 }

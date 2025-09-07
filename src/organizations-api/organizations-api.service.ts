@@ -356,7 +356,7 @@ export class OrganizationsApiService {
         user_id: postMemberInvitationDto.user_id,
         subject: `Undangan untuk bergabung di organisasi`,
         message: `Anda telah diundang untuk bergabung di organisasi: ${organization?.name}`,
-        type: 'organization_member_invitation',
+        type: `organization_member_invitation, id: ${organizationId}`,
       });
       await this.userNotificationRepository.save(userNotification);
 
