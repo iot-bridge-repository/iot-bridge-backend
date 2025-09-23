@@ -80,8 +80,9 @@ export class OrganizationsApiService {
       }
 
       // Create new organization
+      const organizationId = uuidv4();
       const newOrganization = this.organizationRepository.create({
-        id: uuidv4(),
+        id: organizationId,
         name: postProposeDto.name,
         status: OrganizationStatus.PENDING,
         created_by: id,
@@ -106,7 +107,7 @@ export class OrganizationsApiService {
           user_id: admin.id,
           subject: `Pengajuan organisasi baru`,
           message: `User ${user.username} mengajukan organisasi: ${newOrganization.name}`,
-          type: 'organization_propose',
+          type: `organization_propose, id: ${organizationId}`,
         }))
       );
 
