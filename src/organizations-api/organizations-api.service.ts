@@ -272,7 +272,7 @@ export class OrganizationsApiService {
           id: organizationId,
           name: updateOrganizationProfile.name,
           description: updateOrganizationProfile.description,
-          organization_picture: organization?.organization_picture,
+          organization_picture: updateOrganizationProfile.organization_picture,
           location: updateOrganizationProfile.location
         },
       };
