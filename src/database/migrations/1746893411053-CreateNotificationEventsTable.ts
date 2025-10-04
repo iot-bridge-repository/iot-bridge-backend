@@ -89,5 +89,6 @@ export class CreateNotificationEventsTable1746893411053 implements MigrationInte
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.dropTable('notification_events');
+    await queryRunner.query('DROP TYPE IF EXISTS notification_events_comparison_type_enum');
   }
 }

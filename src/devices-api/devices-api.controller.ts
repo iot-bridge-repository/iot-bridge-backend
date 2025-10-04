@@ -123,7 +123,7 @@ export class DevicesApiController {
     return this.devicesApiService.delete(request.params.deviceId);
   }
 
-  @ApiOperation({ summary: 'Get pin list (organization operator minimal role)' })
+  @ApiOperation({ summary: 'Get pin list (organization viewer minimal role)' })
   @ApiParam({ name: 'deviceId', type: String, description: 'Device id' })
   @ApiOkResponse({
     schema: {
@@ -135,7 +135,7 @@ export class DevicesApiController {
   })
   @Get(':deviceId/pin-list')
   @UseGuards(OrganizationMemberRolesGuard)
-  @OrganizationMemberRoles(OrganizationMemberRole.OPERATOR)
+  @OrganizationMemberRoles(OrganizationMemberRole.VIEWER)
   async getPinList(@Req() request: AuthenticatedRequest) {
     this.logger.log(`There is a request to get pin list`);
     return this.devicesApiService.getPinList(request.params.deviceId);

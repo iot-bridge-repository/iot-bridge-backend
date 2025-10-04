@@ -598,7 +598,7 @@ export class OrganizationsApiService {
       // Check if is user part of the organization
       const organizationMember = await this.organizationMemberRepository.findOne({
         select: { id: true },
-        where: { user_id: userId, organization_id: organizationId, status: OrganizationMemberStatus.ACCEPTED },
+        where: { user_id: userId, organization_id: organizationId },
       });
       if (!organizationMember) {
         this.logger.warn(`Failed to delete member. User with id ${userId} is not a member of organization with id ${organizationId}`);
